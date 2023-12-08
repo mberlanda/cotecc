@@ -1,0 +1,13 @@
+import React, { useState } from 'react';
+import { GameState } from './types';
+import GameScreen from './screens/GameScreen';
+
+const App = () => {
+  const [gameState, setGameState] = useState<GameState>(/* initial state */);
+
+  return (
+    <GameScreen gameState={gameState} />
+  );
+};
+
+export default App;

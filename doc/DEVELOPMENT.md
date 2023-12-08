@@ -39,6 +39,15 @@ npx react-native init CoteccApp --template react-native-template-typescript
 cd CoteccApp
 ```
 
+#### Troubleshooting:
+
+> No bundle URL present
+
+```
+npm install
+npm start
+```
+
 
 ### web
 ```
