@@ -5,6 +5,7 @@ export interface Card {
   }
   
   export interface Player {
+    name: string;
     hand: Card[];
     boleCount: number;
     score: number;

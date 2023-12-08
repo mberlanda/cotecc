@@ -5,7 +5,9 @@ import { createDeck, shuffleDeck } from './utils/gameLogic';
 
 const initialPlayers: Player[] = [
     // Initialize players with empty hands and scores
-    { hand: [], boleCount: 0, score: 0 },
+    { name: 'foo', hand: [], boleCount: 0, score: 0 },
+    { name: 'bar', hand: [], boleCount: 0, score: 0 },
+    { name: 'baz', hand: [], boleCount: 0, score: 0 },
     // ... for all five players
 ];
 

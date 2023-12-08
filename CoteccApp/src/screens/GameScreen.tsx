@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { GameState, Card } from '../types';
 import PlayerHand from '../components/PlayerHand';
 import { dealCards } from '../utils/gameLogic';
@@ -38,7 +38,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState }) => {
     };
 
     return (
-        <View>
+        <ScrollView>
             {gameState.players.map((player, index) => (
                 <View key={index}>
                     <Text>Player {index + 1}</Text>
@@ -46,7 +46,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState }) => {
                 </View>
             ))}
             {/* Implement UI elements for game controls */}
-        </View>
+        </ScrollView>
     );
 };
 

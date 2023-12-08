@@ -1,19 +1,18 @@
 import { Card, Player, GameState } from '../types';
+import { Suit } from './constants';
 
 // Initialize Game Logic
 
 export const createDeck = (): Card[] => {
     // Implement deck creation logic
-    // Please note that this will require to reflect
-    // bergamasche cards and the logic will be handled
-    // server side in the API
-    const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+    // This may be generalized to fit multiple games
+    // and to support different kind of card decks.
     const deck: Card[] = [];
 
-    for (const suit of suits) {
-        for (let rank = 2; rank <= 10; rank++) {
+    for (const suit of Object.values(Suit)) {
+        for (let rank = 1; rank <= 10; rank++) {
             let points = 0;
-            if (rank === 11) { // Ace
+            if (rank === 1) { // Ace
                 points = 6;
             } else if (rank === 10) {
                 points = 5;
