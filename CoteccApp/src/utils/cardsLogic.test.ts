@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { createDeck, dealCards, shuffleDeck, sortCards } from './gameLogic';
+import { cardIsGreater, createDeck, dealCards, shuffleDeck, sortCards } from './cardsLogic';
+import { Suit } from './constants';
 
 describe('createDeck', () => {
     it('creates a deck of 40 cards', () => {
@@ -69,13 +70,50 @@ describe('dealCards', () => {
     it('deals 7 cards to each player', () => {
         const deck = shuffleDeck(createDeck());
         const players = [
-            { name: 'foo', hand: [], boleCount: 0, score: 0 },
-            { name: 'bar', hand: [], boleCount: 0, score: 0 },
-            { name: 'baz', hand: [], boleCount: 0, score: 0 },
+            { ID: 0, name: 'foo', hand: [], boleCount: 0, score: 0 },
+            { ID: 1, name: 'bar', hand: [], boleCount: 0, score: 0 },
+            { ID: 2, name: 'baz', hand: [], boleCount: 0, score: 0 },
         ];
         dealCards(deck, players);
         players.forEach(player => {
             expect(player.hand).toHaveLength(7);
         });
+    });
+});
+
+describe("cardIsGreater", () => {
+    it("handles two cards with the same points based on rank", () => {
+        const a = { suit: Suit.Ori, rank: 6, points: 0 };
+        const b = { suit: Suit.Ori, rank: 4, points: 0 };
+
+        expect(cardIsGreater(a, b)).toBeTruthy;
+    });
+
+    it("handles two cards with the different points", () => {
+        const a = { suit: Suit.Ori, rank: 9, points: 4 };
+        const b = { suit: Suit.Ori, rank: 4, points: 0 };
+
+        expect(cardIsGreater(a, b)).toBeTruthy;
+    });
+
+    it("handles ace special case", () => {
+        const a = { suit: Suit.Ori, rank: 1, points: 6 };
+        const b = { suit: Suit.Ori, rank: 9, points: 4 };
+
+        expect(cardIsGreater(a, b)).toBeTruthy;
+    });
+
+    it("disregards card suit - not a legit use case", () => {
+        const a = { suit: Suit.Ori, rank: 7, points: 0 };
+        const b = { suit: Suit.Spade, rank: 9, points: 4 };
+
+        expect(cardIsGreater(a, b)).toBeFalsy;
+    });
+
+    it("returns false on identical cards - not a legit use case", () => {
+        const a = { suit: Suit.Ori, rank: 7, points: 0 };
+        const b = { suit: Suit.Spade, rank: 7, points: 0 };
+
+        expect(cardIsGreater(a, b)).toBeFalsy;
     });
 });

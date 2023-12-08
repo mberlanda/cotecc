@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { GameState, Card } from '../types';
 import PlayerHand from '../components/PlayerHand';
-import { dealCards } from '../utils/gameLogic';
-import { playCard, nextTurn, endRound } from '../utils/gameLogic';
+import { dealCards } from '../utils/cardsLogic';
+import { playCard } from '../utils/gameLogic';
+import { StateDebugComponent } from '../components/StateDebug';
 
 // Define an interface for the props
 interface GameScreenProps {
@@ -32,27 +33,22 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState }) => {
     const handleCardSelect = (card: Card) => {
         // Handle card selection logic
 
-        const currentPlayer = gameState.players[gameState.currentTurn];
-        playCard(currentPlayer, card);
+        const currentPlayer = localGameState.players[localGameState.currentPlayerID];
+        playCard(localGameState, currentPlayer, card);
 
-        const isRoundEnd = nextTurn(gameState);
-        if (isRoundEnd) {
-            endRound(gameState);
-            // Reset for a new round or handle game end
-        }
-        // Update gameState accordingly
-        setLocalGameState({ ...gameState });
+        setLocalGameState({ ...localGameState });
     };
 
     return (
         <ScrollView>
-            {gameState.players.map((player, index) => (
+            {localGameState.players.map((player, index) => (
                 <View key={index}>
-                    <Text>Player name: {player.name}</Text>
+                    <Text>Player name: {player.name} - ID {player.ID} - score {player.score}</Text>
                     <PlayerHand player={player} onCardSelect={handleCardSelect} />
                 </View>
             ))}
             {/* Implement UI elements for game controls */}
+            <StateDebugComponent state={localGameState} />
         </ScrollView>
     );
 };

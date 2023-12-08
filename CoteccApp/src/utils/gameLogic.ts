@@ -1,85 +1,96 @@
 import { Card, Player, GameState } from '../types';
-import { Suit } from './constants';
+import { cardIsGreater } from './cardsLogic';
 
-// Initialize Game Logic
-
-export const createDeck = (): Card[] => {
-    // Implement deck creation logic
-    // This may be generalized to fit multiple games
-    // and to support different kind of card decks.
-    const deck: Card[] = [];
-
-    for (const suit of Object.values(Suit)) {
-        for (let rank = 1; rank <= 10; rank++) {
-            let points = 0;
-            if (rank === 1) { // Ace
-                points = 6;
-            } else if (rank === 10) {
-                points = 5;
-            } else if (rank === 9) {
-                points = 4;
-            } else if (rank === 8) {
-                points = 3;
-            }
-            deck.push({ suit, rank, points });
-        }
+export const findPlayerById = (players: Player[], playerID: number): Player => {
+    const player = players.find(p => p.ID == playerID);
+    if (!player) {
+        throw RangeError(`PlayerID ${playerID} out of range`);
     }
-
-    return deck;
-
-};
-
-export const shuffleDeck = (deck: Card[]): Card[] => {
-    // Implement shuffling logic
-    for (let i = deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [deck[i], deck[j]] = [deck[j], deck[i]];
-    }
-    return deck;
-};
-
-export const sortCards = (deck: Card[]): Card[] => {
-    return deck.sort((a, b) => {
-        if (a.suit === b.suit) {
-            return a.rank - b.rank;
-        }
-        return a.suit.localeCompare(b.suit);
-    });
+    return player;
 }
 
-export const dealCards = (deck: Card[], players: Player[]): void => {
-    // Implement card dealing logic
-    const cardsPerPlayer = 7;
-    if ((cardsPerPlayer * players.length) > deck.length) {
-        throw RangeError(
-            `Invalid number of players ${players.length} for cardsPerPlayer ${cardsPerPlayer}`
-        );
-    }
-    for (const player of players) {
-        const cards = [];
-        for (let i = 0; i < cardsPerPlayer; i++) {
-            cards.push(deck.pop()!);
-        }
-        player.hand = sortCards(cards);
-    }
-};
-
-// Implement Game Mechanics
-
-export const playCard = (player: Player, card: Card): void => {
+export const playCard = (gameState: GameState, player: Player, playedCard: Card): void => {
     // Implement playing a card logic
-    // This function should be more complex, handling game rules and logic
-    const cardIndex = player.hand.findIndex(c => c === card);
-    if (cardIndex !== -1) {
-        player.hand.splice(cardIndex, 1);
+    if (gameState.currentPlayerID !== player.ID) {
+        // Ensure that a player plays only when it's their turn
+        // TODO: return an exception visible in the UI
+        return
     }
 
-    // Additional game logic goes here
+    // If a suit is set, check if the player follows it
+    if (gameState.currentSuit && playedCard.suit !== gameState.currentSuit) {
+        // Check if the player has any cards of the current suit
+        const hasSuit = findPlayerById(gameState.players, player.ID).hand.some(card => card.suit === gameState.currentSuit);
+        if (hasSuit) {
+            // Player must play a card of the current suit
+            // TODO: return an exception visible in the UI
+            return;
+        }
+    }
+
+    // Update the current suit if this is the first card of the round
+    if (!gameState.currentSuit) {
+        gameState.currentSuit = playedCard.suit;
+    }
+
+    // Update the highest card if applicable
+    if (!gameState.currentHighestCard || (playedCard.suit === gameState.currentSuit && cardIsGreater(playedCard, gameState.currentHighestCard))) {
+        gameState.currentHighestCard = playedCard;
+        gameState.currentWinnerID = player.ID;
+    }
+
+    // This function should be more complex, handling game rules and logic
+    const cardIndex = player.hand.findIndex(c => c === playedCard);
+    if (cardIndex !== -1) {
+        const removedCard = player.hand.splice(cardIndex, 1);
+        gameState.currentMoves.push({
+            playerID: player.ID,
+            card: removedCard[0],
+        });
+    }
+
+    nextMove(gameState, player);
 };
 
-export const calculateScore = (player: Player): void => {
-    // Implement score calculation logic
-    player.score = player.hand.reduce((score, card) => score + card.points, 0);
+export const nextMove = (gameState: GameState, player: Player): void => {
+    // When all players made their move, the round is over
+    const playersCount = gameState.players.length;
+    if (gameState.currentMoves.length == playersCount) {
+        // All players have moved
+        endTurn(gameState);
+        return;
+    }
+
+    const currentPlayerIndex = gameState.players.findIndex(p => p.ID == player.ID);
+    gameState.currentPlayerID = gameState.players[(currentPlayerIndex + 1) % playersCount].ID;
+};
+
+export const endTurn = (gameState: GameState): void => {
+    const turn = gameState.currentMoves;
+    const score = turn.reduce((s, m) => s + m.card.points, 0);
+    gameState.pastTurns.push(turn);
+    findPlayerById(gameState.players, gameState.currentWinnerID!).score += score;
+    nextTurn(gameState);
+};
+
+export const nextTurn = (gameState: GameState): void => {
+    // When a player does not have card in their end, the round is over
+    if (!gameState.players[0].hand.length) {
+        endRound(gameState);
+        return;
+    }
+    gameState.currentPlayerID = gameState.currentWinnerID!;
+    gameState.currentSuit = null;
+    gameState.currentHighestCard = null;
+    gameState.currentMoves = [];
+    gameState.currentWinnerID = null;
+};
+
+export const endRound = (gameState: GameState): void => {
+    // Handle end of a round, such as calculating scores, dealing new cards, etc.
+    // Reset players' hands or game state as needed
+    // TODO: implement the logic including 6 extra points for the player
+    // who collect the last turn
 };
 
 export const checkForElimination = (players: Player[]): void => {
@@ -88,17 +99,7 @@ export const checkForElimination = (players: Player[]): void => {
         if (player.boleCount >= 4) {
             // Eliminate player
             // Additional logic for re-entering the game with a higher score might be needed
+            // TODO: implement some logic to mark the player as eliminated
         }
     });
-};
-
-export const nextTurn = (gameState: GameState): boolean => {
-    // Increment the currentTurn, and check if the round should end
-    gameState.currentTurn = (gameState.currentTurn + 1) % gameState.players.length;
-    return gameState.currentTurn === 0; // Example condition for round end
-};
-
-export const endRound = (gameState: GameState): void => {
-    // Handle end of a round, such as calculating scores, dealing new cards, etc.
-    // Reset players' hands or game state as needed
 };
