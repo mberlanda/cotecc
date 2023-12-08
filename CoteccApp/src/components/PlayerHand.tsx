@@ -1,11 +1,16 @@
 import React from 'react';
-import { Player } from '../types';
+import { TouchableOpacity, View } from 'react-native';
+import { Player, Card } from '../types';
 import CardComponent from './CardComponent';
 
-const PlayerHand = ({ player }: { player: Player }) => (
-  <div>
-    {player.hand.map(card => <CardComponent key={card.rank + card.suit} card={card} />)}
-  </div>
+const PlayerHand = ({ player, onCardSelect }: { player: Player, onCardSelect: (card: Card) => void }) => (
+    <View>
+        {player.hand.map((card, index) => (
+            <TouchableOpacity key={index} onPress={() => onCardSelect(card)}>
+                <CardComponent card={card} />
+            </TouchableOpacity>
+        ))}
+    </View>
 );
 
 export default PlayerHand;
