@@ -38,16 +38,29 @@ export const shuffleDeck = (deck: Card[]): Card[] => {
     return deck;
 };
 
+export const sortCards = (deck: Card[]): Card[] => {
+    return deck.sort((a, b) => {
+        if (a.suit === b.suit) {
+            return a.rank - b.rank;
+        }
+        return a.suit.localeCompare(b.suit);
+    });
+}
+
 export const dealCards = (deck: Card[], players: Player[]): void => {
     // Implement card dealing logic
     const cardsPerPlayer = 7;
-    for (let i = 0; i < cardsPerPlayer; i++) {
-        for (const player of players) {
-            if (deck.length > 0) {
-                const card = deck.pop()!;
-                player.hand.push(card);
-            }
+    if ((cardsPerPlayer * players.length) > deck.length) {
+        throw RangeError(
+            `Invalid number of players ${players.length} for cardsPerPlayer ${cardsPerPlayer}`
+        );
+    }
+    for (const player of players) {
+        const cards = [];
+        for (let i = 0; i < cardsPerPlayer; i++) {
+            cards.push(deck.pop()!);
         }
+        player.hand = sortCards(cards);
     }
 };
 

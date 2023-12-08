@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { GameState, Card } from '../types';
 import PlayerHand from '../components/PlayerHand';
@@ -13,11 +13,18 @@ interface GameScreenProps {
 const GameScreen: React.FC<GameScreenProps> = ({ gameState }) => {
     const [localGameState, setLocalGameState] = useState<GameState>(gameState);
 
+    const initialized = useRef(false);
+    // For some reason useEffect is triggered twice
+    // need to fine a permanent fix: https://stackoverflow.com/a/60619061
     useEffect(() => {
-        // Deal cards when the component mounts if the deck and players are ready
-        if (localGameState.deck.length && localGameState.players.length) {
-            dealCards(localGameState.deck, localGameState.players);
-            setLocalGameState({ ...localGameState });
+        // Fix the event and remove the initiated workaround
+        if (!initialized.current) {
+            initialized.current = true
+            // Deal cards when the component mounts if the deck and players are ready
+            if (localGameState.deck.length && localGameState.players.length) {
+                dealCards(localGameState.deck, localGameState.players);
+                setLocalGameState({ ...localGameState });
+            }
         }
     }, [localGameState]);
 
@@ -41,7 +48,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState }) => {
         <ScrollView>
             {gameState.players.map((player, index) => (
                 <View key={index}>
-                    <Text>Player {index + 1}</Text>
+                    <Text>Player name: {player.name}</Text>
                     <PlayerHand player={player} onCardSelect={handleCardSelect} />
                 </View>
             ))}
