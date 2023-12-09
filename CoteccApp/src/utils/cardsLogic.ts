@@ -64,5 +64,8 @@ export const dealCards = (deck: Card[], players: Player[]): void => {
 };
 
 export const cardIsGreater = (a: Card, b: Card): boolean => {
-    return a.points > b.points || a.rank > b.rank;
+    if (a.points == b.points) {
+        return a.rank > b.rank;
+    }
+    return a.points > b.points;
 }

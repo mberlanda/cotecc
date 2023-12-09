@@ -15,8 +15,8 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState }) => {
     const [localGameState, setLocalGameState] = useState<GameState>(gameState);
 
     const initialized = useRef(false);
-    // For some reason useEffect is triggered twice
-    // need to fine a permanent fix: https://stackoverflow.com/a/60619061
+    // TODO: For some reason useEffect is triggered twice
+    // need to find a permanent fix: https://stackoverflow.com/a/60619061
     useEffect(() => {
         // Fix the event and remove the initiated workaround
         if (!initialized.current) {

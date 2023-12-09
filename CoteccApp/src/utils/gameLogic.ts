@@ -10,24 +10,37 @@ export const findPlayerById = (players: Player[], playerID: number): Player => {
 }
 
 export const playCard = (gameState: GameState, player: Player, playedCard: Card): void => {
-    // Implement playing a card logic
-    if (gameState.currentPlayerID !== player.ID) {
-        // Ensure that a player plays only when it's their turn
-        // TODO: return an exception visible in the UI
-        return
+    try {
+        // TODO: investigate, reproduce and fix some transient race conditions
+        // on multiple clicks where 
+        validateCurrentPlayer(gameState, player);
+        validateSuit(gameState, player, playedCard);
+        processCardPlay(gameState, player, playedCard);
     }
+    catch (err) {
+        console.log(err);
+        // TODO: return an exception visible in the UI
+        return;
+    }
+};
 
-    // If a suit is set, check if the player follows it
+export const validateCurrentPlayer = (gameState: GameState, player: Player): void => {
+    if (gameState.currentPlayerID !== player.ID) {
+        throw Error(`Player ${player.ID} tried to play while it was player ${gameState.currentPlayerID} move`);
+    }
+};
+
+export const validateSuit = (gameState: GameState, player: Player, playedCard: Card): void => {
     if (gameState.currentSuit && playedCard.suit !== gameState.currentSuit) {
         // Check if the player has any cards of the current suit
         const hasSuit = findPlayerById(gameState.players, player.ID).hand.some(card => card.suit === gameState.currentSuit);
         if (hasSuit) {
-            // Player must play a card of the current suit
-            // TODO: return an exception visible in the UI
-            return;
+            throw Error(`Illegal move. Player ${player.ID} should respect ${gameState.currentSuit}`);
         }
     }
+};
 
+export const processCardPlay = (gameState: GameState, player: Player, playedCard: Card): void => {
     // Update the current suit if this is the first card of the round
     if (!gameState.currentSuit) {
         gameState.currentSuit = playedCard.suit;
@@ -39,18 +52,17 @@ export const playCard = (gameState: GameState, player: Player, playedCard: Card)
         gameState.currentWinnerID = player.ID;
     }
 
-    // This function should be more complex, handling game rules and logic
     const cardIndex = player.hand.findIndex(c => c === playedCard);
-    if (cardIndex !== -1) {
-        const removedCard = player.hand.splice(cardIndex, 1);
-        gameState.currentMoves.push({
-            playerID: player.ID,
-            card: removedCard[0],
-        });
+    if (cardIndex == -1) {
+        throw Error(`Player ${player.ID} does not own card: ${JSON.stringify(playedCard)}`);
     }
-
+    const removedCard = player.hand.splice(cardIndex, 1);
+    gameState.currentMoves.push({
+        playerID: player.ID,
+        card: removedCard[0],
+    });
     nextMove(gameState, player);
-};
+}
 
 export const nextMove = (gameState: GameState, player: Player): void => {
     // When all players made their move, the round is over

@@ -8,6 +8,7 @@ export const StateDebugComponent = ({ state }: { state: GameState }) => {
             <Text>State Debug</Text>
             <Text>Current Player ID: {state.currentPlayerID}</Text>
             <Text>Current Suit: {state.currentSuit || 'not set'}</Text>
+            <Text>Current Highest Move: {JSON.stringify(state.currentHighestCard)}</Text>
             <Text>Current Moves: {JSON.stringify(state.currentMoves)}</Text>
             <Text>Past Turns:</Text>
             {state.pastTurns.map((turn, index) => (

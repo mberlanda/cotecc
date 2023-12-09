@@ -1,5 +1,4 @@
 import { describe, expect, it } from '@jest/globals';
-
 import { cardIsGreater, createDeck, dealCards, shuffleDeck, sortCards } from './cardsLogic';
 import { Suit } from './constants';
 
