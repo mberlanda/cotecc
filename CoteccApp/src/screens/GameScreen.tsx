@@ -1,10 +1,12 @@
 import React, {useState, useEffect, useRef} from 'react';
-import {View, Text, ScrollView} from 'react-native';
+import {View, Text, ScrollView, StyleSheet} from 'react-native';
 import {GameState, Move} from '../types';
 import PlayerHand from '../components/PlayerHand';
 import {dealCards} from '../utils/cardsLogic';
 import {playCard} from '../utils/gameLogic';
 import {StateDebugComponent} from '../components/StateDebug';
+import StickyHeader from '../components/StickyHeader';
+import TableComponent from '../components/TableComponent';
 
 // Define an interface for the props
 interface GameScreenProps {
@@ -44,9 +46,11 @@ const GameScreen: React.FC<GameScreenProps> = ({gameState}) => {
 
   return (
     <ScrollView>
+      <StickyHeader />
+      <TableComponent moves={localGameState.currentMoves}/>
       {localGameState.players.map((player, index) => (
         <View key={index}>
-          <Text>
+          <Text style={player.ID == localGameState.currentPlayerID ? styles.currentPlayer : null}>
             Player name: {player.name} - ID {player.ID} - score {player.score}
           </Text>
           <PlayerHand player={player} onCardSelect={handleCardSelect} />
@@ -57,5 +61,11 @@ const GameScreen: React.FC<GameScreenProps> = ({gameState}) => {
     </ScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+  currentPlayer: {
+    fontWeight: 'bold',
+  }
+})
 
 export default GameScreen;

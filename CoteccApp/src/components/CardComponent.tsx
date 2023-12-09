@@ -5,17 +5,17 @@ import cardImages from '../utils/cardAssets';
 
 const CardComponent = ({
   card,
-  player,
+  playerID,
   onCardSelect,
 }: {
   card: Card;
-  player: Player;
+  playerID: number;
   onCardSelect: (move: Move) => void;
 }) => {
   const imageSource = cardImages[`${card.rank}_${card.suit}`]; // Construct the key to match the naming convention
 
   return (
-    <TouchableOpacity onPress={() => onCardSelect({card, playerID: player.ID})}>
+    <TouchableOpacity onPress={() => onCardSelect({card, playerID})}>
       <View style={styles.card}>
         <Image
           source={imageSource}
