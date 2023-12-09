@@ -2,7 +2,7 @@ import React from 'react';
 import {describe, expect, it} from '@jest/globals';
 import renderer from 'react-test-renderer';
 import {Suit} from '../utils/constants';
-import {Card} from '../types';
+import {Move} from '../types';
 import PlayerHand from './PlayerHand';
 
 const mockCardOne = {suit: Suit.Ori, rank: 5, points: 0};
@@ -14,7 +14,7 @@ const mockPlayer = {
   boleCount: 0,
   score: 0,
 };
-const mockOnCardSelect = (_card: Card): void => {};
+const mockOnCardSelect = (_move: Move): void => {};
 
 describe('PlayerHand', () => {
   it('should render correctly with given props', () => {

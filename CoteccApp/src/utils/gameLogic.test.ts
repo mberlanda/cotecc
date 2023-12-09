@@ -52,7 +52,7 @@ describe('playCard', () => {
 
   it('does not change the gameState when other player does not respect the turn', () => {
     const otherPlayer = gameState.players[1];
-    playCard(gameState, otherPlayer, otherPlayer.hand[0]);
+    playCard(gameState, otherPlayer.ID, otherPlayer.hand[0]);
 
     expect(gameState).toEqual(gameState);
   });
