@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useRef} from 'react';
 import {View, Text, ScrollView} from 'react-native';
-import {GameState, Card} from '../types';
+import {GameState, Move} from '../types';
 import PlayerHand from '../components/PlayerHand';
 import {dealCards} from '../utils/cardsLogic';
 import {playCard} from '../utils/gameLogic';
@@ -29,12 +29,15 @@ const GameScreen: React.FC<GameScreenProps> = ({gameState}) => {
     }
   }, [localGameState]);
 
-  const handleCardSelect = (card: Card) => {
-    // Handle card selection logic
-
-    const currentPlayer =
-      localGameState.players[localGameState.currentPlayerID];
-    playCard(localGameState, currentPlayer, card);
+  const handleCardSelect = (move: Move) => {
+    if (move.playerID != localGameState.currentPlayerID) {
+      // TODO: display an error message in the UI
+      console.log(
+        `Player ${move.playerID} tried to play while it was player ${localGameState.currentPlayerID} move`,
+      );
+      return;
+    }
+    playCard(localGameState, move.playerID, move.card);
 
     setLocalGameState({...localGameState});
   };

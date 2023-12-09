@@ -1,6 +1,6 @@
 import React from 'react';
 import {FlatList, StyleSheet, View} from 'react-native';
-import {Player, Card} from '../types';
+import {Player, Move} from '../types';
 import CardComponent from './CardComponent';
 
 const PlayerHand = ({
@@ -8,13 +8,17 @@ const PlayerHand = ({
   onCardSelect,
 }: {
   player: Player;
-  onCardSelect: (card: Card) => void;
+  onCardSelect: (move: Move) => void;
 }) => (
   <View style={styles.container}>
     <FlatList
       data={player.hand}
       renderItem={({item}) => (
-        <CardComponent card={item} onCardSelect={onCardSelect} />
+        <CardComponent
+          card={item}
+          player={player}
+          onCardSelect={onCardSelect}
+        />
       )}
       keyExtractor={(item, index) => index.toString()}
       horizontal

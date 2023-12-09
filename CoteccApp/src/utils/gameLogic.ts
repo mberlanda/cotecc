@@ -11,12 +11,13 @@ export const findPlayerById = (players: Player[], playerID: number): Player => {
 
 export const playCard = (
   gameState: GameState,
-  player: Player,
+  playerID: number,
   playedCard: Card,
 ): void => {
   try {
     // TODO: investigate, reproduce and fix some transient race conditions
     // on multiple clicks where
+    const player = findPlayerById(gameState.players, playerID);
     validateCurrentPlayer(gameState, player);
     validateSuit(gameState, player, playedCard);
     processCardPlay(gameState, player, playedCard);
@@ -61,6 +62,13 @@ export const processCardPlay = (
   player: Player,
   playedCard: Card,
 ): void => {
+  // Ensure player holds the card selected.
+  const cardIndex = player.hand.findIndex(c => c === playedCard);
+  if (cardIndex == -1) {
+    throw Error(
+      `Player ${player.ID} does not own card: ${JSON.stringify(playedCard)}`,
+    );
+  }
   // Update the current suit if this is the first card of the round
   if (!gameState.currentSuit) {
     gameState.currentSuit = playedCard.suit;
@@ -76,12 +84,6 @@ export const processCardPlay = (
     gameState.currentWinnerID = player.ID;
   }
 
-  const cardIndex = player.hand.findIndex(c => c === playedCard);
-  if (cardIndex == -1) {
-    throw Error(
-      `Player ${player.ID} does not own card: ${JSON.stringify(playedCard)}`,
-    );
-  }
   const removedCard = player.hand.splice(cardIndex, 1);
   gameState.currentMoves.push({
     playerID: player.ID,
