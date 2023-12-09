@@ -16,7 +16,7 @@ const PlayerHand = ({
       renderItem={({item}) => (
         <CardComponent
           card={item}
-          player={player}
+          playerID={player.ID}
           onCardSelect={onCardSelect}
         />
       )}
