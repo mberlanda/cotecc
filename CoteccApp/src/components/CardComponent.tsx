@@ -1,19 +1,21 @@
 import React from 'react';
 import {View, StyleSheet, Image, TouchableOpacity} from 'react-native';
-import {Card} from '../types';
+import {Card, Move, Player} from '../types';
 import cardImages from '../utils/cardAssets';
 
 const CardComponent = ({
   card,
+  player,
   onCardSelect,
 }: {
   card: Card;
-  onCardSelect: (card: Card) => void;
+  player: Player;
+  onCardSelect: (move: Move) => void;
 }) => {
   const imageSource = cardImages[`${card.rank}_${card.suit}`]; // Construct the key to match the naming convention
 
   return (
-    <TouchableOpacity onPress={() => onCardSelect(card)}>
+    <TouchableOpacity onPress={() => onCardSelect({card, playerID: player.ID})}>
       <View style={styles.card}>
         <Image
           source={imageSource}
