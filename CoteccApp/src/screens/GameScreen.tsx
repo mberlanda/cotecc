@@ -6,6 +6,8 @@ import {playCard} from '../utils/gameLogic';
 import {StateDebugComponent} from '../components/StateDebug';
 import StickyHeader from '../components/StickyHeader';
 import TableComponent from '../components/TableComponent';
+import DealCardsButton from '../components/DealCardsButton';
+import {dealCards} from '../utils/cardsLogic';
 
 // Define an interface for the props
 interface GameScreenProps {
@@ -28,6 +30,11 @@ const GameScreen: React.FC<GameScreenProps> = ({gameState}) => {
     setLocalGameState({...localGameState});
   };
 
+  const doDealCards = () => {
+    dealCards(localGameState.deck, localGameState.players);
+    setLocalGameState({...localGameState});
+  };
+
   return (
     <ScrollView>
       <StickyHeader />
@@ -47,6 +54,7 @@ const GameScreen: React.FC<GameScreenProps> = ({gameState}) => {
         </View>
       ))}
       {/* Implement UI elements for game controls */}
+      <DealCardsButton state={localGameState} doDealCards={doDealCards} />
       <StateDebugComponent state={localGameState} />
     </ScrollView>
   );
