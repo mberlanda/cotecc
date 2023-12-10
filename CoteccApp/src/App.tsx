@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {GameState, Player} from './types';
 import GameScreen from './screens/GameScreen';
-import {createDeck, shuffleDeck} from './utils/cardsLogic';
+import {createDeck, dealCards, shuffleDeck} from './utils/cardsLogic';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import {
   SafeAreaView,
@@ -9,12 +9,13 @@ import {
   StyleSheet,
   useColorScheme,
 } from 'react-native';
+import {newTurn} from './utils/gameLogic';
 
 const initialPlayers: Player[] = [
   // Initialize players with empty hands and scores
-  {ID: 0, name: 'foo', hand: [], boleCount: 0, score: 0},
-  {ID: 1, name: 'bar', hand: [], boleCount: 0, score: 0},
-  {ID: 2, name: 'baz', hand: [], boleCount: 0, score: 0},
+  {ID: 0, name: 'foo', hand: [], boleCount: 0},
+  {ID: 1, name: 'bar', hand: [], boleCount: 0},
+  {ID: 2, name: 'baz', hand: [], boleCount: 0},
   // ... for all five players
 ];
 
@@ -22,12 +23,10 @@ const App = () => {
   const [gameState, setGameState] = useState<GameState>({
     players: initialPlayers,
     deck: shuffleDeck(createDeck()),
-    currentPlayerID: initialPlayers[0].ID,
-    currentSuit: null,
-    currentHighestCard: null,
-    currentWinnerID: initialPlayers[0].ID,
-    currentMoves: [],
+    initialPlayerID: initialPlayers[0].ID,
+    currentTurn: newTurn(initialPlayers[0].ID),
     pastTurns: [],
+    scores: {},
   });
 
   const isDarkMode = useColorScheme() === 'dark';

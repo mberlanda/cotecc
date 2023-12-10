@@ -4,15 +4,9 @@ import {Card, GameState, Player} from '../types';
 import {createDeck, dealCards, shuffleDeck} from './cardsLogic';
 
 const validPlayerID = 123;
-const playerOne = {
-  ID: validPlayerID,
-  name: 'foo',
-  hand: [],
-  boleCount: 0,
-  score: 0,
-};
-const playerTwo = {ID: 1, name: 'bar', hand: [], boleCount: 0, score: 0};
-const playerThree = {ID: 2, name: 'baz', hand: [], boleCount: 0, score: 0};
+const playerOne = {ID: validPlayerID, name: 'foo', hand: [], boleCount: 0};
+const playerTwo = {ID: 1, name: 'bar', hand: [], boleCount: 0};
+const playerThree = {ID: 2, name: 'baz', hand: [], boleCount: 0};
 const players: Player[] = [playerOne, playerTwo, playerThree];
 
 describe('findPlayerById', () => {
@@ -39,12 +33,16 @@ describe('playCard', () => {
     gameState = {
       players: players.map(p => Object.create(p)),
       deck: shuffleDeck(createDeck()),
-      currentPlayerID: players[0].ID,
-      currentSuit: null,
-      currentHighestCard: null,
-      currentWinnerID: players[0].ID,
-      currentMoves: [],
+      initialPlayerID: players[0].ID,
+      currentTurn: {
+        currentPlayerID: players[0].ID,
+        highestCard: null,
+        moves: [],
+        suit: null,
+        winnerID: null,
+      },
       pastTurns: [],
+      scores: {},
     };
     player = gameState.players[0];
     dealCards(gameState.deck, gameState.players);

@@ -32,10 +32,10 @@ const GameScreen: React.FC<GameScreenProps> = ({gameState}) => {
   }, [localGameState]);
 
   const handleCardSelect = (move: Move) => {
-    if (move.playerID != localGameState.currentPlayerID) {
+    if (move.playerID != localGameState.currentTurn.currentPlayerID) {
       // TODO: display an error message in the UI
       console.log(
-        `Player ${move.playerID} tried to play while it was player ${localGameState.currentPlayerID} move`,
+        `Player ${move.playerID} tried to play while it was player ${localGameState.currentTurn.currentPlayerID} move`,
       );
       return;
     }
@@ -47,11 +47,17 @@ const GameScreen: React.FC<GameScreenProps> = ({gameState}) => {
   return (
     <ScrollView>
       <StickyHeader />
-      <TableComponent moves={localGameState.currentMoves}/>
+      <TableComponent moves={localGameState.currentTurn.moves} />
       {localGameState.players.map((player, index) => (
         <View key={index}>
-          <Text style={player.ID == localGameState.currentPlayerID ? styles.currentPlayer : null}>
-            Player name: {player.name} - ID {player.ID} - score {player.score}
+          <Text
+            style={
+              player.ID == localGameState.currentTurn.currentPlayerID
+                ? styles.currentPlayer
+                : null
+            }>
+            Player name: {player.name} - ID {player.ID} - score{' '}
+            {localGameState.scores[player.ID] || 0}
           </Text>
           <PlayerHand player={player} onCardSelect={handleCardSelect} />
         </View>
@@ -65,7 +71,7 @@ const GameScreen: React.FC<GameScreenProps> = ({gameState}) => {
 const styles = StyleSheet.create({
   currentPlayer: {
     fontWeight: 'bold',
-  }
-})
+  },
+});
 
 export default GameScreen;

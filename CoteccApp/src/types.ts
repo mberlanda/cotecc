@@ -9,7 +9,6 @@ export interface Player {
   name: string;
   hand: Card[];
   boleCount: number;
-  score: number;
 }
 
 export interface Move {
@@ -17,14 +16,19 @@ export interface Move {
   card: Card;
 }
 
+export interface Turn {
+  currentPlayerID: number;
+  highestCard: Card | null; // Highest card played in the turn
+  moves: Move[];
+  suit: string | null; // Suit that must be followed, if applicable
+  winnerID: number | null; // ID of the player who won the last round
+}
+
 export interface GameState {
   players: Player[];
+  initialPlayerID: number;
   deck: Card[];
-  // TODO: consider extracting the current turn attribute into a dedicated interface
-  currentHighestCard: Card | null; // Highest card played in the current turn
-  currentPlayerID: number;
-  currentSuit: string | null; // Suit that must be followed, if applicable
-  currentMoves: Move[];
-  currentWinnerID: number | null; // ID of the player who won the last round
-  pastTurns: Move[][];
+  currentTurn: Turn;
+  pastTurns: Turn[];
+  scores: {[playerID: number]: number};
 }

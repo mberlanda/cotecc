@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, StyleSheet, Image, TouchableOpacity} from 'react-native';
-import {Card, Move, Player} from '../types';
+import {Card, Move} from '../types';
 import cardImages from '../utils/cardAssets';
 
 const CardComponent = ({
