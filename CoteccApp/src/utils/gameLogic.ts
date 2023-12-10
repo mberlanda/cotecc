@@ -202,6 +202,7 @@ export const endRound = (gameState: GameState, playerID: number): void => {
 
   gameState.deck = shuffleDeck(createDeck());
   // TODO: update the next initialPlayerID
+  gameState.currentTurn = newTurn(playerID);
   gameState.pastTurns = [];
   gameState.scores = {};
 };

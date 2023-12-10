@@ -49,7 +49,6 @@ export const sortCards = (deck: Card[]): Card[] => {
 export const dealCards = (deck: Card[], players: Player[]): void => {
   // Implement card dealing logic
   const cardsPerPlayer = 7;
-  console.log(`Current deck: ${JSON.stringify(deck)}`);
   if (cardsPerPlayer * players.length > deck.length) {
     throw RangeError(
       `Invalid number of players ${players.length} for cardsPerPlayer ${cardsPerPlayer}`,
@@ -65,7 +64,7 @@ export const dealCards = (deck: Card[], players: Player[]): void => {
 };
 
 export const cardIsGreater = (a: Card, b: Card): boolean => {
-  if (a.points == b.points) {
+  if (a.points === b.points) {
     return a.rank > b.rank;
   }
   return a.points > b.points;
