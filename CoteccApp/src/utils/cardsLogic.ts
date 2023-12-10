@@ -1,5 +1,5 @@
-import {Card, Player} from '../types';
 import {Suit} from './constants';
+import {Card, Player} from '../types';
 
 export const createDeck = (): Card[] => {
   // Implement deck creation logic

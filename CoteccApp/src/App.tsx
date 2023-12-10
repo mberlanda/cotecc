@@ -1,13 +1,10 @@
 import React, {useState} from 'react';
-import {GameState, Player} from './types';
-import GameScreen from './screens/GameScreen';
+import {SafeAreaView, StatusBar, useColorScheme} from 'react-native';
+
 import {Colors} from 'react-native/Libraries/NewAppScreen';
-import {
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  useColorScheme,
-} from 'react-native';
+
+import GameScreen from './screens/GameScreen';
+import {GameState, Player} from './types';
 import {newRound} from './utils/gameLogic';
 
 const initialPlayers: Player[] = [
@@ -16,10 +13,11 @@ const initialPlayers: Player[] = [
   {ID: 1, name: 'bar', hand: [], boleCount: 0},
   {ID: 2, name: 'baz', hand: [], boleCount: 0},
   // ... for all five players
+  // test
 ];
 
 const App = () => {
-  const [gameState, setGameState] = useState<GameState>({
+  const [gameState, _setGameState] = useState<GameState>({
     ...newRound(initialPlayers, initialPlayers[0].ID),
   });
 
@@ -40,23 +38,23 @@ const App = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
+// const styles = StyleSheet.create({
+//   sectionContainer: {
+//     marginTop: 32,
+//     paddingHorizontal: 24,
+//   },
+//   sectionTitle: {
+//     fontSize: 24,
+//     fontWeight: '600',
+//   },
+//   sectionDescription: {
+//     marginTop: 8,
+//     fontSize: 18,
+//     fontWeight: '400',
+//   },
+//   highlight: {
+//     fontWeight: '700',
+//   },
+// });
 
 export default App;

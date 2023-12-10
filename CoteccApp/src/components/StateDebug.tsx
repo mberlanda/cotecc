@@ -1,5 +1,6 @@
 import React from 'react';
 import {Text, View} from 'react-native';
+
 import {GameState} from '../types';
 
 export const StateDebugComponent = ({state}: {state: GameState}) => {

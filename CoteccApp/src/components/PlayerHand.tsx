@@ -1,7 +1,8 @@
 import React from 'react';
 import {FlatList, StyleSheet, View} from 'react-native';
-import {Player, Move} from '../types';
+
 import CardComponent from './CardComponent';
+import {Move, Player} from '../types';
 
 const PlayerHand = ({
   player,

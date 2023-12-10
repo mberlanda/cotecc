@@ -1,5 +1,6 @@
 import React from 'react';
-import {View, StyleSheet, Image, TouchableOpacity} from 'react-native';
+import {Image, StyleSheet, TouchableOpacity, View} from 'react-native';
+
 import {Card, Move} from '../types';
 import cardImages from '../utils/cardAssets';
 

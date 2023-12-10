@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, StyleSheet, Image, ScrollView} from 'react-native';
+import {Image, ScrollView, StyleSheet, View} from 'react-native';
 
 const StickyHeader = () => {
   const headerSource = require('../assets/placeholder-header.png');

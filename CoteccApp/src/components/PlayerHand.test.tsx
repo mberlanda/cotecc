@@ -1,9 +1,11 @@
 import React from 'react';
+
 import {describe, expect, it} from '@jest/globals';
 import renderer from 'react-test-renderer';
-import {Suit} from '../utils/constants';
-import {Move} from '../types';
+
 import PlayerHand from './PlayerHand';
+import {Move} from '../types';
+import {Suit} from '../utils/constants';
 
 const mockCardOne = {suit: Suit.Ori, rank: 5, points: 0};
 const mockCardTwo = {suit: Suit.Ori, rank: 1, points: 6};

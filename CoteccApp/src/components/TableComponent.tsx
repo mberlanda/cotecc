@@ -1,7 +1,8 @@
 import React from 'react';
 import {FlatList, StyleSheet, Text, View} from 'react-native';
-import {Move} from '../types';
+
 import CardComponent from './CardComponent';
+import {Move} from '../types';
 
 const TableComponent = ({moves}: {moves: Move[]}) => {
   const onCardSelect = (_m: Move): void => {

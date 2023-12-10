@@ -1,4 +1,5 @@
 import {describe, expect, it} from '@jest/globals';
+
 import {
   cardIsGreater,
   createDeck,
@@ -91,34 +92,34 @@ describe('cardIsGreater', () => {
     const a = {suit: Suit.Ori, rank: 6, points: 0};
     const b = {suit: Suit.Ori, rank: 4, points: 0};
 
-    expect(cardIsGreater(a, b)).toBeTruthy;
+    expect(cardIsGreater(a, b)).toBeTruthy();
   });
 
   it('handles two cards with the different points', () => {
     const a = {suit: Suit.Ori, rank: 9, points: 4};
     const b = {suit: Suit.Ori, rank: 4, points: 0};
 
-    expect(cardIsGreater(a, b)).toBeTruthy;
+    expect(cardIsGreater(a, b)).toBeTruthy();
   });
 
   it('handles ace special case', () => {
     const a = {suit: Suit.Ori, rank: 1, points: 6};
     const b = {suit: Suit.Ori, rank: 9, points: 4};
 
-    expect(cardIsGreater(a, b)).toBeTruthy;
+    expect(cardIsGreater(a, b)).toBeTruthy();
   });
 
   it('disregards card suit - not a legit use case', () => {
     const a = {suit: Suit.Ori, rank: 7, points: 0};
     const b = {suit: Suit.Spade, rank: 9, points: 4};
 
-    expect(cardIsGreater(a, b)).toBeFalsy;
+    expect(cardIsGreater(a, b)).toBeFalsy();
   });
 
   it('returns false on identical cards - not a legit use case', () => {
     const a = {suit: Suit.Ori, rank: 7, points: 0};
     const b = {suit: Suit.Spade, rank: 7, points: 0};
 
-    expect(cardIsGreater(a, b)).toBeFalsy;
+    expect(cardIsGreater(a, b)).toBeFalsy();
   });
 });

@@ -1,13 +1,14 @@
 import React, {useState} from 'react';
-import {View, Text, ScrollView, StyleSheet} from 'react-native';
-import {GameState, Move} from '../types';
+import {ScrollView, StyleSheet, Text, View} from 'react-native';
+
+import DealCardsButton from '../components/DealCardsButton';
 import PlayerHand from '../components/PlayerHand';
-import {playCard} from '../utils/gameLogic';
 import {StateDebugComponent} from '../components/StateDebug';
 import StickyHeader from '../components/StickyHeader';
 import TableComponent from '../components/TableComponent';
-import DealCardsButton from '../components/DealCardsButton';
+import {GameState, Move} from '../types';
 import {dealCards} from '../utils/cardsLogic';
+import {playCard} from '../utils/gameLogic';
 
 // Define an interface for the props
 interface GameScreenProps {

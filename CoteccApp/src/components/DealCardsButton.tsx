@@ -1,6 +1,7 @@
 import React, {ReactNode} from 'react';
-import {GameState} from '../types';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+
+import {GameState} from '../types';
 
 const DealCardsButton = ({
   state,

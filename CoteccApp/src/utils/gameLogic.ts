@@ -1,6 +1,6 @@
-import {Card, Player, GameState, Turn} from '../types';
 import {cardIsGreater, createDeck, dealCards, shuffleDeck} from './cardsLogic';
 import {findPlayerById, nextPlayerID} from './playerLogic';
+import {Card, GameState, Player, Turn} from '../types';
 
 export const newRound = (
   players: Player[],
