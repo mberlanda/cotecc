@@ -1,7 +1,6 @@
 import {beforeEach, describe, expect, it} from '@jest/globals';
-import {findPlayerById, playCard} from './gameLogic';
-import {Card, GameState, Player} from '../types';
-import {createDeck, dealCards, shuffleDeck} from './cardsLogic';
+import {newRound, playCard} from './gameLogic';
+import {GameState, Player} from '../types';
 
 const validPlayerID = 123;
 const playerOne = {ID: validPlayerID, name: 'foo', hand: [], boleCount: 0};
@@ -9,43 +8,14 @@ const playerTwo = {ID: 1, name: 'bar', hand: [], boleCount: 0};
 const playerThree = {ID: 2, name: 'baz', hand: [], boleCount: 0};
 const players: Player[] = [playerOne, playerTwo, playerThree];
 
-describe('findPlayerById', () => {
-  it('should find a player with a valid ID', () => {
-    const player = findPlayerById(players, validPlayerID);
-    expect(player).toBeDefined();
-    expect(player.ID).toBe(validPlayerID);
-  });
-
-  it('should throw an error for an invalid ID', () => {
-    const invalidID = -1;
-    expect(() => {
-      findPlayerById(players, invalidID);
-    }).toThrow(RangeError);
-  });
-});
-
 describe('playCard', () => {
   let gameState: GameState;
-  let player: Player;
-  let playedCard: Card;
 
   beforeEach(() => {
-    gameState = {
-      players: players.map(p => Object.create(p)),
-      deck: shuffleDeck(createDeck()),
-      initialPlayerID: players[0].ID,
-      currentTurn: {
-        currentPlayerID: players[0].ID,
-        highestCard: null,
-        moves: [],
-        suit: null,
-        winnerID: null,
-      },
-      pastTurns: [],
-      scores: {},
-    };
-    player = gameState.players[0];
-    dealCards(gameState.deck, gameState.players);
+    gameState = newRound(
+      players.map(p => Object.create(p)),
+      players[0].ID,
+    );
   });
 
   it('does not change the gameState when other player does not respect the turn', () => {

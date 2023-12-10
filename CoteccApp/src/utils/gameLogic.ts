@@ -1,13 +1,6 @@
 import {Card, Player, GameState, Turn} from '../types';
 import {cardIsGreater, createDeck, dealCards, shuffleDeck} from './cardsLogic';
-
-export const findPlayerById = (players: Player[], playerID: number): Player => {
-  const player = players.find(p => p.ID === playerID);
-  if (!player) {
-    throw RangeError(`PlayerID ${playerID} out of range`);
-  }
-  return player;
-};
+import {findPlayerById, nextPlayerID} from './playerLogic';
 
 export const newRound = (
   players: Player[],
@@ -124,11 +117,10 @@ export const nextMove = (gameState: GameState, player: Player): void => {
     return;
   }
 
-  const currentPlayerIndex = gameState.players.findIndex(
-    p => p.ID === player.ID,
+  gameState.currentTurn.currentPlayerID = nextPlayerID(
+    gameState.players,
+    player.ID,
   );
-  gameState.currentTurn.currentPlayerID =
-    gameState.players[(currentPlayerIndex + 1) % playersCount].ID;
 };
 
 export const endTurn = (gameState: GameState): void => {
@@ -164,6 +156,7 @@ export const endRound = (gameState: GameState, playerID: number): void => {
   // while others increase by one
   const turnWinnersSet = new Set(gameState.pastTurns.map(t => t.winnerID));
   if (turnWinnersSet.size === 1) {
+    console.log('capòt');
     const winnerID = turnWinnersSet.values().next().value;
     for (let i = 0; i < gameState.players.length; i++) {
       if (gameState.players[i].ID === winnerID) {
@@ -178,18 +171,22 @@ export const endRound = (gameState: GameState, playerID: number): void => {
   // This code can be made much more elegant
   else {
     let maxScore = -1;
-    let turnLosers = new Set();
+    let turnLosers: {[playerID: number]: boolean} = {};
+    console.log(`round scores: ${JSON.stringify(gameState.scores)}`);
     for (let plID in gameState.scores) {
       const score = gameState.scores[plID];
       if (score > maxScore) {
+        console.log(
+          `score: ${score} prevMaxScore: ${maxScore} playerID: ${plID}`,
+        );
         maxScore = score;
-        turnLosers = new Set();
+        turnLosers = {};
       }
       if (score === maxScore) {
-        turnLosers.add(plID);
+        turnLosers[plID] = true;
       }
     }
-
+    console.log(`turnLosers: ${JSON.stringify(turnLosers)}`);
     gameState.players.forEach(player => {
       if (player.ID in turnLosers) {
         player.boleCount += 1;
@@ -200,11 +197,15 @@ export const endRound = (gameState: GameState, playerID: number): void => {
   // TODO: implement elimination logic
   checkForElimination(gameState.players);
 
+  const nextInitialPlayerID = nextPlayerID(
+    gameState.players,
+    gameState.initialPlayerID,
+  );
+  gameState.initialPlayerID = nextInitialPlayerID;
   gameState.deck = shuffleDeck(createDeck());
-  // TODO: update the next initialPlayerID
-  gameState.currentTurn = newTurn(playerID);
   gameState.pastTurns = [];
   gameState.scores = {};
+  resetTurnState(gameState, nextInitialPlayerID);
 };
 
 export const resetTurnState = (
