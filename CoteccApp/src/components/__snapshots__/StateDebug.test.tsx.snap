@@ -1,0 +1,62 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`StateDebug renders turn data after the first turn 1`] = `
+<View>
+  <Text>
+    State Debug
+  </Text>
+  <Text>
+    Current Player ID: 
+    0
+  </Text>
+  <Text>
+    Current Suit: 
+    not set
+  </Text>
+  <Text>
+    Current Highest Move: 
+    null
+  </Text>
+  <Text>
+    Current Moves: 
+    []
+  </Text>
+  <Text>
+    Past Turns:
+  </Text>
+  <Text>
+     
+    Turn 
+    0
+    : 
+    {"suit":"spade","highestCard":{"suit":"spade","rank":4,"points":0},"moves":[{"playerID":0,"card":{"suit":"spade","rank":4,"points":0}},{"playerID":1,"card":{"suit":"spade","rank":8,"points":3}},{"playerID":2,"card":{"suit":"spade","rank":9,"points":4}}],"currentPlayerID":0,"winnerID":0}
+  </Text>
+</View>
+`;
+
+exports[`StateDebug renders turn data in the initial state 1`] = `
+<View>
+  <Text>
+    State Debug
+  </Text>
+  <Text>
+    Current Player ID: 
+    0
+  </Text>
+  <Text>
+    Current Suit: 
+    not set
+  </Text>
+  <Text>
+    Current Highest Move: 
+    null
+  </Text>
+  <Text>
+    Current Moves: 
+    []
+  </Text>
+  <Text>
+    Past Turns:
+  </Text>
+</View>
+`;

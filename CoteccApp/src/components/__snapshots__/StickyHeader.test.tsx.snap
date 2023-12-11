@@ -1,0 +1,37 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`StickyHeader renders without exception 1`] = `
+<RCTScrollView
+  stickyHeaderIndices={
+    [
+      0,
+    ]
+  }
+>
+  <View>
+    <View
+      style={
+        {
+          "height": 100,
+          "width": "100%",
+        }
+      }
+    >
+      <Image
+        resizeMode="cover"
+        source={
+          {
+            "testUri": "../../../src/assets/placeholder-header.png",
+          }
+        }
+        style={
+          {
+            "height": "100%",
+            "width": "100%",
+          }
+        }
+      />
+    </View>
+  </View>
+</RCTScrollView>
+`;

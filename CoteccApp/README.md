@@ -77,3 +77,31 @@ To learn more about React Native, take a look at the following resources:
 - [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
 - [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
 - [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+
+----------------------|---------|----------|---------|---------|---------------------------------------------------------------
+File                  | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                             
+----------------------|---------|----------|---------|---------|---------------------------------------------------------------
+All files             |   41.58 |    24.61 |    37.5 |   40.93 |                                                               
+ src                  |       0 |        0 |       0 |       0 |                                                               
+  App.tsx             |       0 |        0 |       0 |       0 | 13-43                                                         
+  types.ts            |       0 |        0 |       0 |       0 |                                                               
+ src/components       |   29.03 |        0 |   26.66 |   29.03 |                                                               
+  CardComponent.tsx   |      80 |      100 |      50 |      80 | 18                                                            
+  DealCardsButton.tsx |       0 |        0 |       0 |       0 | 5-28                                                          
+  PlayerHand.tsx      |     100 |      100 |     100 |     100 |                                                               
+  StateDebug.tsx      |       0 |        0 |       0 |       0 | 5-17                                                          
+  StickyHeader.tsx    |       0 |      100 |       0 |       0 | 4-16                                                          
+  TableComponent.tsx  |       0 |      100 |       0 |       0 | 6-31                                                          
+ src/screens          |       0 |        0 |       0 |       0 |                                                               
+  GameScreen.tsx      |       0 |        0 |       0 |       0 | 17-63                                                         
+ src/utils            |      50 |    32.65 |      50 |   49.64 |                                                               
+  cardAssets.ts       |     100 |      100 |     100 |     100 |                                                               
+  cardsLogic.ts       |   97.56 |    92.85 |     100 |   97.36 | 53                                                            
+  constants.ts        |       0 |        0 |       0 |       0 |                                                               
+  gameLogic.ts        |   23.71 |     3.03 |   22.22 |   24.73 | ...0,64-70,82-108,113-120,127-135,140-146,153-208,215,220-221 
+  playerLogic.ts      |     100 |      100 |     100 |     100 |                                                               
+----------------------|---------|----------|---------|---------|---------------------------------------------------------------
+Test Suites: 1 failed, 6 passed, 7 total
+Tests:       23 passed, 23 total
+Snapshots:   2 passed, 2 total
+Time:        3.418 s
