@@ -4,6 +4,7 @@ import {
   cardIsGreater,
   createDeck,
   dealCards,
+  getCardsWithSuit,
   shuffleDeck,
   sortCards,
 } from './cardsLogic';
@@ -32,18 +33,18 @@ describe('createDeck', () => {
 describe('sortCards', () => {
   it('returns cards sorted by suit and number', () => {
     const shuffledPartialDeck = [
-      {suit: 'ori', rank: 7, points: 0},
-      {suit: 'spade', rank: 5, points: 0},
-      {suit: 'ori', rank: 5, points: 0},
-      {suit: 'bastoni', rank: 9, points: 4},
-      {suit: 'coppe', rank: 1, points: 6},
+      {suit: Suit.Ori, rank: 7, points: 0},
+      {suit: Suit.Spade, rank: 5, points: 0},
+      {suit: Suit.Ori, rank: 5, points: 0},
+      {suit: Suit.Bastoni, rank: 9, points: 4},
+      {suit: Suit.Coppe, rank: 1, points: 6},
     ];
     const expectedSortedDeck = [
-      {suit: 'bastoni', rank: 9, points: 4},
-      {suit: 'coppe', rank: 1, points: 6},
-      {suit: 'ori', rank: 5, points: 0},
-      {suit: 'ori', rank: 7, points: 0},
-      {suit: 'spade', rank: 5, points: 0},
+      {suit: Suit.Bastoni, rank: 9, points: 4},
+      {suit: Suit.Coppe, rank: 1, points: 6},
+      {suit: Suit.Ori, rank: 5, points: 0},
+      {suit: Suit.Ori, rank: 7, points: 0},
+      {suit: Suit.Spade, rank: 5, points: 0},
     ];
 
     expect(sortCards(shuffledPartialDeck)).toEqual(expectedSortedDeck);
@@ -76,9 +77,9 @@ describe('dealCards', () => {
   it('deals 7 cards to each player', () => {
     const deck = shuffleDeck(createDeck());
     const players = [
-      {ID: 0, name: 'foo', hand: [], boleCount: 0, score: 0},
-      {ID: 1, name: 'bar', hand: [], boleCount: 0, score: 0},
-      {ID: 2, name: 'baz', hand: [], boleCount: 0, score: 0},
+      {ID: 0, name: 'foo', hand: [], boleCount: 0, score: 0, isHuman: true},
+      {ID: 1, name: 'bar', hand: [], boleCount: 0, score: 0, isHuman: false},
+      {ID: 2, name: 'baz', hand: [], boleCount: 0, score: 0, isHuman: true},
     ];
     dealCards(deck, players);
     players.forEach(player => {
@@ -121,5 +122,36 @@ describe('cardIsGreater', () => {
     const b = {suit: Suit.Spade, rank: 7, points: 0};
 
     expect(cardIsGreater(a, b)).toBeFalsy();
+  });
+});
+
+describe('getCardsWithSuit', () => {
+  it('returns empty array when suit is null', () => {
+    const suit = null;
+    const hand = [{suit: Suit.Ori, rank: 7, points: 0}];
+
+    expect(getCardsWithSuit(suit, hand)).toEqual([]);
+  });
+
+  it('returns empty array when hand does not contain any card with given suit', () => {
+    const suit = Suit.Spade;
+    const hand = [{suit: Suit.Ori, rank: 7, points: 0}];
+
+    expect(getCardsWithSuit(suit, hand)).toEqual([]);
+  });
+
+  it('returns all cards with given suit', () => {
+    const suit = Suit.Spade;
+    const hand = [
+      {suit: Suit.Ori, rank: 7, points: 0},
+      {suit: Suit.Spade, rank: 3, points: 0},
+      {suit: Suit.Spade, rank: 4, points: 0},
+    ];
+    const expected = [
+      {suit: Suit.Spade, rank: 3, points: 0},
+      {suit: Suit.Spade, rank: 4, points: 0},
+    ];
+
+    expect(getCardsWithSuit(suit, hand).sort()).toEqual(expected.sort());
   });
 });

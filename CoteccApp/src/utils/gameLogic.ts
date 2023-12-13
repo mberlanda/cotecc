@@ -1,4 +1,10 @@
-import {cardIsGreater, createDeck, dealCards, shuffleDeck} from './cardsLogic';
+import {
+  cardIsGreater,
+  createDeck,
+  dealCards,
+  getCardsWithSuit,
+  shuffleDeck,
+} from './cardsLogic';
 import {findPlayerById, nextPlayerID} from './playerLogic';
 import {Card, GameState, Player, Turn} from '../types';
 
@@ -51,8 +57,10 @@ export const playAICard = (gameState: GameState, player: Player): void => {
     throw Error(`AI player ${player.ID} does not own any card`);
   }
 
-  const currentSuit = gameState.currentTurn.suit;
-  const cardsWithSuit = player.hand.filter(card => card.suit === currentSuit);
+  const cardsWithSuit = getCardsWithSuit(
+    gameState.currentTurn.suit,
+    player.hand,
+  );
   const playedCard =
     cardsWithSuit.length > 0
       ? cardsWithSuit[Math.floor(Math.random() * cardsWithSuit.length)]

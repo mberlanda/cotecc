@@ -1,5 +1,7 @@
+import {Suit} from './utils/constants';
+
 export interface Card {
-  suit: string;
+  suit: Suit;
   rank: number;
   points: number;
 }
@@ -21,7 +23,7 @@ export interface Turn {
   currentPlayerID: number;
   highestCard: Card | null; // Highest card played in the turn
   moves: Move[];
-  suit: string | null; // Suit that must be followed, if applicable
+  suit: Suit | null; // Suit that must be followed, if applicable
   winnerID: number | null; // ID of the player who won the last round
 }
 

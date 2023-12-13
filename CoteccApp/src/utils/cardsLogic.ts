@@ -69,3 +69,7 @@ export const cardIsGreater = (a: Card, b: Card): boolean => {
   }
   return a.points > b.points;
 };
+
+export const getCardsWithSuit = (suit: Suit | null, hand: Card[]): Card[] => {
+  return hand.filter(card => card.suit === suit);
+};

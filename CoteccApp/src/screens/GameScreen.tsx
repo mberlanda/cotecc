@@ -9,6 +9,7 @@ import TableComponent from '../components/TableComponent';
 import {GameState, Move} from '../types';
 import {dealCards} from '../utils/cardsLogic';
 import {playAICard, playCard} from '../utils/gameLogic';
+import {findPlayerById} from '../utils/playerLogic';
 
 // Define an interface for the props
 interface GameScreenProps {
@@ -32,10 +33,10 @@ const GameScreen: React.FC<GameScreenProps> = ({gameState}) => {
   };
 
   useEffect(() => {
-    const currentPlayerIndex = localGameState.players.findIndex(
-      p => p.ID === localGameState.currentTurn.currentPlayerID,
+    const currentPlayer = findPlayerById(
+      localGameState.players,
+      localGameState.currentTurn.currentPlayerID,
     );
-    const currentPlayer = localGameState.players[currentPlayerIndex];
     // `currentPlayer.hand.length` is needed when the current turn is over
     // and the user has to tap DealCardsButton to start a new turn
     if (!currentPlayer.isHuman && currentPlayer.hand.length) {
