@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {ScrollView, StyleSheet, Text, View} from 'react-native';
 
 import DealCardsButton from '../components/DealCardsButton';
@@ -8,7 +8,7 @@ import StickyHeader from '../components/StickyHeader';
 import TableComponent from '../components/TableComponent';
 import {GameState, Move} from '../types';
 import {dealCards} from '../utils/cardsLogic';
-import {playCard} from '../utils/gameLogic';
+import {playAICard, playCard} from '../utils/gameLogic';
 
 // Define an interface for the props
 interface GameScreenProps {
@@ -30,6 +30,21 @@ const GameScreen: React.FC<GameScreenProps> = ({gameState}) => {
 
     setLocalGameState({...localGameState});
   };
+
+  useEffect(() => {
+    const currentPlayerIndex = localGameState.players.findIndex(
+      p => p.ID === localGameState.currentTurn.currentPlayerID,
+    );
+    const currentPlayer = localGameState.players[currentPlayerIndex];
+    // `currentPlayer.hand.length` is needed when the current turn is over
+    // and the user has to tap DealCardsButton to start a new turn
+    if (!currentPlayer.isHuman && currentPlayer.hand.length) {
+      setTimeout(() => {
+        playAICard(localGameState, currentPlayer);
+        setLocalGameState({...localGameState});
+      }, 1500); // TODO: make delay configurable
+    }
+  });
 
   const doDealCards = () => {
     dealCards(localGameState.deck, localGameState.players);

@@ -9,6 +9,7 @@ export interface Player {
   name: string;
   hand: Card[];
   boleCount: number;
+  isHuman: boolean;
 }
 
 export interface Move {

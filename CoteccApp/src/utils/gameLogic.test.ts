@@ -1,11 +1,23 @@
 import {beforeEach, describe, expect, it} from '@jest/globals';
 
-import {newRound, playCard, processCardPlay, validateSuit} from './gameLogic';
+import {
+  newRound,
+  playAICard,
+  playCard,
+  processCardPlay,
+  validateSuit,
+} from './gameLogic';
 import {Card, GameState, Player} from '../types';
 
-const playerOne = {ID: 0, name: 'foo', hand: [], boleCount: 0};
-const playerTwo = {ID: 1, name: 'bar', hand: [], boleCount: 0};
-const playerThree = {ID: 2, name: 'baz', hand: [], boleCount: 0};
+const playerOne = {ID: 0, name: 'foo', hand: [], boleCount: 0, isHuman: true};
+const playerTwo = {ID: 1, name: 'bar', hand: [], boleCount: 0, isHuman: false};
+const playerThree = {
+  ID: 2,
+  name: 'baz',
+  hand: [],
+  boleCount: 0,
+  isHuman: false,
+};
 const players: Player[] = [playerOne, playerTwo, playerThree];
 
 describe('playCard', () => {
@@ -39,6 +51,26 @@ describe('playCard', () => {
     expect(currentTurn.winnerID).toEqual(playerOne.ID);
 
     expect(currentTurn.currentPlayerID).toEqual(playerTwo.ID);
+  });
+});
+
+describe('playAICard', () => {
+  let gameState: GameState;
+
+  beforeEach(() => {
+    gameState = newRound(
+      players.map(p => Object.create(p)),
+      players[0].ID,
+    );
+  });
+
+  it('throws an exception if the player has an empty hand', () => {
+    const playerWithoutCards = gameState.players[0];
+    playerWithoutCards.hand = [];
+
+    expect(() => {
+      playAICard(gameState, playerWithoutCards);
+    }).toThrowError();
   });
 });
 

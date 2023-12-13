@@ -45,6 +45,25 @@ export const playCard = (
   }
 };
 
+export const playAICard = (gameState: GameState, player: Player): void => {
+  // no smart logic, plays a random card after checking the suit.
+  if (!player.hand.length) {
+    throw Error(`AI player ${player.ID} does not own any card`);
+  }
+
+  const currentSuit = gameState.currentTurn.suit;
+  const cardsWithSuit = player.hand.filter(card => card.suit === currentSuit);
+  const playedCard =
+    cardsWithSuit.length > 0
+      ? cardsWithSuit[Math.floor(Math.random() * cardsWithSuit.length)]
+      : player.hand[Math.floor(Math.random() * player.hand.length)];
+
+  playCard(gameState, player.ID, playedCard);
+  console.log(
+    `AI player ${player.ID} selected card ${playedCard.rank} ${playedCard.suit}`,
+  );
+};
+
 export const validateCurrentPlayer = (
   gameState: GameState,
   player: Player,
