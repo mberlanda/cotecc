@@ -1,4 +1,18 @@
 {
   "name": "CoteccApp",
-  "displayName": "CoteccApp"
+  "displayName": "CoteccApp",
+  " expo": {
+    "android": {
+      "package": "com.localcards.coteccapp"
+    },
+    "ios": {
+      "bundleIdentifier": "com.localcards.coteccapp"
+    }
+  },
+  "android": {
+    "package": "com.localcardsgames.coteccapp"
+  },
+  "ios": {
+    "bundleIdentifier": "com.localcardsgames.coteccapp"
+  }
 }

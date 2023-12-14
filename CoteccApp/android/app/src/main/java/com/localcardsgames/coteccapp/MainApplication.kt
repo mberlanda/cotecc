@@ -1,7 +1,7 @@
 import android.content.res.Configuration
 import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
-package com.coteccapp
+package com.localcardsgames.coteccapp
 
 import android.app.Application
 import com.facebook.react.PackageList

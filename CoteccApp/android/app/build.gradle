@@ -79,13 +79,13 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.coteccapp"
+    namespace 'com.localcardsgames.coteccapp'
     defaultConfig {
-        applicationId "com.coteccapp"
+        applicationId 'com.localcardsgames.coteccapp'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "1.0"
+        versionName "0.0.1"
     }
     signingConfigs {
         debug {

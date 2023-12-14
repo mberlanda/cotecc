@@ -1,5 +1,5 @@
 import expo.modules.ReactActivityDelegateWrapper
-package com.coteccapp
+package com.localcardsgames.coteccapp
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
