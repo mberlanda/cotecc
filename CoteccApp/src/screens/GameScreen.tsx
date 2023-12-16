@@ -1,23 +1,33 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {ScrollView, StyleSheet, Text, View} from 'react-native';
+
+import {RouteProp} from '@react-navigation/native';
 
 import DealCardsButton from '../components/DealCardsButton';
 import PlayerHand from '../components/PlayerHand';
 import {StateDebugComponent} from '../components/StateDebug';
 import StickyHeader from '../components/StickyHeader';
 import TableComponent from '../components/TableComponent';
+import {GameScreenRouteParams, RootStackParamList} from '../routes';
 import {GameState, Move} from '../types';
 import {dealCards} from '../utils/cardsLogic';
-import {playAICard, playCard} from '../utils/gameLogic';
-import {findPlayerById} from '../utils/playerLogic';
+import {newRound, playAICard, playCard} from '../utils/gameLogic';
+import {findPlayerById, generatePlayers} from '../utils/playerLogic';
 
 // Define an interface for the props
 interface GameScreenProps {
-  gameState: GameState;
+  route: RouteProp<RootStackParamList, 'GameScreen'>;
 }
 
-const GameScreen: React.FC<GameScreenProps> = ({gameState}) => {
-  const [localGameState, setLocalGameState] = useState<GameState>(gameState);
+const GameScreen: React.FC<GameScreenProps> = ({route}) => {
+  const {opponents, name}: GameScreenRouteParams = route.params;
+  const initialPlayers = useMemo(
+    () => generatePlayers(name, opponents),
+    [name, opponents],
+  );
+  const [localGameState, setLocalGameState] = useState<GameState>(() => {
+    return newRound(initialPlayers, initialPlayers[0].ID);
+  });
 
   const handleCardSelect = (move: Move) => {
     if (move.playerID !== localGameState.currentTurn.currentPlayerID) {
@@ -48,6 +58,7 @@ const GameScreen: React.FC<GameScreenProps> = ({gameState}) => {
   });
 
   const doDealCards = () => {
+    console.log(`doDealCards: ${JSON.stringify(localGameState)}`);
     dealCards(localGameState.deck, localGameState.players);
     setLocalGameState({...localGameState});
   };

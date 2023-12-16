@@ -38,3 +38,31 @@ Run `npm run clean` to remove .expo, coverage, and node_modules data.
 
 This is not resolving the problem in iOS and we should update after resolving some naming
 inconsistencies: https://stackoverflow.com/a/73018527.
+
+
+### Splash Screen configuration
+
+https://github.com/expo/expo/tree/main/packages/expo-splash-screen#-configure-ios
+
+https://stackoverflow.com/a/67592188
+
+As of 2023-12-16 the build in XCode raises over 700 warnings which can be addressed
+automatically mostly, and the app bundle is ~70MB.
+
+Bundling assets may let the production build working from XCode to work without needing to run expo server:
+```
+ CoteccApp git:(app-poc) npx react-native bundle --entry-file='index.js' --bundle-output='./ios/main.jsbundle' --dev=false --platform='ios' --assets-dest='./ios'
+● Validation Warning:
+
+  Unknown option "watcher.unstable_workerThreads" with value false was found.
+  This is probably a typing mistake. Fixing it will remove this message.
+
+                Welcome to Metro v0.76.8
+              Fast - Scalable - Integrated
+
+
+info Writing bundle output to:, ./ios/main.jsbundle
+info Done writing bundle output
+info Copying 45 asset files
+info Done copying assets
+```

@@ -3,10 +3,15 @@
   "displayName": "CoteccApp",
   " expo": {
     "android": {
-      "package": "com.localcards.coteccapp"
+      "package": "com.localcardsgames.coteccapp"
     },
     "ios": {
-      "bundleIdentifier": "com.localcards.coteccapp"
+      "bundleIdentifier": "com.localcardsgames.coteccapp"
+    },
+    "splash": {
+      "image": "./src/assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#7A9E9F"
     }
   },
   "android": {

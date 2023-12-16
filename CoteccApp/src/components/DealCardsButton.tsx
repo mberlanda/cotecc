@@ -1,6 +1,7 @@
 import React, {ReactNode} from 'react';
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
+import PrimaryButton from './PrimaryButton';
 import {GameState} from '../types';
 
 const DealCardsButton = ({
@@ -14,11 +15,7 @@ const DealCardsButton = ({
     // If no past turn and first player has no card, display
     // a button to deal cards
     if (!state.pastTurns.length && !state.players[0].hand.length) {
-      return (
-        <TouchableOpacity onPress={() => doDealCards()} style={styles.button}>
-          <Text style={styles.buttonText}>Deal Cards</Text>
-        </TouchableOpacity>
-      );
+      return <PrimaryButton onPress={doDealCards} title="Deal Cards" />;
     }
     return null;
   };
@@ -31,19 +28,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  button: {
-    backgroundColor: '#007bff', // Standard blue for primary buttons
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    alignItems: 'center',
-    marginVertical: 5,
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
 });
 

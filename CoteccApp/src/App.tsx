@@ -1,40 +1,54 @@
-import React, {useState} from 'react';
-import {SafeAreaView, StatusBar, useColorScheme} from 'react-native';
+import React, {useEffect, useState} from 'react';
 
-import {Colors} from 'react-native/Libraries/NewAppScreen';
+import {NavigationContainer} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
+import * as SplashScreen from 'expo-splash-screen';
 
+import {RootStackParamList} from './routes';
 import GameScreen from './screens/GameScreen';
-import {GameState, Player} from './types';
-import {newRound} from './utils/gameLogic';
+import GameSelectionScreen from './screens/GameSelectionScreen';
 
-const initialPlayers: Player[] = [
-  // Initialize players with empty hands and scores
-  {ID: 0, name: 'foo', hand: [], boleCount: 0, isHuman: true},
-  {ID: 1, name: 'bar', hand: [], boleCount: 0, isHuman: false},
-  {ID: 2, name: 'baz', hand: [], boleCount: 0, isHuman: false},
-  // ... for all five players
-  // test
-];
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync()
+  .then(() => console.log('SplashScreen preventAutoHideAsync was successful'))
+  .catch(error =>
+    console.warn(`SplashScreen.preventAutoHideAsync error: ${error}`),
+  );
+
+const Stack = createStackNavigator<RootStackParamList>();
 
 const App = () => {
-  const [gameState, _setGameState] = useState<GameState>({
-    ...newRound(initialPlayers, initialPlayers[0].ID),
-  });
+  const [isAppReady, setIsAppReady] = useState(false);
 
-  const isDarkMode = useColorScheme() === 'dark';
+  useEffect(() => {
+    // After all preparations, hide the splash screen
+    async function prepare() {
+      if (!isAppReady) {
+        try {
+          // replace with any dependency which may need to be fetched
+          await new Promise(r => setTimeout(r, 500));
+          await SplashScreen.hideAsync();
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
+          setIsAppReady(true);
+        } catch (e) {
+          console.warn(e);
+        }
+      }
+    }
+
+    prepare();
+  }, [isAppReady]);
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <GameScreen gameState={gameState} />
-    </SafeAreaView>
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="GameSelectionScreen">
+        <Stack.Screen
+          name="GameSelectionScreen"
+          component={GameSelectionScreen}
+        />
+        <Stack.Screen name="GameScreen" component={GameScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 };
 

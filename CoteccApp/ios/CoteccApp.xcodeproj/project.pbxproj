@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		00E356F31AD99517003FC87E /* CoteccAppTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* CoteccAppTests.m */; };
+		011C18582B2CC2CD00DA44A1 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 011C18572B2CC2CD00DA44A1 /* SplashScreen.storyboard */; };
 		04EB06E1B49AD950335061A3 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FCCCE277CC9A1F50E74A2D9 /* ExpoModulesProvider.swift */; };
 		08D465B87ED9D5225869972B /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D18CDB019D526727E145CBCE /* ExpoModulesProvider.swift */; };
 		0C80B921A6F3F58F76C31292 /* libPods-CoteccApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-CoteccApp.a */; };
@@ -33,6 +34,7 @@
 		00E356EE1AD99517003FC87E /* CoteccAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CoteccAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E356F21AD99517003FC87E /* CoteccAppTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CoteccAppTests.m; sourceTree = "<group>"; };
+		011C18572B2CC2CD00DA44A1 /* SplashScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = SplashScreen.storyboard; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* CoteccApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CoteccApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = CoteccApp/AppDelegate.h; sourceTree = "<group>"; };
 		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = CoteccApp/AppDelegate.mm; sourceTree = "<group>"; };
@@ -40,7 +42,6 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = CoteccApp/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = CoteccApp/main.m; sourceTree = "<group>"; };
 		19F6CBCC0A4E27FBF8BF4A61 /* libPods-CoteccApp-CoteccAppTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-CoteccApp-CoteccAppTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		3B25C57621DB40F8AC428828 /* SplashScreen.storyboard */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = SplashScreen.storyboard; path = CoteccApp/SplashScreen.storyboard; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-CoteccApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CoteccApp.debug.xcconfig"; path = "Target Support Files/Pods-CoteccApp/Pods-CoteccApp.debug.xcconfig"; sourceTree = "<group>"; };
 		4FCCCE277CC9A1F50E74A2D9 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-CoteccApp/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-CoteccApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CoteccApp.release.xcconfig"; path = "Target Support Files/Pods-CoteccApp/Pods-CoteccApp.release.xcconfig"; sourceTree = "<group>"; };
@@ -102,7 +103,7 @@
 				13B07FB71A68108700A75B9A /* main.m */,
 				90DFD96BAD3E4866BCEF302B /* noop-file.swift */,
 				C4C02729CABE49C78C8CB8A4 /* CoteccApp-Bridging-Header.h */,
-				3B25C57621DB40F8AC428828 /* SplashScreen.storyboard */,
+				011C18572B2CC2CD00DA44A1 /* SplashScreen.storyboard */,
 			);
 			name = CoteccApp;
 			sourceTree = "<group>";
@@ -281,6 +282,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
+				011C18582B2CC2CD00DA44A1 /* SplashScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -555,6 +557,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = CoteccApp/Info.plist;
+				INFOPLIST_KEY_UILaunchScreen_Generation = NO;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -585,6 +588,7 @@
 				CODE_SIGN_ENTITLEMENTS = CoteccApp/CoteccApp.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = CoteccApp/Info.plist;
+				INFOPLIST_KEY_UILaunchScreen_Generation = NO;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
