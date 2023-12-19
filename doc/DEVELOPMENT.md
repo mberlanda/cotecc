@@ -39,6 +39,30 @@ npx react-native init CoteccApp --template react-native-template-typescript
 cd CoteccApp
 ```
 
+### mobile without SDK
+You can use Expo GO to run for iOS or Android without the SDK installed. 
+
+To use Expo GO run the app with 
+```
+npx expo start
+```
+download Expo GO from Play Store or App Store and scan the QRCode generated.
+
+To expose the system use
+```
+npx expo start --tunnel
+```
+This command will expose the service through a port and everybody that scan the QRCode could use the app via internet.
+
+#### Troubleshooting:
+
+> No bundle URL present
+
+```
+npm install
+npm start
+```
+
 
 ### web
 ```

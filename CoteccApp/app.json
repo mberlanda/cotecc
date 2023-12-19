@@ -1,4 +1,23 @@
 {
   "name": "CoteccApp",
-  "displayName": "CoteccApp"
+  "displayName": "CoteccApp",
+  " expo": {
+    "android": {
+      "package": "com.localcardsgames.coteccapp"
+    },
+    "ios": {
+      "bundleIdentifier": "com.localcardsgames.coteccapp"
+    },
+    "splash": {
+      "image": "./src/assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#7A9E9F"
+    }
+  },
+  "android": {
+    "package": "com.localcardsgames.coteccapp"
+  },
+  "ios": {
+    "bundleIdentifier": "com.localcardsgames.coteccapp"
+  }
 }
