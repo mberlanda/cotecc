@@ -4,6 +4,7 @@ import {ScrollView, StyleSheet, Text, View} from 'react-native';
 import {RouteProp} from '@react-navigation/native';
 
 import DealCardsButton from '../components/DealCardsButton';
+import PastTurn from '../components/PastTurn';
 import PlayerHand from '../components/PlayerHand';
 import {StateDebugComponent} from '../components/StateDebug';
 import StickyHeader from '../components/StickyHeader';
@@ -81,6 +82,11 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
           {player.isHuman && (
             <PlayerHand player={player} onCardSelect={handleCardSelect} />
           )}
+          <PastTurn
+            turns={localGameState.pastTurns.filter(
+              t => t.winnerID == player.ID,
+            )}
+          />
         </View>
       ))}
       {/* Implement UI elements for game controls */}
