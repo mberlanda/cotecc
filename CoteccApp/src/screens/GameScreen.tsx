@@ -20,7 +20,7 @@ interface GameScreenProps {
 }
 
 const GameScreen: React.FC<GameScreenProps> = ({route}) => {
-  const {opponents, name}: GameScreenRouteParams = route.params;
+  const {opponents, name, showDebug}: GameScreenRouteParams = route.params;
   const initialPlayers = useMemo(
     () => generatePlayers(name, opponents),
     [name, opponents],
@@ -85,7 +85,7 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
       ))}
       {/* Implement UI elements for game controls */}
       <DealCardsButton state={localGameState} doDealCards={doDealCards} />
-      <StateDebugComponent state={localGameState} />
+      {showDebug && <StateDebugComponent state={localGameState} />}
     </ScrollView>
   );
 };
