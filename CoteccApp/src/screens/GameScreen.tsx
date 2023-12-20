@@ -21,7 +21,8 @@ interface GameScreenProps {
 }
 
 const GameScreen: React.FC<GameScreenProps> = ({route}) => {
-  const {opponents, name, showDebug}: GameScreenRouteParams = route.params;
+  const {gameSpeed, opponents, name, showDebug}: GameScreenRouteParams =
+    route.params;
   const initialPlayers = useMemo(
     () => generatePlayers(name, opponents),
     [name, opponents],
@@ -54,7 +55,7 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
       setTimeout(() => {
         playAICard(localGameState, currentPlayer);
         setLocalGameState({...localGameState});
-      }, 1500); // TODO: make delay configurable
+      }, gameSpeed);
     }
   });
 
