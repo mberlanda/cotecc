@@ -1,17 +1,11 @@
 // GameSelectionScreen.tsx
 import React, {useState} from 'react';
-import {
-  Alert,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {Alert, StyleSheet, Text, TextInput, View} from 'react-native';
 
 import {Picker} from '@react-native-picker/picker';
 import {NavigationProp} from '@react-navigation/native';
 
+import Checkbox from '../components/Checkbox';
 import PrimaryButton from '../components/PrimaryButton';
 
 const GameSelectionScreen = ({
@@ -60,12 +54,11 @@ const GameSelectionScreen = ({
         placeholder="Your Name"
       />
 
-      <TouchableOpacity
-        style={styles.checkboxContainer}
-        onPress={() => setShowDebug(!showDebug)}>
-        <View style={[styles.checkbox, showDebug && styles.checkboxChecked]} />
-        <Text>Show Debug Information</Text>
-      </TouchableOpacity>
+      <Checkbox
+        checked={showDebug}
+        onPress={() => setShowDebug(!showDebug)}
+        text={'Show Debug Information'}
+      />
 
       <Text>Game Speed: {gameSpeedMap[gameSpeed]}</Text>
       <Picker
@@ -100,22 +93,6 @@ const styles = StyleSheet.create({
   picker: {
     width: '100%',
     marginBottom: 20,
-  },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  checkbox: {
-    height: 20,
-    width: 20,
-    backgroundColor: '#FFF',
-    borderColor: '#000',
-    borderWidth: 1,
-    marginRight: 10,
-  },
-  checkboxChecked: {
-    backgroundColor: '#000',
   },
 });
 
