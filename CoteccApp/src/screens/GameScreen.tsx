@@ -78,7 +78,9 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
             Player name: {player.name} - ID {player.ID} - score{' '}
             {localGameState.scores[player.ID] || 0} - bole {player.boleCount}
           </Text>
-          <PlayerHand player={player} onCardSelect={handleCardSelect} />
+          {player.isHuman && (
+            <PlayerHand player={player} onCardSelect={handleCardSelect} />
+          )}
         </View>
       ))}
       {/* Implement UI elements for game controls */}
