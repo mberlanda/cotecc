@@ -3,7 +3,7 @@ interface CardImages {
 }
 
 const cardImages: CardImages = {
-  '1_bastoni': require('../assets/cards/card_0_0.jpeg'),
+  '11_bastoni': require('../assets/cards/card_0_0.jpeg'),
   '2_bastoni': require('../assets/cards/card_0_1.jpeg'),
   '3_bastoni': require('../assets/cards/card_0_2.jpeg'),
   '4_bastoni': require('../assets/cards/card_0_3.jpeg'),
@@ -13,7 +13,7 @@ const cardImages: CardImages = {
   '8_bastoni': require('../assets/cards/card_0_7.jpeg'),
   '9_bastoni': require('../assets/cards/card_0_8.jpeg'),
   '10_bastoni': require('../assets/cards/card_0_9.jpeg'),
-  '1_spade': require('../assets/cards/card_1_0.jpeg'),
+  '11_spade': require('../assets/cards/card_1_0.jpeg'),
   '2_spade': require('../assets/cards/card_1_1.jpeg'),
   '3_spade': require('../assets/cards/card_1_2.jpeg'),
   '4_spade': require('../assets/cards/card_1_3.jpeg'),
@@ -23,7 +23,7 @@ const cardImages: CardImages = {
   '8_spade': require('../assets/cards/card_1_7.jpeg'),
   '9_spade': require('../assets/cards/card_1_8.jpeg'),
   '10_spade': require('../assets/cards/card_1_9.jpeg'),
-  '1_coppe': require('../assets/cards/card_2_0.jpeg'),
+  '11_coppe': require('../assets/cards/card_2_0.jpeg'),
   '2_coppe': require('../assets/cards/card_2_1.jpeg'),
   '3_coppe': require('../assets/cards/card_2_2.jpeg'),
   '4_coppe': require('../assets/cards/card_2_3.jpeg'),
@@ -33,7 +33,7 @@ const cardImages: CardImages = {
   '8_coppe': require('../assets/cards/card_2_7.jpeg'),
   '9_coppe': require('../assets/cards/card_2_8.jpeg'),
   '10_coppe': require('../assets/cards/card_2_9.jpeg'),
-  '1_ori': require('../assets/cards/card_3_0.jpeg'),
+  '11_ori': require('../assets/cards/card_3_0.jpeg'),
   '2_ori': require('../assets/cards/card_3_1.jpeg'),
   '3_ori': require('../assets/cards/card_3_2.jpeg'),
   '4_ori': require('../assets/cards/card_3_3.jpeg'),

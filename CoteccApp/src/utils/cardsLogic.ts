@@ -8,9 +8,9 @@ export const createDeck = (): Card[] => {
   const deck: Card[] = [];
 
   for (const suit of Object.values(Suit)) {
-    for (let rank = 1; rank <= 10; rank++) {
+    for (let rank = 2; rank <= 11; rank++) {
       let points = 0;
-      if (rank === 1) {
+      if (rank === 11) {
         // Ace
         points = 6;
       } else if (rank === 10) {
