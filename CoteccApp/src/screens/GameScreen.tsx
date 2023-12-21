@@ -85,7 +85,7 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
           )}
           <PastTurn
             turns={localGameState.pastTurns.filter(
-              t => t.winnerID == player.ID,
+              t => t.winnerID === player.ID,
             )}
           />
         </View>
