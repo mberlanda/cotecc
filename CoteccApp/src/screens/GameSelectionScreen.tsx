@@ -5,6 +5,7 @@ import {Alert, StyleSheet, Text, TextInput, View} from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import {NavigationProp} from '@react-navigation/native';
 
+import Checkbox from '../components/Checkbox';
 import PrimaryButton from '../components/PrimaryButton';
 
 const GameSelectionScreen = ({
@@ -12,8 +13,16 @@ const GameSelectionScreen = ({
 }: {
   navigation: NavigationProp<any>;
 }) => {
-  const [opponents, setOpponents] = useState(1);
+  const [gameSpeed, setGameSpeed] = useState(500);
+  const [opponents, setOpponents] = useState(3);
   const [name, setName] = useState('');
+  const [showDebug, setShowDebug] = useState(false);
+
+  const gameSpeedMap: {[key: number]: string} = {
+    500: 'fast',
+    1000: 'normal',
+    1500: 'slow',
+  };
 
   const startGame = () => {
     if (name.trim().length === 0) {
@@ -21,12 +30,12 @@ const GameSelectionScreen = ({
       return;
     }
 
-    navigation.navigate('GameScreen', {opponents, name});
+    navigation.navigate('GameScreen', {gameSpeed, opponents, name, showDebug});
   };
 
   return (
     <View style={styles.container}>
-      <Text>Select Number of Opponents:</Text>
+      <Text>Number of Opponents: {opponents}</Text>
       <Picker
         selectedValue={opponents}
         onValueChange={itemValue => setOpponents(itemValue)}
@@ -44,6 +53,22 @@ const GameSelectionScreen = ({
         value={name}
         placeholder="Your Name"
       />
+
+      <Checkbox
+        checked={showDebug}
+        onPress={() => setShowDebug(!showDebug)}
+        text={'Show Debug Information'}
+      />
+
+      <Text>Game Speed: {gameSpeedMap[gameSpeed]}</Text>
+      <Picker
+        selectedValue={gameSpeed}
+        onValueChange={itemValue => setGameSpeed(itemValue)}
+        style={styles.picker}>
+        {Object.keys(gameSpeedMap).map(val => (
+          <Picker.Item label={gameSpeedMap[+val]} value={val} />
+        ))}
+      </Picker>
 
       <PrimaryButton title="Start Game" onPress={startGame} />
     </View>

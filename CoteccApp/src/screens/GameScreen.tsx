@@ -4,6 +4,7 @@ import {ScrollView, StyleSheet, Text, View} from 'react-native';
 import {RouteProp} from '@react-navigation/native';
 
 import DealCardsButton from '../components/DealCardsButton';
+import PastTurn from '../components/PastTurn';
 import PlayerHand from '../components/PlayerHand';
 import {StateDebugComponent} from '../components/StateDebug';
 import StickyHeader from '../components/StickyHeader';
@@ -20,7 +21,8 @@ interface GameScreenProps {
 }
 
 const GameScreen: React.FC<GameScreenProps> = ({route}) => {
-  const {opponents, name}: GameScreenRouteParams = route.params;
+  const {gameSpeed, opponents, name, showDebug}: GameScreenRouteParams =
+    route.params;
   const initialPlayers = useMemo(
     () => generatePlayers(name, opponents),
     [name, opponents],
@@ -53,7 +55,7 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
       setTimeout(() => {
         playAICard(localGameState, currentPlayer);
         setLocalGameState({...localGameState});
-      }, 1500); // TODO: make delay configurable
+      }, gameSpeed);
     }
   });
 
@@ -78,12 +80,19 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
             Player name: {player.name} - ID {player.ID} - score{' '}
             {localGameState.scores[player.ID] || 0} - bole {player.boleCount}
           </Text>
-          <PlayerHand player={player} onCardSelect={handleCardSelect} />
+          {player.isHuman && (
+            <PlayerHand player={player} onCardSelect={handleCardSelect} />
+          )}
+          <PastTurn
+            turns={localGameState.pastTurns.filter(
+              t => t.winnerID == player.ID,
+            )}
+          />
         </View>
       ))}
       {/* Implement UI elements for game controls */}
       <DealCardsButton state={localGameState} doDealCards={doDealCards} />
-      <StateDebugComponent state={localGameState} />
+      {showDebug && <StateDebugComponent state={localGameState} />}
     </ScrollView>
   );
 };
