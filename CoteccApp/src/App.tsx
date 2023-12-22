@@ -45,8 +45,13 @@ const App = () => {
         <Stack.Screen
           name="GameSelectionScreen"
           component={GameSelectionScreen}
+          options={{title: 'New Game'}}
         />
-        <Stack.Screen name="GameScreen" component={GameScreen} />
+        <Stack.Screen
+          name="GameScreen"
+          component={GameScreen}
+          options={{title: 'Game'}}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

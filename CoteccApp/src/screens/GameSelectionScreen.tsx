@@ -2,10 +2,10 @@
 import React, {useState} from 'react';
 import {Alert, StyleSheet, Text, TextInput, View} from 'react-native';
 
-import {Picker} from '@react-native-picker/picker';
 import {NavigationProp} from '@react-navigation/native';
 
 import Checkbox from '../components/Checkbox';
+import PickerModal from '../components/PickerModal';
 import PrimaryButton from '../components/PrimaryButton';
 
 const GameSelectionScreen = ({
@@ -18,7 +18,14 @@ const GameSelectionScreen = ({
   const [name, setName] = useState('');
   const [showDebug, setShowDebug] = useState(false);
 
-  const gameSpeedMap: {[key: number]: string} = {
+  const opponentsOptions: {[key: string]: string} = {
+    1: '1',
+    2: '2',
+    3: '3',
+    4: '4',
+  };
+
+  const gameSpeedOptions: {[key: number]: string} = {
     500: 'fast',
     1000: 'normal',
     1500: 'slow',
@@ -35,17 +42,6 @@ const GameSelectionScreen = ({
 
   return (
     <View style={styles.container}>
-      <Text>Number of Opponents: {opponents}</Text>
-      <Picker
-        selectedValue={opponents}
-        onValueChange={itemValue => setOpponents(itemValue)}
-        style={styles.picker}>
-        <Picker.Item label="1" value={1} />
-        <Picker.Item label="2" value={2} />
-        <Picker.Item label="3" value={3} />
-        <Picker.Item label="4" value={4} />
-      </Picker>
-
       <Text>Enter Your Name:</Text>
       <TextInput
         style={styles.input}
@@ -53,22 +49,27 @@ const GameSelectionScreen = ({
         value={name}
         placeholder="Your Name"
       />
+      <PickerModal
+        id={'opponents'}
+        options={opponentsOptions}
+        selectedValue={String(opponents)}
+        title="Number of Opponents"
+        onValueChange={itemValue => setOpponents(+itemValue)}
+      />
+
+      <PickerModal
+        id={'game-speed'}
+        options={gameSpeedOptions}
+        selectedValue={gameSpeed}
+        title="Game speed"
+        onValueChange={itemValue => setGameSpeed(+itemValue)}
+      />
 
       <Checkbox
         checked={showDebug}
         onPress={() => setShowDebug(!showDebug)}
         text={'Show Debug Information'}
       />
-
-      <Text>Game Speed: {gameSpeedMap[gameSpeed]}</Text>
-      <Picker
-        selectedValue={gameSpeed}
-        onValueChange={itemValue => setGameSpeed(itemValue)}
-        style={styles.picker}>
-        {Object.keys(gameSpeedMap).map(val => (
-          <Picker.Item label={gameSpeedMap[+val]} value={val} />
-        ))}
-      </Picker>
 
       <PrimaryButton title="Start Game" onPress={startGame} />
     </View>
