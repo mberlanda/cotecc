@@ -10,7 +10,6 @@ const buildEmptySuitCount = (): SuitCardsRecord => {
     Object.values(Suit)
       .filter(value => typeof value === 'string')
       .map(suit => [suit, null]),
-    // Object.keys(Suit).filter(key => isNaN(Number(key))).map(k => [Suit[k as keyof typeof Suit], null]),
   ) as SuitCardsRecord;
 };
 
@@ -19,7 +18,6 @@ const buildSuitCount = (defaultValue: number): SuitCountRecord => {
     Object.values(Suit)
       .filter(value => typeof value === 'string')
       .map(suit => [suit, defaultValue]),
-    // Object.keys(Suit).filter(key => isNaN(Number(key))).map(k => [Suit[k as keyof typeof Suit], defaultValue]),
   ) as SuitCountRecord;
 };
 
@@ -60,7 +58,7 @@ const computeCards = (cards: Card[]): ComputedCards => {
 
 // TODO: think about a strategy to set different difficulty levels
 // TODO: think about either playing for capot or for making less points
-export const aiCardToPlay = (
+export const aiMoveToPlay = (
   player: Player,
   currentTurn: Turn,
   pastTurns: Turn[],

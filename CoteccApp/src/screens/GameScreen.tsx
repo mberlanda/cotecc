@@ -11,7 +11,7 @@ import StickyHeader from '../components/StickyHeader';
 import TableComponent from '../components/TableComponent';
 import {GameScreenRouteParams, RootStackParamList} from '../routes';
 import {GameState, Move} from '../types';
-import {aiCardToPlay as aiMoveToPlay} from '../utils/aiPlayerLogic';
+import {aiMoveToPlay} from '../utils/aiPlayerLogic';
 import {dealCards} from '../utils/cardsLogic';
 import {newRound, playCard} from '../utils/gameLogic';
 import {findPlayerById, generatePlayers} from '../utils/playerLogic';
