@@ -8,6 +8,7 @@ const PastTurn = ({turns}: {turns: Turn[]}) => (
   <View style={styles.container}>
     {turns.map(turn => (
       <FlatList
+        key={`${turn.winnerID}-${turn.suit}-${turn.highestCard?.rank}`}
         data={turn.moves.map(m => m.card)}
         renderItem={({item}) => (
           <CardComponent

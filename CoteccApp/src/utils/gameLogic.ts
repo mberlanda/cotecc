@@ -1,10 +1,4 @@
-import {
-  cardIsGreater,
-  createDeck,
-  dealCards,
-  getCardsWithSuit,
-  shuffleDeck,
-} from './cardsLogic';
+import {cardIsGreater, createDeck, dealCards, shuffleDeck} from './cardsLogic';
 import {findPlayerById, nextPlayerID} from './playerLogic';
 import {Card, GameState, Player, Turn} from '../types';
 
@@ -49,27 +43,6 @@ export const playCard = (
     // TODO: return an exception visible in the UI
     return;
   }
-};
-
-export const playAICard = (gameState: GameState, player: Player): void => {
-  // no smart logic, plays a random card after checking the suit.
-  if (!player.hand.length) {
-    throw Error(`AI player ${player.ID} does not own any card`);
-  }
-
-  const cardsWithSuit = getCardsWithSuit(
-    gameState.currentTurn.suit,
-    player.hand,
-  );
-  const playedCard =
-    cardsWithSuit.length > 0
-      ? cardsWithSuit[Math.floor(Math.random() * cardsWithSuit.length)]
-      : player.hand[Math.floor(Math.random() * player.hand.length)];
-
-  playCard(gameState, player.ID, playedCard);
-  console.log(
-    `AI player ${player.ID} selected card ${playedCard.rank} ${playedCard.suit}`,
-  );
 };
 
 export const validateCurrentPlayer = (
