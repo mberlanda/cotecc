@@ -11,8 +11,9 @@ import StickyHeader from '../components/StickyHeader';
 import TableComponent from '../components/TableComponent';
 import {GameScreenRouteParams, RootStackParamList} from '../routes';
 import {GameState, Move} from '../types';
+import {aiMoveToPlay} from '../utils/aiPlayerLogic';
 import {dealCards} from '../utils/cardsLogic';
-import {newRound, playAICard, playCard} from '../utils/gameLogic';
+import {newRound, playCard} from '../utils/gameLogic';
 import {findPlayerById, generatePlayers} from '../utils/playerLogic';
 
 // Define an interface for the props
@@ -53,14 +54,19 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
     // and the user has to tap DealCardsButton to start a new turn
     if (!currentPlayer.isHuman && currentPlayer.hand.length) {
       setTimeout(() => {
-        playAICard(localGameState, currentPlayer);
+        const aiMove = aiMoveToPlay(
+          currentPlayer,
+          localGameState.currentTurn,
+          localGameState.pastTurns,
+        );
+        playCard(localGameState, aiMove.playerID, aiMove.card);
+
         setLocalGameState({...localGameState});
       }, gameSpeed);
     }
   });
 
   const doDealCards = () => {
-    console.log(`doDealCards: ${JSON.stringify(localGameState)}`);
     dealCards(localGameState.deck, localGameState.players);
     setLocalGameState({...localGameState});
   };
@@ -84,6 +90,7 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
             <PlayerHand player={player} onCardSelect={handleCardSelect} />
           )}
           <PastTurn
+            key={index}
             turns={localGameState.pastTurns.filter(
               t => t.winnerID === player.ID,
             )}

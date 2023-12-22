@@ -1,12 +1,6 @@
 import {beforeEach, describe, expect, it} from '@jest/globals';
 
-import {
-  newRound,
-  playAICard,
-  playCard,
-  processCardPlay,
-  validateSuit,
-} from './gameLogic';
+import {newRound, playCard, processCardPlay, validateSuit} from './gameLogic';
 import {Card, GameState, Player} from '../types';
 
 const playerOne = {ID: 0, name: 'foo', hand: [], boleCount: 0, isHuman: true};
@@ -51,26 +45,6 @@ describe('playCard', () => {
     expect(currentTurn.winnerID).toEqual(playerOne.ID);
 
     expect(currentTurn.currentPlayerID).toEqual(playerTwo.ID);
-  });
-});
-
-describe('playAICard', () => {
-  let gameState: GameState;
-
-  beforeEach(() => {
-    gameState = newRound(
-      players.map(p => Object.create(p)),
-      players[0].ID,
-    );
-  });
-
-  it('throws an exception if the player has an empty hand', () => {
-    const playerWithoutCards = gameState.players[0];
-    playerWithoutCards.hand = [];
-
-    expect(() => {
-      playAICard(gameState, playerWithoutCards);
-    }).toThrowError();
   });
 });
 
