@@ -14,19 +14,26 @@ export const nextPlayerID = (players: Player[], playerID: number): number => {
   return players[(currentPlayerIndex + 1) % playersCount].ID;
 };
 
-const placeholderPlayers: Player[] = [
-  {ID: 1, name: 'bar', hand: [], boleCount: 0, isHuman: false},
-  {ID: 2, name: 'baz', hand: [], boleCount: 0, isHuman: false},
-  {ID: 3, name: 'baz', hand: [], boleCount: 0, isHuman: false},
-  {ID: 4, name: 'baz', hand: [], boleCount: 0, isHuman: false},
-];
+const generatAiPlayers = (lifeCount: number, count: number): Player[] =>
+  [
+    {ID: 1, name: 'bar', lifeCount, isHuman: false},
+    {ID: 2, name: 'baz', lifeCount, isHuman: false},
+    {ID: 3, name: 'baz', lifeCount, isHuman: false},
+    {ID: 4, name: 'baz', lifeCount, isHuman: false},
+  ].slice(0, count);
 
 export const generatePlayers = (
   humanName: string,
+  numberOfLifes: number,
   numberOfPlayers: number,
 ): Player[] => {
-  const human = {ID: 0, name: humanName, hand: [], boleCount: 0, isHuman: true};
-  const aiPlayers = Math.min(numberOfPlayers, 4);
+  const human = {
+    ID: 0,
+    name: humanName,
+    lifeCount: numberOfLifes,
+    isHuman: true,
+  };
+  const aiPlayersCount = Math.min(numberOfPlayers, 4);
 
-  return [human, ...placeholderPlayers.slice(0, aiPlayers)];
+  return [human, ...generatAiPlayers(numberOfLifes, aiPlayersCount)];
 };

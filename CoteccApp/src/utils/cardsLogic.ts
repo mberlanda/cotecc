@@ -1,5 +1,5 @@
 import {Suit} from './constants';
-import {Card, Player} from '../types';
+import {Card, PlayerHand} from '../types';
 
 export const createDeck = (): Card[] => {
   // Implement deck creation logic
@@ -46,7 +46,7 @@ export const sortCards = (deck: Card[]): Card[] => {
   });
 };
 
-export const dealCards = (deck: Card[], players: Player[]): void => {
+export const dealCards = (deck: Card[], players: PlayerHand[]): void => {
   // Implement card dealing logic
   const cardsPerPlayer = 7;
   if (cardsPerPlayer * players.length > deck.length) {
@@ -56,10 +56,12 @@ export const dealCards = (deck: Card[], players: Player[]): void => {
   }
   for (const player of players) {
     const cards = [];
+    // TODO: add logic to ensure that player has at least
+    // one point in the hand at the beginning
     for (let i = 0; i < cardsPerPlayer; i++) {
       cards.push(deck.pop()!);
     }
-    player.hand = sortCards(cards);
+    player.cards = sortCards(cards);
   }
 };
 
@@ -72,4 +74,32 @@ export const cardIsGreater = (a: Card, b: Card): boolean => {
 
 export const getCardsWithSuit = (suit: Suit | null, hand: Card[]): Card[] => {
   return hand.filter(card => card.suit === suit);
+};
+
+export const updateCardsBitMap = (bitMap: Record<Suit, number>, card: Card) => {
+  bitMap[card.suit] |= 1 << card.rank;
+};
+
+export const resetCardsBitMap = (bitMap: Record<Suit, number>, card: Card) => {
+  bitMap[card.suit] &= ~(1 << card.rank);
+};
+
+export const playedCards = (
+  bitmap: Record<Suit, number>,
+  suit: Suit,
+): number[] => {
+  let indices = [];
+  const suitMap = bitmap[suit];
+
+  for (let i = 0; i < 12; i++) {
+    if (suitMap & (1 << i)) {
+      indices.push(i);
+    }
+  }
+
+  return indices;
+};
+
+export const hasCard = (bitMap: Record<Suit, number>, card: Card): boolean => {
+  return !!(bitMap[card.suit] & (1 << card.rank));
 };

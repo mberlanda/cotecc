@@ -1,20 +1,20 @@
 import React from 'react';
 import {Text, View} from 'react-native';
 
-import {GameState} from '../types';
+import {Round} from '../types';
 
-export const StateDebugComponent = ({state}: {state: GameState}) => {
+export const StateDebugComponent = ({round}: {round: Round}) => {
   return (
     <View>
       <Text>State Debug</Text>
-      <Text>Current Player ID: {state.currentTurn.currentPlayerID}</Text>
-      <Text>Current Suit: {state.currentTurn.suit || 'not set'}</Text>
+      <Text>Current Player ID: {round.currentTurn.currentPlayerID}</Text>
+      <Text>Current Suit: {round.currentTurn.suit || 'not set'}</Text>
       <Text>
-        Current Highest Move: {JSON.stringify(state.currentTurn.highestCard)}
+        Current Highest Move: {JSON.stringify(round.currentTurn.highestCard)}
       </Text>
-      <Text>Current Moves: {JSON.stringify(state.currentTurn.moves)}</Text>
+      <Text>Current Moves: {JSON.stringify(round.currentTurn.moves)}</Text>
       <Text>Past Turns:</Text>
-      {state.pastTurns.map((turn, index) => (
+      {round.pastTurns.map((turn, index) => (
         <Text key={index}>
           {' '}
           Turn {index}: {JSON.stringify(turn)}

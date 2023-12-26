@@ -5,10 +5,13 @@ import {
   createDeck,
   dealCards,
   getCardsWithSuit,
+  playedCards,
   shuffleDeck,
   sortCards,
+  updateCardsBitMap,
 } from './cardsLogic';
 import {Suit} from './constants';
+import {newSuitMap} from '../types';
 
 describe('createDeck', () => {
   it('creates a deck of 40 cards', () => {
@@ -153,5 +156,33 @@ describe('getCardsWithSuit', () => {
     ];
 
     expect(getCardsWithSuit(suit, hand).sort()).toEqual(expected.sort());
+  });
+});
+
+describe('bitwise operations', () => {
+  it('updateCardsBitMap', () => {
+    const bitmap = newSuitMap<number>(0b000000000000);
+    const cards = [
+      {suit: Suit.Spade, rank: 3, points: 0},
+      {suit: Suit.Spade, rank: 4, points: 0},
+      {suit: Suit.Spade, rank: 11, points: 6},
+    ];
+    cards.forEach(c => updateCardsBitMap(bitmap, c));
+
+    expect(bitmap[Suit.Spade]).toEqual(0b100000011000);
+    expect(bitmap[Suit.Bastoni]).toEqual(0b000000000000);
+  });
+
+  it('playedCards', () => {
+    const bitmap = newSuitMap<number>(0b000000000000);
+    const cards = [
+      {suit: Suit.Spade, rank: 3, points: 0},
+      {suit: Suit.Spade, rank: 4, points: 0},
+      {suit: Suit.Spade, rank: 11, points: 6},
+    ];
+    cards.forEach(c => updateCardsBitMap(bitmap, c));
+
+    expect(playedCards(bitmap, Suit.Spade)).toEqual([3, 4, 11]);
+    expect(playedCards(bitmap, Suit.Bastoni)).toEqual([]);
   });
 });

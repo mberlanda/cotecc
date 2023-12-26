@@ -3,7 +3,7 @@ import React from 'react';
 import {describe, expect, it} from '@jest/globals';
 import renderer from 'react-test-renderer';
 
-import PlayerHand from './PlayerHand';
+import PlayerHand from './PlayerHandComponent';
 import {Move} from '../types';
 import {Suit} from '../utils/constants';
 
