@@ -5,7 +5,7 @@ import {RouteProp} from '@react-navigation/native';
 
 import DealCardsButton from '../components/DealCardsButton';
 import PastTurn from '../components/PastTurn';
-import PlayerHand from '../components/PlayerHand';
+import PlayerHandComponent from '../components/PlayerHandComponent';
 import {StateDebugComponent} from '../components/StateDebug';
 import StickyHeader from '../components/StickyHeader';
 import TableComponent from '../components/TableComponent';
@@ -92,7 +92,10 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
             {localGameState.scores[player.ID] || 0} - lives {player.lifeCount}
           </Text>
           {player.isHuman && (
-            <PlayerHand player={player} onCardSelect={handleCardSelect} />
+            <PlayerHandComponent
+              player={player}
+              onCardSelect={handleCardSelect}
+            />
           )}
           <PastTurn
             key={index}

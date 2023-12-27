@@ -4,7 +4,7 @@ import {FlatList, StyleSheet, View} from 'react-native';
 import CardComponent from './CardComponent';
 import {Move, Player} from '../types';
 
-const PlayerHand = ({
+const PlayerHandComponent = ({
   player,
   onCardSelect,
 }: {
@@ -41,4 +41,4 @@ const styles = StyleSheet.create({
   // Add styles for CardComponent if necessary
 });
 
-export default PlayerHand;
+export default PlayerHandComponent;
