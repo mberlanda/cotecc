@@ -2,7 +2,7 @@ import {cardIsGreater, createDeck, dealCards, shuffleDeck} from './cardsLogic';
 import {findPlayerById, nextPlayerID} from './playerLogic';
 import {Card, GameState, Player, Turn} from '../types';
 
-export const newRound = (
+export const newGame = (
   players: Player[],
   initialPlayerID: number,
   maxLifeCount: number,

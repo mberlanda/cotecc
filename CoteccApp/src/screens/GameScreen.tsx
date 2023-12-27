@@ -13,7 +13,7 @@ import {GameScreenRouteParams, RootStackParamList} from '../routes';
 import {GameState, Move} from '../types';
 import {aiMoveToPlay} from '../utils/aiPlayerLogic';
 import {dealCards} from '../utils/cardsLogic';
-import {newRound, playCard} from '../utils/gameLogic';
+import {newGame, playCard} from '../utils/gameLogic';
 import {findPlayerById, generatePlayers} from '../utils/playerLogic';
 
 // Define an interface for the props
@@ -31,7 +31,7 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
     [name, opponents, maxLifeCount],
   );
   const [localGameState, setLocalGameState] = useState<GameState>(() => {
-    return newRound(initialPlayers, initialPlayers[0].ID, maxLifeCount);
+    return newGame(initialPlayers, initialPlayers[0].ID, maxLifeCount);
   });
 
   const handleCardSelect = (move: Move) => {

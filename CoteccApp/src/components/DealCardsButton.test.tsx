@@ -5,7 +5,7 @@ import renderer from 'react-test-renderer';
 
 import DealCardsButton from './DealCardsButton';
 import {GameState, Player} from '../types';
-import {newRound, newTurn} from '../utils/gameLogic';
+import {newGame, newTurn} from '../utils/gameLogic';
 
 describe('DealCardsButton', () => {
   let players: Player[];
@@ -19,7 +19,7 @@ describe('DealCardsButton', () => {
   });
 
   it('does not render when players have card', () => {
-    const gameState = newRound(players, players[0].ID);
+    const gameState = newGame(players, players[0].ID);
     const tree = renderer
       .create(<DealCardsButton state={gameState} doDealCards={() => {}} />)
       .toJSON();

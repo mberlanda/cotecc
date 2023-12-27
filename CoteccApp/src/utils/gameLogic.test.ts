@@ -3,7 +3,7 @@ import {beforeEach, describe, expect, it} from '@jest/globals';
 import {Suit} from './constants';
 import {
   endRound,
-  newRound,
+  newGame,
   newTurn,
   playCard,
   processCardPlay,
@@ -26,7 +26,7 @@ describe('playCard', () => {
   let gameState: GameState;
 
   beforeEach(() => {
-    gameState = newRound(
+    gameState = newGame(
       players.map(p => Object.create(p)),
       players[0].ID,
       4,
@@ -61,7 +61,7 @@ describe('validateSuit', () => {
   let gameState: GameState;
 
   beforeEach(() => {
-    gameState = newRound(
+    gameState = newGame(
       players.map(p => Object.create(p)),
       players[0].ID,
       4,
@@ -99,7 +99,7 @@ describe('processCardPlay', () => {
   let gameState: GameState;
 
   beforeEach(() => {
-    gameState = newRound(
+    gameState = newGame(
       players.map(p => Object.create(p)),
       players[0].ID,
       4,
@@ -120,7 +120,7 @@ describe('endRound', () => {
   let gameState: GameState;
 
   beforeEach(() => {
-    gameState = newRound(
+    gameState = newGame(
       players.map(p => Object.create(p)),
       players[0].ID,
       4,
