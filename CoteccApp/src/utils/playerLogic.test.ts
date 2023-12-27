@@ -4,9 +4,21 @@ import {findPlayerById, nextPlayerID} from './playerLogic';
 import {Player} from '../types';
 
 const validPlayerID = 123;
-const playerOne = {ID: validPlayerID, name: 'foo', hand: [], boleCount: 0};
-const playerTwo = {ID: 1, name: 'bar', hand: [], boleCount: 0};
-const playerThree = {ID: 2, name: 'baz', hand: [], boleCount: 0};
+const playerOne = {
+  ID: validPlayerID,
+  name: 'foo',
+  hand: [],
+  boleCount: 0,
+  isHuman: true,
+};
+const playerTwo = {ID: 1, name: 'bar', hand: [], boleCount: 0, isHuman: false};
+const playerThree = {
+  ID: 2,
+  name: 'baz',
+  hand: [],
+  boleCount: 0,
+  isHuman: false,
+};
 const players: Player[] = [playerOne, playerTwo, playerThree];
 
 describe('findPlayerById', () => {

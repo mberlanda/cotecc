@@ -182,11 +182,6 @@ exports[`PlayerHand should render correctly with given props 1`] = `
           >
             <Image
               resizeMode="contain"
-              source={
-                {
-                  "testUri": "../../../src/assets/cards/card_3_0.jpeg",
-                }
-              }
               style={
                 {
                   "height": "100%",

@@ -8,9 +8,9 @@ import {GameState, Player} from '../types';
 import {newRound} from '../utils/gameLogic';
 
 const players: Player[] = [
-  {ID: 0, name: 'foo', hand: [], boleCount: 0},
-  {ID: 1, name: 'bar', hand: [], boleCount: 0},
-  {ID: 2, name: 'baz', hand: [], boleCount: 0},
+  {ID: 0, name: 'foo', hand: [], boleCount: 0, isHuman: true},
+  {ID: 1, name: 'bar', hand: [], boleCount: 0, isHuman: false},
+  {ID: 2, name: 'baz', hand: [], boleCount: 0, isHuman: false},
 ];
 
 describe('StateDebug', () => {
