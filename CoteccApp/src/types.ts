@@ -1,9 +1,9 @@
 import {Suit} from './utils/constants';
 
 export interface Card {
-  suit: Suit;
-  rank: number;
-  points: number;
+  readonly suit: Suit;
+  readonly rank: number;
+  readonly points: number;
 }
 
 export interface Player {
@@ -15,8 +15,8 @@ export interface Player {
 }
 
 export interface Move {
-  playerID: number;
-  card: Card;
+  readonly playerID: number;
+  readonly card: Card;
 }
 
 export interface Turn {
@@ -34,5 +34,5 @@ export interface GameState {
   currentTurn: Turn;
   pastTurns: Turn[];
   scores: {[playerID: number]: number};
-  maxLifeCount: number;
+  readonly maxLifeCount: number;
 }
