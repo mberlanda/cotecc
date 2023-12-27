@@ -22,8 +22,6 @@ export const newGame = (
     players: players,
     deck: shuffledDeck,
     initialPlayerID: initialPlayerID,
-    currentTurn: newTurn(initialPlayerID),
-    pastTurns: [],
     currentRound: newRound(1, initialPlayerID),
     pastRounds: [],
     scores: {},
@@ -62,9 +60,9 @@ export const validateCurrentPlayer = (
   gameState: GameState,
   player: Player,
 ): void => {
-  if (gameState.currentTurn.currentPlayerID !== player.ID) {
+  if (gameState.currentRound.currentTurn.currentPlayerID !== player.ID) {
     throw Error(
-      `Player ${player.ID} tried to play while it was player ${gameState.currentTurn.currentPlayerID} move`,
+      `Player ${player.ID} tried to play while it was player ${gameState.currentRound.currentTurn.currentPlayerID} move`,
     );
   }
 };
@@ -74,7 +72,7 @@ export const validateSuit = (
   player: Player,
   playedCard: Card,
 ): void => {
-  const currentSuit = gameState.currentTurn.suit;
+  const currentSuit = gameState.currentRound.currentTurn.suit;
   if (!currentSuit || playedCard.suit === currentSuit) {
     return;
   }
@@ -99,22 +97,22 @@ export const processCardPlay = (
     );
   }
   // Update the current suit if this is the first card of the round
-  if (!gameState.currentTurn.suit) {
-    gameState.currentTurn.suit = playedCard.suit;
+  if (!gameState.currentRound.currentTurn.suit) {
+    gameState.currentRound.currentTurn.suit = playedCard.suit;
   }
 
   // Update the highest card if applicable
   if (
-    !gameState.currentTurn.highestCard ||
-    (playedCard.suit === gameState.currentTurn.suit &&
-      cardIsGreater(playedCard, gameState.currentTurn.highestCard))
+    !gameState.currentRound.currentTurn.highestCard ||
+    (playedCard.suit === gameState.currentRound.currentTurn.suit &&
+      cardIsGreater(playedCard, gameState.currentRound.currentTurn.highestCard))
   ) {
-    gameState.currentTurn.highestCard = playedCard;
-    gameState.currentTurn.winnerID = player.ID;
+    gameState.currentRound.currentTurn.highestCard = playedCard;
+    gameState.currentRound.currentTurn.winnerID = player.ID;
   }
 
   const removedCard = player.hand.splice(cardIndex, 1);
-  gameState.currentTurn.moves.push({
+  gameState.currentRound.currentTurn.moves.push({
     playerID: player.ID,
     card: removedCard[0],
   });
@@ -124,25 +122,25 @@ export const processCardPlay = (
 export const nextMove = (gameState: GameState, player: Player): void => {
   // When all players made their move, the round is over
   const playersCount = gameState.players.length;
-  if (gameState.currentTurn.moves.length === playersCount) {
+  if (gameState.currentRound.currentTurn.moves.length === playersCount) {
     // All players have moved
     endTurn(gameState);
     return;
   }
 
-  gameState.currentTurn.currentPlayerID = nextPlayerID(
+  gameState.currentRound.currentTurn.currentPlayerID = nextPlayerID(
     gameState.players,
     player.ID,
   );
 };
 
 export const endTurn = (gameState: GameState): void => {
-  const score = gameState.currentTurn.moves.reduce(
+  const score = gameState.currentRound.currentTurn.moves.reduce(
     (s, m) => s + m.card.points,
     0,
   );
-  const winnerID = gameState.currentTurn.winnerID!;
-  gameState.pastTurns.push(gameState.currentTurn);
+  const winnerID = gameState.currentRound.currentTurn.winnerID!;
+  gameState.currentRound.pastTurns.push(gameState.currentRound.currentTurn);
   gameState.scores[winnerID] ||= 0;
   gameState.scores[winnerID] += score;
   nextTurn(gameState, winnerID);
@@ -167,7 +165,9 @@ export const endRound = (gameState: GameState, playerID: number): void => {
 
   // A player taking all cards does a "capòt", reducing their score by one,
   // while others increase by one
-  const turnWinnersSet = new Set(gameState.pastTurns.map(t => t.winnerID));
+  const turnWinnersSet = new Set(
+    gameState.currentRound.pastTurns.map(t => t.winnerID),
+  );
   if (turnWinnersSet.size === 1) {
     // TODO: return some messages about the round outcome with a categorization
     // between capot and max score so that it can be displayed in a message.
@@ -219,18 +219,27 @@ export const endRound = (gameState: GameState, playerID: number): void => {
     gameState.players,
     gameState.initialPlayerID,
   );
+
+  gameState.pastRounds.push({...gameState.currentRound});
+
   gameState.initialPlayerID = nextInitialPlayerID;
   gameState.deck = shuffleDeck(createDeck());
-  gameState.pastTurns = [];
   gameState.scores = {};
-  resetTurnState(gameState, nextInitialPlayerID);
+  resetRoundState(gameState, nextInitialPlayerID);
+};
+
+export const resetRoundState = (
+  gameState: GameState,
+  playerID: number,
+): void => {
+  gameState.currentRound = newRound(gameState.currentRound.ID + 1, playerID);
 };
 
 export const resetTurnState = (
   gameState: GameState,
   playerID: number,
 ): void => {
-  gameState.currentTurn = newTurn(playerID);
+  gameState.currentRound.currentTurn = newTurn(playerID);
 };
 
 export const checkForElimination = (players: Player[]): void => {

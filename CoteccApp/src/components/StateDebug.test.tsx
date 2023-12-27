@@ -18,7 +18,7 @@ describe('StateDebug', () => {
   let gameState: GameState;
 
   beforeEach(() => {
-    gameState = newGame(players, players[0].ID);
+    gameState = newGame(players, players[0].ID, 4);
   });
 
   it('renders turn data in the initial state', () => {
@@ -33,7 +33,7 @@ describe('StateDebug', () => {
       player.hand.pop();
     });
 
-    gameState.pastTurns.push({
+    gameState.currentRound.pastTurns.push({
       suit: Suit.Spade,
       highestCard: {suit: Suit.Spade, rank: 4, points: 0},
       moves: [

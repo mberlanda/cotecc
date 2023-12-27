@@ -38,8 +38,6 @@ export interface GameState {
   players: Player[];
   initialPlayerID: number;
   deck: Card[];
-  currentTurn: Turn;
-  pastTurns: Turn[];
   currentRound: Round;
   pastRounds: Round[];
   scores: {[playerID: number]: number};

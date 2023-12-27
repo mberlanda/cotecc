@@ -35,10 +35,12 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
   });
 
   const handleCardSelect = (move: Move) => {
-    if (move.playerID !== localGameState.currentTurn.currentPlayerID) {
+    if (
+      move.playerID !== localGameState.currentRound.currentTurn.currentPlayerID
+    ) {
       // TODO: display an error message in the UI
       console.log(
-        `Player ${move.playerID} tried to play while it was player ${localGameState.currentTurn.currentPlayerID} move`,
+        `Player ${move.playerID} tried to play while it was player ${localGameState.currentRound.currentTurn.currentPlayerID} move`,
       );
       return;
     }
@@ -50,7 +52,7 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
   useEffect(() => {
     const currentPlayer = findPlayerById(
       localGameState.players,
-      localGameState.currentTurn.currentPlayerID,
+      localGameState.currentRound.currentTurn.currentPlayerID,
     );
     // `currentPlayer.hand.length` is needed when the current turn is over
     // and the user has to tap DealCardsButton to start a new turn
@@ -58,8 +60,8 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
       setTimeout(() => {
         const aiMove = aiMoveToPlay(
           currentPlayer,
-          localGameState.currentTurn,
-          localGameState.pastTurns,
+          localGameState.currentRound.currentTurn,
+          localGameState.currentRound.pastTurns,
         );
         playCard(localGameState, aiMove.playerID, aiMove.card);
 
@@ -76,12 +78,13 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
   return (
     <ScrollView>
       <StickyHeader />
-      <TableComponent moves={localGameState.currentTurn.moves} />
+      <TableComponent moves={localGameState.currentRound.currentTurn.moves} />
       {localGameState.players.map((player, index) => (
         <View key={index}>
           <Text
             style={
-              player.ID === localGameState.currentTurn.currentPlayerID
+              player.ID ===
+              localGameState.currentRound.currentTurn.currentPlayerID
                 ? styles.currentPlayer
                 : null
             }>
@@ -93,7 +96,7 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
           )}
           <PastTurn
             key={index}
-            turns={localGameState.pastTurns.filter(
+            turns={localGameState.currentRound.pastTurns.filter(
               t => t.winnerID === player.ID,
             )}
           />

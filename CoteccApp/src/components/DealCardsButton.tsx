@@ -14,7 +14,7 @@ const DealCardsButton = ({
   const renderDealCardsButton = (): ReactNode => {
     // If no past turn and first player has no card, display
     // a button to deal cards
-    if (!state.pastTurns.length && !state.players[0].hand.length) {
+    if (!state.currentRound.pastTurns.length && !state.players[0].hand.length) {
       return <PrimaryButton onPress={doDealCards} title="Deal Cards" />;
     }
     return null;

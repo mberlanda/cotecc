@@ -45,7 +45,7 @@ describe('playCard', () => {
 
     playCard(gameState, playerOne.ID, playedCard);
 
-    const currentTurn = gameState.currentTurn;
+    const currentTurn = gameState.currentRound.currentTurn;
     expect(currentTurn.moves).toEqual([
       {playerID: playerOne.ID, card: playedCard},
     ]);
@@ -74,14 +74,14 @@ describe('validateSuit', () => {
 
   it('returns without exception if player follows current turn suit', () => {
     const playedCard = gameState.players[0].hand[0];
-    gameState.currentTurn.suit = playedCard.suit;
+    gameState.currentRound.currentTurn.suit = playedCard.suit;
 
     validateSuit(gameState, gameState.players[0], playedCard);
   });
 
   it('throws error when the player has at least one card of the suit and does not play it', () => {
     const playedCard = gameState.players[0].hand[0];
-    gameState.currentTurn.suit = playedCard.suit;
+    gameState.currentRound.currentTurn.suit = playedCard.suit;
     const otherSuit = [Suit.Ori, Suit.Spade].find(
       el => el !== playedCard.suit,
     )!;
@@ -139,7 +139,7 @@ describe('endRound', () => {
       p.hand = [];
     });
     fakeTurn.winnerID = winner.ID;
-    gameState.pastTurns.push(fakeTurn);
+    gameState.currentRound.pastTurns.push(fakeTurn);
 
     gameState.players.forEach(p => expect(p.lifeCount).toEqual(3));
 

@@ -19,7 +19,7 @@ describe('DealCardsButton', () => {
   });
 
   it('does not render when players have card', () => {
-    const gameState = newGame(players, players[0].ID);
+    const gameState = newGame(players, players[0].ID, 4);
     const tree = renderer
       .create(<DealCardsButton state={gameState} doDealCards={() => {}} />)
       .toJSON();
@@ -30,8 +30,13 @@ describe('DealCardsButton', () => {
       players: players,
       deck: [],
       initialPlayerID: players[0].ID,
-      currentTurn: newTurn(players[0].ID),
-      pastTurns: [],
+      currentRound: {
+        ID: 123,
+        initialPlayerID: players[0].ID,
+        currentTurn: newTurn(players[0].ID),
+        pastTurns: [],
+      },
+      pastRounds: [],
       scores: {},
     };
     const tree = renderer

@@ -14,7 +14,8 @@ exports[`StateDebug renders turn data after the first turn 1`] = `
     not set
   </Text>
   <Text>
-    Current Highest Move: 
+    Current Highest Move:
+     
     null
   </Text>
   <Text>
@@ -48,7 +49,8 @@ exports[`StateDebug renders turn data in the initial state 1`] = `
     not set
   </Text>
   <Text>
-    Current Highest Move: 
+    Current Highest Move:
+     
     null
   </Text>
   <Text>
