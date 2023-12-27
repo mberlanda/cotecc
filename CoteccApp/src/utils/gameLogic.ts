@@ -158,17 +158,18 @@ export const endRound = (gameState: GameState, playerID: number): void => {
   // while others increase by one
   const turnWinnersSet = new Set(gameState.pastTurns.map(t => t.winnerID));
   if (turnWinnersSet.size === 1) {
-    console.log('capòt');
+    // TODO: return some messages about the round outcome with a categorization
+    // between capot and max score so that it can be displayed in a message.
     const winnerID = turnWinnersSet.values().next().value;
     for (let i = 0; i < gameState.players.length; i++) {
       const previousLifeCount = gameState.players[i].lifeCount;
       if (gameState.players[i].ID === winnerID) {
-        gameState.players[i].lifeCount = Math.max(previousLifeCount - 1, 0);
-      } else {
-        gameState.players[i].lifeCount += Math.min(
+        gameState.players[i].lifeCount = Math.min(
           previousLifeCount + 1,
           gameState.maxLifeCount,
         );
+      } else {
+        gameState.players[i].lifeCount = Math.max(previousLifeCount - 1, 0);
       }
     }
   }

@@ -1,7 +1,14 @@
 import {beforeEach, describe, expect, it} from '@jest/globals';
 
 import {Suit} from './constants';
-import {newRound, playCard, processCardPlay, validateSuit} from './gameLogic';
+import {
+  endRound,
+  newRound,
+  newTurn,
+  playCard,
+  processCardPlay,
+  validateSuit,
+} from './gameLogic';
 import {Card, GameState, Player} from '../types';
 
 const playerOne = {ID: 0, name: 'foo', hand: [], lifeCount: 3, isHuman: true};
@@ -57,6 +64,7 @@ describe('validateSuit', () => {
     gameState = newRound(
       players.map(p => Object.create(p)),
       players[0].ID,
+      4,
     );
   });
 
@@ -105,5 +113,40 @@ describe('processCardPlay', () => {
     expect(() => {
       processCardPlay(gameState, aPlayer, otherPlayerCard);
     }).toThrowError();
+  });
+});
+
+describe('endRound', () => {
+  let gameState: GameState;
+
+  beforeEach(() => {
+    gameState = newRound(
+      players.map(p => Object.create(p)),
+      players[0].ID,
+      4,
+    );
+  });
+
+  it('handles capot as expected', () => {
+    const winner = gameState.players[0];
+
+    const fakeTurn = newTurn(winner.ID);
+    gameState.players.forEach(p => {
+      const playedCard = p.hand.slice(0, 1);
+      fakeTurn.currentPlayerID = p.ID;
+      fakeTurn.suit ||= playedCard[0].suit;
+      fakeTurn.moves.push({card: playedCard[0], playerID: p.ID});
+      p.hand = [];
+    });
+    fakeTurn.winnerID = winner.ID;
+    gameState.pastTurns.push(fakeTurn);
+
+    gameState.players.forEach(p => expect(p.lifeCount).toEqual(3));
+
+    endRound(gameState, winner.ID);
+    expect(gameState.players[0].lifeCount).toEqual(4);
+    for (let i = 1; i < gameState.players.length; i++) {
+      expect(gameState.players[i].lifeCount).toEqual(2);
+    }
   });
 });
