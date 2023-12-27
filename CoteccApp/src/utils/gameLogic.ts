@@ -159,11 +159,12 @@ export const endRound = (gameState: GameState, playerID: number): void => {
     console.log('capòt');
     const winnerID = turnWinnersSet.values().next().value;
     for (let i = 0; i < gameState.players.length; i++) {
+      const previousLifeCount = gameState.players[i].lifeCount;
       if (gameState.players[i].ID === winnerID) {
-        const previousBoleCount = gameState.players[i].boleCount;
-        gameState.players[i].boleCount = Math.max(previousBoleCount - 1, 0);
+        gameState.players[i].lifeCount = Math.max(previousLifeCount - 1, 0);
       } else {
-        gameState.players[i].boleCount += 1;
+        // TODO: retrieve max number of lifes from the gameState
+        gameState.players[i].lifeCount += Math.min(previousLifeCount + 1, 4);
       }
     }
   }
@@ -189,7 +190,7 @@ export const endRound = (gameState: GameState, playerID: number): void => {
     console.log(`turnLosers: ${JSON.stringify(turnLosers)}`);
     gameState.players.forEach(player => {
       if (player.ID in turnLosers) {
-        player.boleCount += 1;
+        player.lifeCount -= 1;
       }
     });
   }
@@ -197,6 +198,7 @@ export const endRound = (gameState: GameState, playerID: number): void => {
   // TODO: implement elimination logic
   checkForElimination(gameState.players);
 
+  // TODO: this should take in account only players with >0 lifeCount
   const nextInitialPlayerID = nextPlayerID(
     gameState.players,
     gameState.initialPlayerID,
@@ -218,10 +220,11 @@ export const resetTurnState = (
 export const checkForElimination = (players: Player[]): void => {
   // Implement elimination check logic
   players.forEach(player => {
-    if (player.boleCount >= 4) {
-      // Eliminate player
-      // Additional logic for re-entering the game with a higher score might be needed
-      // TODO: implement some logic to mark the player as eliminated
+    if (player.lifeCount === 0) {
+      // TODO: Eliminate player by creating rounds in a game and fitering out players with 0 lives
+      // TODO: Additional logic for re-entering the game with a higher score might be needed
+      // e.g. if after elimination the second last player has more than one life, the eliminated
+      // one can be re-admitted with minLifes -1.
     }
   });
 };

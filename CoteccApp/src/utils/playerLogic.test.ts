@@ -8,15 +8,15 @@ const playerOne = {
   ID: validPlayerID,
   name: 'foo',
   hand: [],
-  boleCount: 0,
+  lifeCount: 3,
   isHuman: true,
 };
-const playerTwo = {ID: 1, name: 'bar', hand: [], boleCount: 0, isHuman: false};
+const playerTwo = {ID: 1, name: 'bar', hand: [], lifeCount: 3, isHuman: false};
 const playerThree = {
   ID: 2,
   name: 'baz',
   hand: [],
-  boleCount: 0,
+  lifeCount: 3,
   isHuman: false,
 };
 const players: Player[] = [playerOne, playerTwo, playerThree];

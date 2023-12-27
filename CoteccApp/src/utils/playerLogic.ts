@@ -15,17 +15,17 @@ export const nextPlayerID = (players: Player[], playerID: number): number => {
 };
 
 const placeholderPlayers: Player[] = [
-  {ID: 1, name: 'bar', hand: [], boleCount: 0, isHuman: false},
-  {ID: 2, name: 'baz', hand: [], boleCount: 0, isHuman: false},
-  {ID: 3, name: 'baz', hand: [], boleCount: 0, isHuman: false},
-  {ID: 4, name: 'baz', hand: [], boleCount: 0, isHuman: false},
+  {ID: 1, name: 'bar', hand: [], lifeCount: 3, isHuman: false},
+  {ID: 2, name: 'baz', hand: [], lifeCount: 3, isHuman: false},
+  {ID: 3, name: 'baz', hand: [], lifeCount: 3, isHuman: false},
+  {ID: 4, name: 'baz', hand: [], lifeCount: 3, isHuman: false},
 ];
 
 export const generatePlayers = (
   humanName: string,
   numberOfPlayers: number,
 ): Player[] => {
-  const human = {ID: 0, name: humanName, hand: [], boleCount: 0, isHuman: true};
+  const human = {ID: 0, name: humanName, hand: [], lifeCount: 3, isHuman: true};
   const aiPlayers = Math.min(numberOfPlayers, 4);
 
   return [human, ...placeholderPlayers.slice(0, aiPlayers)];
