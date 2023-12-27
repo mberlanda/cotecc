@@ -34,4 +34,5 @@ export interface GameState {
   currentTurn: Turn;
   pastTurns: Turn[];
   scores: {[playerID: number]: number};
+  maxLifeCount: number;
 }

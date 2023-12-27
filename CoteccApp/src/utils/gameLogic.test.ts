@@ -22,6 +22,7 @@ describe('playCard', () => {
     gameState = newRound(
       players.map(p => Object.create(p)),
       players[0].ID,
+      4,
     );
   });
 
@@ -93,6 +94,7 @@ describe('processCardPlay', () => {
     gameState = newRound(
       players.map(p => Object.create(p)),
       players[0].ID,
+      4,
     );
   });
 

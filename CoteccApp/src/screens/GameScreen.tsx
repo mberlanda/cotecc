@@ -24,12 +24,14 @@ interface GameScreenProps {
 const GameScreen: React.FC<GameScreenProps> = ({route}) => {
   const {gameSpeed, opponents, name, showDebug}: GameScreenRouteParams =
     route.params;
+  // TODO: retrieve the maxLifeCount from the GameSelectionScreen
+  const maxLifeCount: number = 4;
   const initialPlayers = useMemo(
-    () => generatePlayers(name, opponents),
-    [name, opponents],
+    () => generatePlayers(name, opponents, maxLifeCount),
+    [name, opponents, maxLifeCount],
   );
   const [localGameState, setLocalGameState] = useState<GameState>(() => {
-    return newRound(initialPlayers, initialPlayers[0].ID);
+    return newRound(initialPlayers, initialPlayers[0].ID, maxLifeCount);
   });
 
   const handleCardSelect = (move: Move) => {

@@ -5,6 +5,7 @@ import {Card, GameState, Player, Turn} from '../types';
 export const newRound = (
   players: Player[],
   initialPlayerID: number,
+  maxLifeCount: number,
 ): GameState => {
   const shuffledDeck = shuffleDeck(createDeck());
   dealCards(shuffledDeck, players);
@@ -15,6 +16,7 @@ export const newRound = (
     currentTurn: newTurn(initialPlayerID),
     pastTurns: [],
     scores: {},
+    maxLifeCount: maxLifeCount,
   };
 };
 
@@ -163,8 +165,10 @@ export const endRound = (gameState: GameState, playerID: number): void => {
       if (gameState.players[i].ID === winnerID) {
         gameState.players[i].lifeCount = Math.max(previousLifeCount - 1, 0);
       } else {
-        // TODO: retrieve max number of lifes from the gameState
-        gameState.players[i].lifeCount += Math.min(previousLifeCount + 1, 4);
+        gameState.players[i].lifeCount += Math.min(
+          previousLifeCount + 1,
+          gameState.maxLifeCount,
+        );
       }
     }
   }
