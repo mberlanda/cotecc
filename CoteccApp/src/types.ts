@@ -27,12 +27,21 @@ export interface Turn {
   winnerID: number | null; // ID of the player who won the last round
 }
 
+export interface Round {
+  readonly ID: number;
+  readonly initialPlayerID: number;
+  currentTurn: Turn;
+  pastTurns: Turn[];
+}
+
 export interface GameState {
   players: Player[];
   initialPlayerID: number;
   deck: Card[];
   currentTurn: Turn;
   pastTurns: Turn[];
+  currentRound: Round;
+  pastRounds: Round[];
   scores: {[playerID: number]: number};
   readonly maxLifeCount: number;
 }

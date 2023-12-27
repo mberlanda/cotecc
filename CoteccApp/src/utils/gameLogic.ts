@@ -1,6 +1,15 @@
 import {cardIsGreater, createDeck, dealCards, shuffleDeck} from './cardsLogic';
 import {findPlayerById, nextPlayerID} from './playerLogic';
-import {Card, GameState, Player, Turn} from '../types';
+import {Card, GameState, Player, Round, Turn} from '../types';
+
+const newRound = (ID: number, initialPlayerID: number): Round => {
+  return {
+    ID,
+    initialPlayerID,
+    currentTurn: newTurn(initialPlayerID),
+    pastTurns: [],
+  };
+};
 
 export const newGame = (
   players: Player[],
@@ -15,6 +24,8 @@ export const newGame = (
     initialPlayerID: initialPlayerID,
     currentTurn: newTurn(initialPlayerID),
     pastTurns: [],
+    currentRound: newRound(1, initialPlayerID),
+    pastRounds: [],
     scores: {},
     maxLifeCount: maxLifeCount,
   };
