@@ -36,9 +36,9 @@ describe('DealCardsButton', () => {
         initialPlayerID: players[0].ID,
         currentTurn: newTurn(players[0].ID),
         pastTurns: [],
+        scoresMap: {},
       },
       pastRounds: [],
-      scores: {},
       maxLifeCount: 3,
     };
     const tree = renderer

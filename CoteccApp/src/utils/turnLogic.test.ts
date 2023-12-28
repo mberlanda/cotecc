@@ -23,6 +23,7 @@ describe('resetTurnState', () => {
       initialPlayerID,
       currentTurn: newTurn(initialPlayerID),
       pastTurns: [],
+      scoresMap: {},
     };
     expect(round.currentTurn.currentPlayerID).toEqual(initialPlayerID);
 

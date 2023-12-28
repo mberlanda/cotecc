@@ -38,6 +38,7 @@ export interface Round {
   readonly initialPlayerID: number;
   currentTurn: Turn;
   pastTurns: Turn[];
+  scoresMap: {[playerID: number]: number};
   players?: PlayerHand[]; // TODO: enable in the next commit
 }
 
@@ -47,6 +48,5 @@ export interface GameState {
   deck: Card[];
   currentRound: Round;
   pastRounds: Round[];
-  scores: {[playerID: number]: number};
   readonly maxLifeCount: number;
 }

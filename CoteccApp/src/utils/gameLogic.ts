@@ -10,6 +10,7 @@ const newRound = (ID: number, initialPlayerID: number): Round => {
     initialPlayerID,
     currentTurn: newTurn(initialPlayerID),
     pastTurns: [],
+    scoresMap: {},
   };
 };
 
@@ -26,7 +27,6 @@ export const newGame = (
     initialPlayerID: initialPlayerID,
     currentRound: newRound(1, initialPlayerID),
     pastRounds: [],
-    scores: {},
     maxLifeCount: maxLifeCount,
   };
 };
@@ -133,8 +133,8 @@ export const endTurn = (gameState: GameState): void => {
   );
   const winnerID = gameState.currentRound.currentTurn.winnerID!;
   gameState.currentRound.pastTurns.push(gameState.currentRound.currentTurn);
-  gameState.scores[winnerID] ||= 0;
-  gameState.scores[winnerID] += score;
+  gameState.currentRound.scoresMap[winnerID] ||= 0;
+  gameState.currentRound.scoresMap[winnerID] += score;
   nextTurn(gameState, winnerID);
 };
 
@@ -152,7 +152,7 @@ export const endRound = (gameState: GameState, playerID: number): void => {
   // Handle end of a round, such as calculating scores, dealing new cards, etc.
   // Reset players' hands or game state as needed\
   // The last hand awards an additional 6 points.
-  gameState.scores[playerID] += 6;
+  gameState.currentRound.scoresMap[playerID] += 6;
 
   // A player taking all cards does a "capòt", reducing their score by one,
   // while others increase by one
@@ -180,9 +180,11 @@ export const endRound = (gameState: GameState, playerID: number): void => {
   else {
     let maxScore = -1;
     let turnLosers: {[playerID: number]: boolean} = {};
-    console.log(`round scores: ${JSON.stringify(gameState.scores)}`);
-    for (let plID in gameState.scores) {
-      const score = gameState.scores[plID];
+    console.log(
+      `round scores: ${JSON.stringify(gameState.currentRound.scoresMap)}`,
+    );
+    for (let plID in gameState.currentRound.scoresMap) {
+      const score = gameState.currentRound.scoresMap[plID];
       if (score > maxScore) {
         console.log(
           `score: ${score} prevMaxScore: ${maxScore} playerID: ${plID}`,
@@ -215,7 +217,7 @@ export const endRound = (gameState: GameState, playerID: number): void => {
 
   gameState.initialPlayerID = nextInitialPlayerID;
   gameState.deck = shuffleDeck(createDeck());
-  gameState.scores = {};
+  gameState.currentRound.scoresMap = {};
   resetRoundState(gameState, nextInitialPlayerID);
 };
 

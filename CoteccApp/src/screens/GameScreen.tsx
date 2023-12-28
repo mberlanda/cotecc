@@ -89,7 +89,8 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
                 : null
             }>
             Player name: {player.name} - ID {player.ID} - score{' '}
-            {localGameState.scores[player.ID] || 0} - lives {player.lifeCount}
+            {localGameState.currentRound.scoresMap[player.ID] || 0} - lives{' '}
+            {player.lifeCount}
           </Text>
           {player.isHuman && (
             <PlayerHandComponent
