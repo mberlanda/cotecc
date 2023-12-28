@@ -79,7 +79,14 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
   return (
     <ScrollView>
       <StickyHeader />
-      <TableComponent moves={localGameState.currentRound.currentTurn.moves} />
+      {/* Show deal card button instead of table when all turns have been player */}
+      {localGameState.currentRound.pastTurns.length === 7 ? (
+        <View style={styles.gameSummaryContainer}>
+          <DealCardsButton doDealCards={doDealCards} />
+        </View>
+      ) : (
+        <TableComponent moves={localGameState.currentRound.currentTurn.moves} />
+      )}
       {localGameState.players.map((player, index) => (
         <View key={index}>
           <Text
@@ -111,8 +118,6 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
           />
         </View>
       ))}
-      {/* Implement UI elements for game controls */}
-      <DealCardsButton state={localGameState} doDealCards={doDealCards} />
       {showDebug && <StateDebugComponent state={localGameState} />}
     </ScrollView>
   );
@@ -121,6 +126,9 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
 const styles = StyleSheet.create({
   currentPlayer: {
     fontWeight: 'bold',
+  },
+  gameSummaryContainer: {
+    minHeight: 40,
   },
 });
 

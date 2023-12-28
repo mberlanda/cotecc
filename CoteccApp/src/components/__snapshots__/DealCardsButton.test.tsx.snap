@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DealCardsButton does not render when players have card 1`] = `
+exports[`DealCardsButton renders without error 1`] = `
 <View
   style={
     {
@@ -9,17 +9,58 @@ exports[`DealCardsButton does not render when players have card 1`] = `
       "justifyContent": "center",
     }
   }
-/>
-`;
-
-exports[`DealCardsButton renders when end of round 1`] = `
-<View
-  style={
-    {
-      "alignItems": "center",
-      "flex": 1,
-      "justifyContent": "center",
+>
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
     }
-  }
-/>
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#007bff",
+        "borderRadius": 5,
+        "marginVertical": 5,
+        "opacity": 1,
+        "paddingHorizontal": 20,
+        "paddingVertical": 10,
+      }
+    }
+  >
+    <Text
+      style={
+        {
+          "color": "white",
+          "fontSize": 16,
+          "fontWeight": "bold",
+        }
+      }
+    >
+      Deal Cards
+    </Text>
+  </View>
+</View>
 `;
