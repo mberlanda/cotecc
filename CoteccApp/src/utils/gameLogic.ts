@@ -2,11 +2,11 @@ import {cardIsGreater, createDeck, dealCards, shuffleDeck} from './cardsLogic';
 import {findPlayerById, nextPlayerID} from './playerLogic';
 import {newRound} from './roundLogic';
 import {endTurn, resetTurnState} from './turnLogic';
-import {Card, GameState, Player} from '../types';
+import {Card, GameState, Player, PlayerID} from '../types';
 
 export const newGame = (
   players: Player[],
-  initialPlayerID: number,
+  initialPlayerID: PlayerID,
   maxLifeCount: number,
 ): GameState => {
   const shuffledDeck = shuffleDeck(createDeck());
@@ -23,7 +23,7 @@ export const newGame = (
 
 export const playCard = (
   gameState: GameState,
-  playerID: number,
+  playerID: PlayerID,
   playedCard: Card,
 ): void => {
   try {
@@ -129,7 +129,7 @@ const roundIsOver = (gameState: GameState): boolean => {
   return gameState.players.reduce((acc, p) => acc && p.hand.length === 0, true);
 };
 
-export const endRound = (gameState: GameState, playerID: number): void => {
+export const endRound = (gameState: GameState, playerID: PlayerID): void => {
   // Handle end of a round, such as calculating scores, dealing new cards, etc.
   // Reset players' hands or game state as needed\
   // The last hand awards an additional 6 points.
@@ -160,7 +160,7 @@ export const endRound = (gameState: GameState, playerID: number): void => {
   // This code can be made much more elegant
   else {
     let maxScore = -1;
-    let turnLosers: {[playerID: number]: boolean} = {};
+    let turnLosers: {[playerID: PlayerID]: boolean} = {};
     console.log(
       `round scores: ${JSON.stringify(gameState.currentRound.scoresMap)}`,
     );
@@ -204,7 +204,7 @@ export const endRound = (gameState: GameState, playerID: number): void => {
 
 export const resetRoundState = (
   gameState: GameState,
-  playerID: number,
+  playerID: PlayerID,
 ): void => {
   gameState.currentRound = newRound(gameState.currentRound.ID + 1, playerID);
 };

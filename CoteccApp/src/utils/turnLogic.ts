@@ -1,7 +1,7 @@
 import {calculateScore} from './movesLogic';
-import {Round, Turn} from '../types';
+import {PlayerID, Round, Turn} from '../types';
 
-export const newTurn = (playerID: number): Turn => {
+export const newTurn = (playerID: PlayerID): Turn => {
   return {
     currentPlayerID: playerID,
     highestCard: null,
@@ -10,11 +10,11 @@ export const newTurn = (playerID: number): Turn => {
     winnerID: null,
   };
 };
-export const resetTurnState = (round: Round, playerID: number): void => {
+export const resetTurnState = (round: Round, playerID: PlayerID): void => {
   round.currentTurn = newTurn(playerID);
 };
 
-export const endTurn = (currentRound: Round): number => {
+export const endTurn = (currentRound: Round): PlayerID => {
   const score = calculateScore(currentRound.currentTurn.moves);
   const winnerID = currentRound.currentTurn.winnerID!;
   currentRound.pastTurns.push({...currentRound.currentTurn});

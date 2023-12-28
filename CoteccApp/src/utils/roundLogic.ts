@@ -1,7 +1,7 @@
 import {newTurn} from './turnLogic';
-import {Round} from '../types';
+import {PlayerID, Round} from '../types';
 
-export const newRound = (ID: number, initialPlayerID: number): Round => {
+export const newRound = (ID: number, initialPlayerID: PlayerID): Round => {
   return {
     ID,
     initialPlayerID,

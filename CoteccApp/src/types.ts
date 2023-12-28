@@ -1,5 +1,7 @@
 import {Suit} from './utils/constants';
 
+export type PlayerID = number;
+
 export interface Card {
   readonly suit: Suit;
   readonly rank: number;
@@ -7,7 +9,7 @@ export interface Card {
 }
 
 export interface Player {
-  readonly ID: number;
+  readonly ID: PlayerID;
   readonly name: string;
   readonly isHuman: boolean;
   lifeCount: number;
@@ -15,36 +17,36 @@ export interface Player {
 }
 
 export interface Move {
-  readonly playerID: number;
+  readonly playerID: PlayerID;
   readonly card: Card;
 }
 
 export interface PlayerHand {
   readonly isHuman: boolean;
-  readonly playerID: number;
+  readonly playerID: PlayerID;
   cards: Card[];
 }
 
 export interface Turn {
-  currentPlayerID: number;
+  currentPlayerID: PlayerID;
   highestCard: Card | null; // Highest card played in the turn
   moves: Move[];
   suit: Suit | null; // Suit that must be followed, if applicable
-  winnerID: number | null; // ID of the player who won the last round
+  winnerID: PlayerID | null; // ID of the player who won the last round
 }
 
 export interface Round {
   readonly ID: number;
-  readonly initialPlayerID: number;
+  readonly initialPlayerID: PlayerID;
   currentTurn: Turn;
   pastTurns: Turn[];
-  scoresMap: {[playerID: number]: number};
+  scoresMap: {[playerID: PlayerID]: number};
   players?: PlayerHand[]; // TODO: enable in the next commit
 }
 
 export interface GameState {
   players: Player[];
-  initialPlayerID: number;
+  initialPlayerID: PlayerID;
   deck: Card[];
   currentRound: Round;
   pastRounds: Round[];

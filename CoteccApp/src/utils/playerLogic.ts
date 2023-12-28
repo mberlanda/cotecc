@@ -1,6 +1,9 @@
-import {Player} from '../types';
+import {Player, PlayerID} from '../types';
 
-export const findPlayerById = (players: Player[], playerID: number): Player => {
+export const findPlayerById = (
+  players: Player[],
+  playerID: PlayerID,
+): Player => {
   const player = players.find(p => p.ID === playerID);
   if (!player) {
     throw RangeError(`PlayerID ${playerID} out of range`);
@@ -8,7 +11,10 @@ export const findPlayerById = (players: Player[], playerID: number): Player => {
   return player;
 };
 
-export const nextPlayerID = (players: Player[], playerID: number): number => {
+export const nextPlayerID = (
+  players: Player[],
+  playerID: PlayerID,
+): PlayerID => {
   const playersCount = players.length;
   const currentPlayerIndex = players.findIndex(p => p.ID === playerID);
   return players[(currentPlayerIndex + 1) % playersCount].ID;
