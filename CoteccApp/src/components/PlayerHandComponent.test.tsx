@@ -10,10 +10,9 @@ import {Suit} from '../utils/constants';
 const mockCardOne = {suit: Suit.Ori, rank: 5, points: 0};
 const mockCardTwo = {suit: Suit.Ori, rank: 1, points: 6};
 const mockPlayer = {
-  ID: 0,
+  playerID: 0,
   name: 'foo',
-  hand: [mockCardOne, mockCardTwo],
-  lifeCount: 3,
+  cards: [mockCardOne, mockCardTwo],
   isHuman: false,
 };
 const mockOnCardSelect = (_move: Move): void => {};
@@ -23,7 +22,7 @@ describe('PlayerHand', () => {
     const tree = renderer
       .create(
         <PlayerHandComponent
-          player={mockPlayer}
+          hand={mockPlayer}
           onCardSelect={mockOnCardSelect}
         />,
       )

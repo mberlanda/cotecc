@@ -1,19 +1,16 @@
-import {cardIsGreater, createDeck, dealCards, shuffleDeck} from './cardsLogic';
-import {findPlayerById, nextPlayerID} from './playerLogic';
+import {cardIsGreater} from './cardsLogic';
+import {nextHandPlayerID} from './playerHandLogic';
 import {newRound} from './roundLogic';
 import {endTurn, resetTurnState} from './turnLogic';
-import {Card, GameState, Player, PlayerID} from '../types';
+import {Card, GameState, Player, PlayerHand, PlayerID, Turn} from '../types';
 
 export const newGame = (
   players: Player[],
   initialPlayerID: PlayerID,
   maxLifeCount: number,
 ): GameState => {
-  const shuffledDeck = shuffleDeck(createDeck());
-  dealCards(shuffledDeck, players);
   return {
     players: players,
-    deck: shuffledDeck,
     initialPlayerID: initialPlayerID,
     currentRound: newRound(1, initialPlayerID, players),
     pastRounds: [],
@@ -27,10 +24,12 @@ export const playCard = (
   playedCard: Card,
 ): void => {
   try {
-    const player = findPlayerById(gameState.players, playerID);
-    validateCurrentPlayer(gameState, player);
-    validateSuit(gameState, player, playedCard);
-    processCardPlay(gameState, player, playedCard);
+    const hand = gameState.currentRound.players.find(
+      p => p.playerID === playerID,
+    )!;
+    validateCurrentPlayer(gameState.currentRound.currentTurn, hand);
+    validateSuit(gameState.currentRound.currentTurn, hand, playedCard);
+    processCardPlay(gameState, hand, playedCard);
   } catch (err) {
     console.log(err);
     // TODO: return an exception visible in the UI
@@ -39,43 +38,45 @@ export const playCard = (
 };
 
 export const validateCurrentPlayer = (
-  gameState: GameState,
-  player: Player,
+  currentTurn: Turn,
+  hand: PlayerHand,
 ): void => {
-  if (gameState.currentRound.currentTurn.currentPlayerID !== player.ID) {
+  if (currentTurn.currentPlayerID !== hand.playerID) {
     throw Error(
-      `Player ${player.ID} tried to play while it was player ${gameState.currentRound.currentTurn.currentPlayerID} move`,
+      `Player ${hand.playerID} tried to play while it was player ${currentTurn.currentPlayerID} move`,
     );
   }
 };
 
 export const validateSuit = (
-  gameState: GameState,
-  player: Player,
+  currentTurn: Turn,
+  hand: PlayerHand,
   playedCard: Card,
 ): void => {
-  const currentSuit = gameState.currentRound.currentTurn.suit;
+  const currentSuit = currentTurn.suit;
   if (!currentSuit || playedCard.suit === currentSuit) {
     return;
   }
-  const hasSuit = player.hand.some(card => card.suit === currentSuit);
+  const hasSuit = hand.cards.some(card => card.suit === currentSuit);
   if (hasSuit) {
     throw Error(
-      `Illegal move. Player ${player.ID} should respect ${currentSuit}`,
+      `Illegal move. Player ${hand.playerID} should respect ${currentSuit}`,
     );
   }
 };
 
 export const processCardPlay = (
   gameState: GameState,
-  player: Player,
+  hand: PlayerHand,
   playedCard: Card,
 ): void => {
   // Ensure player holds the card selected.
-  const cardIndex = player.hand.findIndex(c => c === playedCard);
+  const cardIndex = hand.cards.findIndex(c => c === playedCard);
   if (cardIndex === -1) {
     throw Error(
-      `Player ${player.ID} does not own card: ${JSON.stringify(playedCard)}`,
+      `Player ${hand.playerID} does not own card: ${JSON.stringify(
+        playedCard,
+      )}`,
     );
   }
   // Update the current suit if this is the first card of the round
@@ -90,20 +91,20 @@ export const processCardPlay = (
       cardIsGreater(playedCard, gameState.currentRound.currentTurn.highestCard))
   ) {
     gameState.currentRound.currentTurn.highestCard = playedCard;
-    gameState.currentRound.currentTurn.winnerID = player.ID;
+    gameState.currentRound.currentTurn.winnerID = hand.playerID;
   }
 
-  const removedCard = player.hand.splice(cardIndex, 1);
+  const removedCard = hand.cards.splice(cardIndex, 1);
   gameState.currentRound.currentTurn.moves.push({
-    playerID: player.ID,
+    playerID: hand.playerID,
     card: removedCard[0],
   });
-  nextMove(gameState, player);
+  nextMove(gameState, hand);
 };
 
-export const nextMove = (gameState: GameState, player: Player): void => {
+export const nextMove = (gameState: GameState, hand: PlayerHand): void => {
   // When all players made their move, the round is over
-  const playersCount = gameState.players.length;
+  const playersCount = gameState.currentRound.players.length;
   if (gameState.currentRound.currentTurn.moves.length === playersCount) {
     // All players have moved
     const winnerID = endTurn(gameState.currentRound);
@@ -115,15 +116,18 @@ export const nextMove = (gameState: GameState, player: Player): void => {
     return;
   }
 
-  gameState.currentRound.currentTurn.currentPlayerID = nextPlayerID(
-    gameState.players,
-    player.ID,
+  gameState.currentRound.currentTurn.currentPlayerID = nextHandPlayerID(
+    gameState.currentRound.players,
+    hand.playerID,
   );
 };
 
 // TODO: remove this method after moving player hand into Round
 const roundIsOver = (gameState: GameState): boolean => {
-  return gameState.players.reduce((acc, p) => acc && p.hand.length === 0, true);
+  return gameState.currentRound.players.reduce(
+    (acc, p) => acc && p.cards.length === 0,
+    true,
+  );
 };
 
 export const endRound = (gameState: GameState, playerID: PlayerID): void => {
@@ -177,30 +181,7 @@ export const endRound = (gameState: GameState, playerID: PlayerID): void => {
 
   // TODO: implement elimination logic
   checkForElimination(gameState.players);
-
-  // TODO: this should take in account only players with >0 lifeCount
-  const nextInitialPlayerID = nextPlayerID(
-    gameState.players,
-    gameState.initialPlayerID,
-  );
-
   gameState.pastRounds.push({...gameState.currentRound});
-
-  gameState.initialPlayerID = nextInitialPlayerID;
-  gameState.deck = shuffleDeck(createDeck());
-  gameState.currentRound.scoresMap = {};
-  resetRoundState(gameState, nextInitialPlayerID);
-};
-
-export const resetRoundState = (
-  gameState: GameState,
-  playerID: PlayerID,
-): void => {
-  gameState.currentRound = newRound(
-    gameState.currentRound.ID + 1,
-    playerID,
-    gameState.players,
-  );
 };
 
 export const checkForElimination = (players: Player[]): void => {

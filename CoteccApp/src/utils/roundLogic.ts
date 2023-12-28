@@ -1,6 +1,7 @@
-import {toPlayerHand} from './playerHandLogic';
+import {newPlayersHand} from './playerHandLogic';
+import {nextPlayerID} from './playerLogic';
 import {newTurn} from './turnLogic';
-import {Player, PlayerID, Round} from '../types';
+import {GameState, Player, PlayerID, Round} from '../types';
 
 export const newRound = (
   ID: number,
@@ -12,7 +13,19 @@ export const newRound = (
     initialPlayerID,
     currentTurn: newTurn(initialPlayerID),
     pastTurns: [],
-    players: players.filter(p => p.lifeCount > 0).map(p => toPlayerHand(p)),
+    players: newPlayersHand(players),
     scoresMap: {},
   };
+};
+
+export const nextRound = (gameState: GameState) => {
+  const nextInitialPlayerID = nextPlayerID(
+    gameState.players.filter(p => p.lifeCount > 0),
+    gameState.currentRound.initialPlayerID,
+  );
+  gameState.currentRound = newRound(
+    gameState.currentRound.ID + 1,
+    nextInitialPlayerID,
+    gameState.players.filter(p => p.lifeCount > 0),
+  );
 };

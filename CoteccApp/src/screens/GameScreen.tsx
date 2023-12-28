@@ -12,9 +12,9 @@ import TableComponent from '../components/TableComponent';
 import {GameScreenRouteParams, RootStackParamList} from '../routes';
 import {GameState, Move} from '../types';
 import {aiMoveToPlay} from '../utils/aiPlayerLogic';
-import {dealCards} from '../utils/cardsLogic';
 import {newGame, playCard} from '../utils/gameLogic';
-import {findPlayerById, generatePlayers} from '../utils/playerLogic';
+import {generatePlayers} from '../utils/playerLogic';
+import {nextRound} from '../utils/roundLogic';
 
 // Define an interface for the props
 interface GameScreenProps {
@@ -50,19 +50,20 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
   };
 
   useEffect(() => {
-    const currentPlayer = findPlayerById(
-      localGameState.players,
-      localGameState.currentRound.currentTurn.currentPlayerID,
+    const currentPlayer = localGameState.currentRound.players.find(
+      p =>
+        p.playerID === localGameState.currentRound.currentTurn.currentPlayerID,
     );
     // `currentPlayer.hand.length` is needed when the current turn is over
     // and the user has to tap DealCardsButton to start a new turn
-    if (!currentPlayer.isHuman && currentPlayer.hand.length) {
+    if (currentPlayer && !currentPlayer.isHuman && currentPlayer.cards.length) {
       setTimeout(() => {
         const aiMove = aiMoveToPlay(
           currentPlayer,
           localGameState.currentRound.currentTurn,
           localGameState.currentRound.pastTurns,
         );
+        console.log(aiMove);
         playCard(localGameState, aiMove.playerID, aiMove.card);
 
         setLocalGameState({...localGameState});
@@ -71,7 +72,7 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
   });
 
   const doDealCards = () => {
-    dealCards(localGameState.deck, localGameState.players);
+    nextRound(localGameState);
     setLocalGameState({...localGameState});
   };
 
@@ -94,7 +95,11 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
           </Text>
           {player.isHuman && (
             <PlayerHandComponent
-              player={player}
+              hand={
+                localGameState.currentRound.players.find(
+                  p => p.playerID === player.ID,
+                )!
+              }
               onCardSelect={handleCardSelect}
             />
           )}

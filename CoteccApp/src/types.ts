@@ -13,7 +13,6 @@ export interface Player {
   readonly name: string;
   readonly isHuman: boolean;
   lifeCount: number;
-  hand: Card[];
 }
 
 export interface Move {
@@ -47,7 +46,6 @@ export interface Round {
 export interface GameState {
   players: Player[];
   initialPlayerID: PlayerID;
-  deck: Card[];
   currentRound: Round;
   pastRounds: Round[];
   readonly maxLifeCount: number;
