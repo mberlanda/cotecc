@@ -15,7 +15,7 @@ export const newGame = (
     players: players,
     deck: shuffledDeck,
     initialPlayerID: initialPlayerID,
-    currentRound: newRound(1, initialPlayerID),
+    currentRound: newRound(1, initialPlayerID, players),
     pastRounds: [],
     maxLifeCount: maxLifeCount,
   };
@@ -107,9 +107,6 @@ export const nextMove = (gameState: GameState, player: Player): void => {
   if (gameState.currentRound.currentTurn.moves.length === playersCount) {
     // All players have moved
     const winnerID = endTurn(gameState.currentRound);
-    console.log(winnerID);
-    console.log(JSON.stringify(gameState.currentRound));
-
     if (roundIsOver(gameState)) {
       endRound(gameState, winnerID);
     } else {
@@ -161,15 +158,9 @@ export const endRound = (gameState: GameState, playerID: PlayerID): void => {
   else {
     let maxScore = -1;
     let turnLosers: {[playerID: PlayerID]: boolean} = {};
-    console.log(
-      `round scores: ${JSON.stringify(gameState.currentRound.scoresMap)}`,
-    );
     for (let plID in gameState.currentRound.scoresMap) {
       const score = gameState.currentRound.scoresMap[plID];
       if (score > maxScore) {
-        console.log(
-          `score: ${score} prevMaxScore: ${maxScore} playerID: ${plID}`,
-        );
         maxScore = score;
         turnLosers = {};
       }
@@ -177,7 +168,6 @@ export const endRound = (gameState: GameState, playerID: PlayerID): void => {
         turnLosers[plID] = true;
       }
     }
-    console.log(`turnLosers: ${JSON.stringify(turnLosers)}`);
     gameState.players.forEach(player => {
       if (player.ID in turnLosers) {
         player.lifeCount -= 1;
@@ -206,7 +196,11 @@ export const resetRoundState = (
   gameState: GameState,
   playerID: PlayerID,
 ): void => {
-  gameState.currentRound = newRound(gameState.currentRound.ID + 1, playerID);
+  gameState.currentRound = newRound(
+    gameState.currentRound.ID + 1,
+    playerID,
+    gameState.players,
+  );
 };
 
 export const checkForElimination = (players: Player[]): void => {

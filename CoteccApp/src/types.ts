@@ -40,8 +40,8 @@ export interface Round {
   readonly initialPlayerID: PlayerID;
   currentTurn: Turn;
   pastTurns: Turn[];
+  players: PlayerHand[];
   scoresMap: {[playerID: PlayerID]: number};
-  players?: PlayerHand[]; // TODO: enable in the next commit
 }
 
 export interface GameState {
