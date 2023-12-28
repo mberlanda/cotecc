@@ -1,17 +1,8 @@
 import {cardIsGreater, createDeck, dealCards, shuffleDeck} from './cardsLogic';
 import {findPlayerById, nextPlayerID} from './playerLogic';
-import {endTurn, newTurn, resetTurnState} from './turnLogic';
-import {Card, GameState, Player, Round} from '../types';
-
-const newRound = (ID: number, initialPlayerID: number): Round => {
-  return {
-    ID,
-    initialPlayerID,
-    currentTurn: newTurn(initialPlayerID),
-    pastTurns: [],
-    scoresMap: {},
-  };
-};
+import {newRound} from './roundLogic';
+import {endTurn, resetTurnState} from './turnLogic';
+import {Card, GameState, Player} from '../types';
 
 export const newGame = (
   players: Player[],
@@ -116,7 +107,14 @@ export const nextMove = (gameState: GameState, player: Player): void => {
   if (gameState.currentRound.currentTurn.moves.length === playersCount) {
     // All players have moved
     const winnerID = endTurn(gameState.currentRound);
-    nextTurn(gameState, winnerID);
+    console.log(winnerID);
+    console.log(JSON.stringify(gameState.currentRound));
+
+    if (roundIsOver(gameState)) {
+      endRound(gameState, winnerID);
+    } else {
+      resetTurnState(gameState.currentRound, winnerID);
+    }
     return;
   }
 
@@ -126,14 +124,9 @@ export const nextMove = (gameState: GameState, player: Player): void => {
   );
 };
 
-export const nextTurn = (gameState: GameState, playerID: number): void => {
-  // When a player does not have card in their end, the round is over
-  if (!gameState.players[0].hand.length) {
-    endRound(gameState, playerID);
-    return;
-  }
-
-  resetTurnState(gameState.currentRound, playerID);
+// TODO: remove this method after moving player hand into Round
+const roundIsOver = (gameState: GameState): boolean => {
+  return gameState.players.reduce((acc, p) => acc && p.hand.length === 0, true);
 };
 
 export const endRound = (gameState: GameState, playerID: number): void => {

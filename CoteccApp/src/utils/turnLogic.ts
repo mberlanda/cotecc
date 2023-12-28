@@ -17,7 +17,7 @@ export const resetTurnState = (round: Round, playerID: number): void => {
 export const endTurn = (currentRound: Round): number => {
   const score = calculateScore(currentRound.currentTurn.moves);
   const winnerID = currentRound.currentTurn.winnerID!;
-  currentRound.pastTurns.push(currentRound.currentTurn);
+  currentRound.pastTurns.push({...currentRound.currentTurn});
   currentRound.scoresMap[winnerID] ||= 0;
   currentRound.scoresMap[winnerID] += score;
   return winnerID;
