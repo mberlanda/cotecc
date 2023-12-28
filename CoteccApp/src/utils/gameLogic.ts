@@ -1,7 +1,6 @@
 import {cardIsGreater, createDeck, dealCards, shuffleDeck} from './cardsLogic';
 import {findPlayerById, nextPlayerID} from './playerLogic';
-import {newTurn} from './turnLogic';
-import {resetTurnState} from './turnLogic';
+import {endTurn, newTurn, resetTurnState} from './turnLogic';
 import {Card, GameState, Player, Round} from '../types';
 
 const newRound = (ID: number, initialPlayerID: number): Round => {
@@ -116,7 +115,8 @@ export const nextMove = (gameState: GameState, player: Player): void => {
   const playersCount = gameState.players.length;
   if (gameState.currentRound.currentTurn.moves.length === playersCount) {
     // All players have moved
-    endTurn(gameState);
+    const winnerID = endTurn(gameState.currentRound);
+    nextTurn(gameState, winnerID);
     return;
   }
 
@@ -124,18 +124,6 @@ export const nextMove = (gameState: GameState, player: Player): void => {
     gameState.players,
     player.ID,
   );
-};
-
-export const endTurn = (gameState: GameState): void => {
-  const score = gameState.currentRound.currentTurn.moves.reduce(
-    (s, m) => s + m.card.points,
-    0,
-  );
-  const winnerID = gameState.currentRound.currentTurn.winnerID!;
-  gameState.currentRound.pastTurns.push(gameState.currentRound.currentTurn);
-  gameState.currentRound.scoresMap[winnerID] ||= 0;
-  gameState.currentRound.scoresMap[winnerID] += score;
-  nextTurn(gameState, winnerID);
 };
 
 export const nextTurn = (gameState: GameState, playerID: number): void => {
