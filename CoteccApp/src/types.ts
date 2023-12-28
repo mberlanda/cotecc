@@ -19,6 +19,12 @@ export interface Move {
   readonly card: Card;
 }
 
+export interface PlayerHand {
+  readonly isHuman: boolean;
+  readonly playerID: number;
+  cards: Card[];
+}
+
 export interface Turn {
   currentPlayerID: number;
   highestCard: Card | null; // Highest card played in the turn
@@ -32,6 +38,7 @@ export interface Round {
   readonly initialPlayerID: number;
   currentTurn: Turn;
   pastTurns: Turn[];
+  players?: PlayerHand[]; // TODO: enable in the next commit
 }
 
 export interface GameState {
