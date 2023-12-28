@@ -1,6 +1,8 @@
 import {cardIsGreater, createDeck, dealCards, shuffleDeck} from './cardsLogic';
 import {findPlayerById, nextPlayerID} from './playerLogic';
-import {Card, GameState, Player, Round, Turn} from '../types';
+import {newTurn} from './turnLogic';
+import {resetTurnState} from './turnLogic';
+import {Card, GameState, Player, Round} from '../types';
 
 const newRound = (ID: number, initialPlayerID: number): Round => {
   return {
@@ -26,16 +28,6 @@ export const newGame = (
     pastRounds: [],
     scores: {},
     maxLifeCount: maxLifeCount,
-  };
-};
-
-export const newTurn = (playerID: number): Turn => {
-  return {
-    currentPlayerID: playerID,
-    highestCard: null,
-    moves: [],
-    suit: null,
-    winnerID: null,
   };
 };
 
@@ -153,8 +145,7 @@ export const nextTurn = (gameState: GameState, playerID: number): void => {
     return;
   }
 
-  // resetTurnState
-  resetTurnState(gameState, playerID);
+  resetTurnState(gameState.currentRound, playerID);
 };
 
 export const endRound = (gameState: GameState, playerID: number): void => {
@@ -233,13 +224,6 @@ export const resetRoundState = (
   playerID: number,
 ): void => {
   gameState.currentRound = newRound(gameState.currentRound.ID + 1, playerID);
-};
-
-export const resetTurnState = (
-  gameState: GameState,
-  playerID: number,
-): void => {
-  gameState.currentRound.currentTurn = newTurn(playerID);
 };
 
 export const checkForElimination = (players: Player[]): void => {

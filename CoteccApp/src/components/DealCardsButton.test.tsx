@@ -5,7 +5,8 @@ import renderer from 'react-test-renderer';
 
 import DealCardsButton from './DealCardsButton';
 import {GameState, Player} from '../types';
-import {newGame, newTurn} from '../utils/gameLogic';
+import {newGame} from '../utils/gameLogic';
+import {newTurn} from '../utils/turnLogic';
 
 describe('DealCardsButton', () => {
   let players: Player[];
@@ -38,6 +39,7 @@ describe('DealCardsButton', () => {
       },
       pastRounds: [],
       scores: {},
+      maxLifeCount: 3,
     };
     const tree = renderer
       .create(<DealCardsButton state={endRoundState} doDealCards={() => {}} />)

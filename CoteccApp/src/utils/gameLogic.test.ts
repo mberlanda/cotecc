@@ -4,11 +4,11 @@ import {Suit} from './constants';
 import {
   endRound,
   newGame,
-  newTurn,
   playCard,
   processCardPlay,
   validateSuit,
 } from './gameLogic';
+import {newTurn} from './turnLogic';
 import {Card, GameState, Player} from '../types';
 
 const playerOne = {ID: 0, name: 'foo', hand: [], lifeCount: 3, isHuman: true};
