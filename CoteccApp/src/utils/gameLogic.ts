@@ -1,8 +1,9 @@
 import {cardIsGreater} from './cardsLogic';
+import {validateMove} from './movesLogic';
 import {nextHandPlayerID} from './playerHandLogic';
 import {newRound} from './roundLogic';
 import {endTurn, resetTurnState} from './turnLogic';
-import {Card, GameState, Player, PlayerHand, PlayerID, Turn} from '../types';
+import {Card, GameState, Player, PlayerHand, PlayerID} from '../types';
 
 export const newGame = (
   players: Player[],
@@ -27,41 +28,12 @@ export const playCard = (
     const hand = gameState.currentRound.players.find(
       p => p.playerID === playerID,
     )!;
-    validateCurrentPlayer(gameState.currentRound.currentTurn, hand);
-    validateSuit(gameState.currentRound.currentTurn, hand, playedCard);
+    validateMove(gameState.currentRound.currentTurn, hand, playedCard);
     processCardPlay(gameState, hand, playedCard);
   } catch (err) {
     console.log(err);
     // TODO: return an exception visible in the UI
     return;
-  }
-};
-
-export const validateCurrentPlayer = (
-  currentTurn: Turn,
-  hand: PlayerHand,
-): void => {
-  if (currentTurn.currentPlayerID !== hand.playerID) {
-    throw Error(
-      `Player ${hand.playerID} tried to play while it was player ${currentTurn.currentPlayerID} move`,
-    );
-  }
-};
-
-export const validateSuit = (
-  currentTurn: Turn,
-  hand: PlayerHand,
-  playedCard: Card,
-): void => {
-  const currentSuit = currentTurn.suit;
-  if (!currentSuit || playedCard.suit === currentSuit) {
-    return;
-  }
-  const hasSuit = hand.cards.some(card => card.suit === currentSuit);
-  if (hasSuit) {
-    throw Error(
-      `Illegal move. Player ${hand.playerID} should respect ${currentSuit}`,
-    );
   }
 };
 

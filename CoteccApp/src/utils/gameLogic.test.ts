@@ -1,13 +1,6 @@
 import {beforeEach, describe, expect, it} from '@jest/globals';
 
-import {Suit} from './constants';
-import {
-  endRound,
-  newGame,
-  playCard,
-  processCardPlay,
-  validateSuit,
-} from './gameLogic';
+import {endRound, newGame, playCard, processCardPlay} from './gameLogic';
 import {newTurn} from './turnLogic';
 import {Card, GameState, Player} from '../types';
 
@@ -56,56 +49,6 @@ describe('playCard', () => {
     expect(currentTurn.winnerID).toEqual(playerOne.ID);
 
     expect(currentTurn.currentPlayerID).toEqual(playerTwo.ID);
-  });
-});
-
-describe('validateSuit', () => {
-  let gameState: GameState;
-
-  beforeEach(() => {
-    gameState = newGame(
-      players.map(p => Object.create(p)),
-      players[0].ID,
-      4,
-    );
-  });
-
-  it('returns without exception if suit is not set', () => {
-    validateSuit(
-      gameState.currentRound.currentTurn,
-      gameState.currentRound.players[0],
-      gameState.currentRound.players[0].cards[0],
-    );
-  });
-
-  it('returns without exception if player follows current turn suit', () => {
-    const playedCard = gameState.currentRound.players[0].cards[0];
-    gameState.currentRound.currentTurn.suit = playedCard.suit;
-
-    validateSuit(
-      gameState.currentRound.currentTurn,
-      gameState.currentRound.players[0],
-      playedCard,
-    );
-  });
-
-  it('throws error when the player has at least one card of the suit and does not play it', () => {
-    const playedCard = gameState.currentRound.players[0].cards[0];
-    gameState.currentRound.currentTurn.suit = playedCard.suit;
-    const otherSuit = [Suit.Ori, Suit.Spade].find(
-      el => el !== playedCard.suit,
-    )!;
-
-    expect(() =>
-      validateSuit(
-        gameState.currentRound.currentTurn,
-        gameState.currentRound.players[0],
-        {
-          ...playedCard,
-          suit: otherSuit,
-        },
-      ),
-    ).toThrowError();
   });
 });
 
