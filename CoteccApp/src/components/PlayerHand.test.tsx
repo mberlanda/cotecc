@@ -13,8 +13,7 @@ const mockPlayer = {
   ID: 0,
   name: 'foo',
   hand: [mockCardOne, mockCardTwo],
-  boleCount: 0,
-  score: 0,
+  lifeCount: 3,
   isHuman: false,
 };
 const mockOnCardSelect = (_move: Move): void => {};

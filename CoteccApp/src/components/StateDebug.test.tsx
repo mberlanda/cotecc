@@ -5,12 +5,13 @@ import renderer from 'react-test-renderer';
 
 import {StateDebugComponent} from './StateDebug';
 import {GameState, Player} from '../types';
+import {Suit} from '../utils/constants';
 import {newRound} from '../utils/gameLogic';
 
 const players: Player[] = [
-  {ID: 0, name: 'foo', hand: [], boleCount: 0, isHuman: true},
-  {ID: 1, name: 'bar', hand: [], boleCount: 0, isHuman: false},
-  {ID: 2, name: 'baz', hand: [], boleCount: 0, isHuman: false},
+  {ID: 0, name: 'foo', hand: [], lifeCount: 3, isHuman: true},
+  {ID: 1, name: 'bar', hand: [], lifeCount: 3, isHuman: false},
+  {ID: 2, name: 'baz', hand: [], lifeCount: 3, isHuman: false},
 ];
 
 describe('StateDebug', () => {
@@ -33,12 +34,12 @@ describe('StateDebug', () => {
     });
 
     gameState.pastTurns.push({
-      suit: 'spade',
-      highestCard: {suit: 'spade', rank: 4, points: 0},
+      suit: Suit.Spade,
+      highestCard: {suit: Suit.Spade, rank: 4, points: 0},
       moves: [
-        {playerID: 0, card: {suit: 'spade', rank: 4, points: 0}},
-        {playerID: 1, card: {suit: 'spade', rank: 8, points: 3}},
-        {playerID: 2, card: {suit: 'spade', rank: 9, points: 4}},
+        {playerID: 0, card: {suit: Suit.Spade, rank: 4, points: 0}},
+        {playerID: 1, card: {suit: Suit.Spade, rank: 8, points: 3}},
+        {playerID: 2, card: {suit: Suit.Spade, rank: 9, points: 4}},
       ],
       currentPlayerID: 0,
       winnerID: 0,

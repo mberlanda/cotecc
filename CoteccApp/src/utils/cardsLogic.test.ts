@@ -77,9 +77,9 @@ describe('dealCards', () => {
   it('deals 7 cards to each player', () => {
     const deck = shuffleDeck(createDeck());
     const players = [
-      {ID: 0, name: 'foo', hand: [], boleCount: 0, score: 0, isHuman: true},
-      {ID: 1, name: 'bar', hand: [], boleCount: 0, score: 0, isHuman: false},
-      {ID: 2, name: 'baz', hand: [], boleCount: 0, score: 0, isHuman: true},
+      {ID: 0, name: 'foo', hand: [], lifeCount: 3, score: 0, isHuman: true},
+      {ID: 1, name: 'bar', hand: [], lifeCount: 3, score: 0, isHuman: false},
+      {ID: 2, name: 'baz', hand: [], lifeCount: 3, score: 0, isHuman: true},
     ];
     dealCards(deck, players);
     players.forEach(player => {

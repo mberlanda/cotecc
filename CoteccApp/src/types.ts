@@ -7,11 +7,11 @@ export interface Card {
 }
 
 export interface Player {
-  ID: number;
-  name: string;
+  readonly ID: number;
+  readonly name: string;
+  readonly isHuman: boolean;
+  lifeCount: number;
   hand: Card[];
-  boleCount: number;
-  isHuman: boolean;
 }
 
 export interface Move {
@@ -34,4 +34,5 @@ export interface GameState {
   currentTurn: Turn;
   pastTurns: Turn[];
   scores: {[playerID: number]: number};
+  maxLifeCount: number;
 }

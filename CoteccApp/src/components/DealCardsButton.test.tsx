@@ -12,9 +12,9 @@ describe('DealCardsButton', () => {
 
   beforeEach(() => {
     players = [
-      {ID: 0, name: 'foo', hand: [], boleCount: 0, isHuman: true},
-      {ID: 1, name: 'bar', hand: [], boleCount: 0, isHuman: false},
-      {ID: 2, name: 'baz', hand: [], boleCount: 0, isHuman: false},
+      {ID: 0, name: 'foo', hand: [], lifeCount: 3, isHuman: true},
+      {ID: 1, name: 'bar', hand: [], lifeCount: 3, isHuman: false},
+      {ID: 2, name: 'baz', hand: [], lifeCount: 3, isHuman: false},
     ];
   });
 

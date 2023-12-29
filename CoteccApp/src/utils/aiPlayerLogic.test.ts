@@ -32,7 +32,7 @@ describe('aiMoveToPlay', () => {
   let pastTurns: Turn[];
 
   beforeEach(() => {
-    player = {ID: 0, name: 'foo', hand: [], boleCount: 0, isHuman: false};
+    player = {ID: 0, name: 'foo', hand: [], lifeCount: 3, isHuman: false};
     currentTurn = {
       currentPlayerID: player.ID,
       moves: [],
