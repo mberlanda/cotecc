@@ -1,6 +1,11 @@
 import {describe, expect, it} from '@jest/globals';
 
-import {findPlayerById, generatePlayers, nextPlayerID} from './playerLogic';
+import {
+  findPlayerById,
+  generatePlayers,
+  nextPlayerID,
+  updateLivesCount,
+} from './playerLogic';
 import {Player} from '../types';
 
 const validPlayerID = 123;
@@ -66,5 +71,81 @@ describe('generatePlayers', () => {
     expect(generatePlayers('human name', 0, -1)).toEqual([
       {ID: 0, name: 'human name', hand: [], lifeCount: -1, isHuman: true},
     ]);
+  });
+});
+
+describe('updateLivesCount', () => {
+  it('handles capot scenario when max lives count is below threshold', () => {
+    const winner: Player = {...playerOne};
+    const loser: Player = {...playerTwo};
+
+    expect(winner.lifeCount).toEqual(3);
+    expect(loser.lifeCount).toEqual(3);
+
+    const roundOutcome = {
+      outcome: 0,
+      winnerID: winner.ID,
+      roundLosers: new Set([loser.ID]),
+    };
+    updateLivesCount([winner, loser], roundOutcome, 4);
+
+    expect(winner.lifeCount).toEqual(4);
+    expect(loser.lifeCount).toEqual(2);
+  });
+
+  it('handles capot scenario when max lives count is at threshold', () => {
+    const winner: Player = {...playerOne};
+    const loser: Player = {...playerTwo};
+
+    expect(winner.lifeCount).toEqual(3);
+    expect(loser.lifeCount).toEqual(3);
+
+    const roundOutcome = {
+      outcome: 0,
+      winnerID: winner.ID,
+      roundLosers: new Set([loser.ID]),
+    };
+    updateLivesCount([winner, loser], roundOutcome, 3);
+
+    expect(winner.lifeCount).toEqual(3);
+    expect(loser.lifeCount).toEqual(2);
+  });
+
+  it('handles max score scenario', () => {
+    const winner: Player = {...playerOne};
+    const loser: Player = {...playerTwo};
+
+    expect(winner.lifeCount).toEqual(3);
+    expect(loser.lifeCount).toEqual(3);
+
+    const roundOutcome = {
+      outcome: 1,
+      roundLosers: new Set([loser.ID]),
+    };
+    updateLivesCount([winner, loser], roundOutcome, 4);
+
+    expect(winner.lifeCount).toEqual(3);
+    expect(loser.lifeCount).toEqual(2);
+  });
+
+  it('sanitizes incosistent scenarios with too high or too low values', () => {
+    const winner: Player = {...playerOne};
+    const loser: Player = {...playerTwo};
+
+    winner.lifeCount = 1000;
+    loser.lifeCount = -1000;
+
+    expect(winner.lifeCount).toEqual(1000);
+    expect(loser.lifeCount).toEqual(-1000);
+
+    const roundOutcome = {
+      outcome: 0,
+      winnerID: winner.ID,
+      roundLosers: new Set([loser.ID]),
+    };
+    updateLivesCount([winner, loser], roundOutcome, 3);
+
+    expect(winner.lifeCount).toEqual(3);
+    expect(loser.lifeCount).toEqual(0);
   });
 });

@@ -1,6 +1,7 @@
 import {cardIsGreater} from './cardsLogic';
 import {validateMove} from './movesLogic';
 import {nextHandPlayerID} from './playerHandLogic';
+import {updateLivesCount} from './playerLogic';
 import {computeRoundOutcome, newRound} from './roundLogic';
 import {endTurn, resetTurnState} from './turnLogic';
 import {Card, GameState, Player, PlayerHand, PlayerID} from '../types';
@@ -106,19 +107,8 @@ const roundIsOver = (gameState: GameState): boolean => {
 
 export const endRound = (gameState: GameState): void => {
   const roundOutcome = computeRoundOutcome(gameState.currentRound);
-
-  for (let i = 0; i < gameState.players.length; i++) {
-    const previousLifeCount = gameState.players[i].lifeCount;
-    if (gameState.players[i].ID === roundOutcome.winnerID) {
-      gameState.players[i].lifeCount = Math.min(
-        previousLifeCount + 1,
-        gameState.maxLifeCount,
-      );
-    } else if (roundOutcome.roundLosers.has(gameState.players[i].ID)) {
-      gameState.players[i].lifeCount = Math.max(previousLifeCount - 1, 0);
-    }
-  }
-
+  gameState.currentRound.result = roundOutcome;
+  updateLivesCount(gameState.players, roundOutcome, gameState.maxLifeCount);
   checkForElimination(gameState.players);
   gameState.pastRounds.push({...gameState.currentRound});
 };
