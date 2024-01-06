@@ -81,7 +81,9 @@ export const nextMove = (gameState: GameState, hand: PlayerHand): void => {
     // All players have moved
     const winnerID = endTurn(gameState.currentRound);
     if (roundIsOver(gameState)) {
-      endRound(gameState, winnerID);
+      // The last hand awards an additional 6 points.
+      gameState.currentRound.scoresMap[winnerID] += 6;
+      endRound(gameState);
     } else {
       resetTurnState(gameState.currentRound, winnerID);
     }
@@ -102,12 +104,7 @@ const roundIsOver = (gameState: GameState): boolean => {
   );
 };
 
-export const endRound = (gameState: GameState, playerID: PlayerID): void => {
-  // Handle end of a round, such as calculating scores, dealing new cards, etc.
-  // Reset players' hands or game state as needed\
-  // The last hand awards an additional 6 points.
-  gameState.currentRound.scoresMap[playerID] += 6;
-
+export const endRound = (gameState: GameState): void => {
   // A player taking all cards does a "capòt", reducing their score by one,
   // while others increase by one
   const turnWinnersSet = new Set(
