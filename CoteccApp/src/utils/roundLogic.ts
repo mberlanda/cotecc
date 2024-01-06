@@ -2,6 +2,7 @@ import {newPlayersHand} from './playerHandLogic';
 import {nextPlayerID} from './playerLogic';
 import {newTurn} from './turnLogic';
 import {GameState, Player, PlayerID, Round} from '../types';
+import {RoundOutcome, RoundResult} from '../types';
 
 export const newRound = (
   ID: number,
@@ -29,17 +30,6 @@ export const nextRound = (gameState: GameState) => {
     gameState.players.filter(p => p.lifeCount > 0),
   );
 };
-
-export enum RoundOutcome {
-  CAPOT, // all hands
-  MAX_SCORE,
-}
-
-interface RoundResult {
-  outcome: RoundOutcome;
-  roundLosers: Set<PlayerID>;
-  winnerID?: PlayerID;
-}
 
 export const computeRoundOutcome = (currentRound: Round): RoundResult => {
   const turnWinnersSet = new Set(currentRound.pastTurns.map(t => t.winnerID));

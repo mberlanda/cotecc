@@ -1,10 +1,6 @@
 import {newGame} from './gameLogic';
-import {
-  computeRoundOutcome,
-  newRound,
-  nextRound,
-  RoundOutcome,
-} from './roundLogic';
+import {computeRoundOutcome, newRound, nextRound} from './roundLogic';
+import {RoundOutcome} from '../types';
 
 const playerOne = {ID: 0, name: 'foo', lifeCount: 3, isHuman: true};
 const playerTwo = {ID: 1, name: 'bar', lifeCount: 3, isHuman: false};
