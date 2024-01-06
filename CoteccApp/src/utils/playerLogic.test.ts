@@ -1,6 +1,6 @@
 import {describe, expect, it} from '@jest/globals';
 
-import {findPlayerById, nextPlayerID} from './playerLogic';
+import {findPlayerById, generatePlayers, nextPlayerID} from './playerLogic';
 import {Player} from '../types';
 
 const validPlayerID = 123;
@@ -46,7 +46,25 @@ describe('nextPlayerID', () => {
   it('returns the same ID when there provided a single player list', () => {
     expect(nextPlayerID([playerOne], playerOne.ID)).toEqual(playerOne.ID);
   });
+  it('returns the first playerID when the ID provided is not the list', () => {
+    // scenario expected when filtering out eliminated players
+    expect(
+      nextPlayerID(
+        players.filter(p => p.isHuman),
+        playerTwo.ID,
+      ),
+    ).toEqual(playerOne.ID);
+  });
+
   it('throws an exception on an empty list', () => {
     expect(() => nextPlayerID([], validPlayerID)).toThrow(TypeError);
+  });
+});
+
+describe('generatePlayers', () => {
+  it('returns a single player with no input validation when invalid input', () => {
+    expect(generatePlayers('human name', 0, -1)).toEqual([
+      {ID: 0, name: 'human name', hand: [], lifeCount: -1, isHuman: true},
+    ]);
   });
 });

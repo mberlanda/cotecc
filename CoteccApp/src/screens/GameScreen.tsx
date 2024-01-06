@@ -5,16 +5,16 @@ import {RouteProp} from '@react-navigation/native';
 
 import DealCardsButton from '../components/DealCardsButton';
 import PastTurn from '../components/PastTurn';
-import PlayerHand from '../components/PlayerHand';
+import PlayerHandComponent from '../components/PlayerHandComponent';
 import {StateDebugComponent} from '../components/StateDebug';
 import StickyHeader from '../components/StickyHeader';
 import TableComponent from '../components/TableComponent';
 import {GameScreenRouteParams, RootStackParamList} from '../routes';
 import {GameState, Move} from '../types';
 import {aiMoveToPlay} from '../utils/aiPlayerLogic';
-import {dealCards} from '../utils/cardsLogic';
-import {newRound, playCard} from '../utils/gameLogic';
-import {findPlayerById, generatePlayers} from '../utils/playerLogic';
+import {newGame, playCard} from '../utils/gameLogic';
+import {generatePlayers} from '../utils/playerLogic';
+import {nextRound} from '../utils/roundLogic';
 
 // Define an interface for the props
 interface GameScreenProps {
@@ -31,14 +31,16 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
     [name, opponents, maxLifeCount],
   );
   const [localGameState, setLocalGameState] = useState<GameState>(() => {
-    return newRound(initialPlayers, initialPlayers[0].ID, maxLifeCount);
+    return newGame(initialPlayers, initialPlayers[0].ID, maxLifeCount);
   });
 
   const handleCardSelect = (move: Move) => {
-    if (move.playerID !== localGameState.currentTurn.currentPlayerID) {
+    if (
+      move.playerID !== localGameState.currentRound.currentTurn.currentPlayerID
+    ) {
       // TODO: display an error message in the UI
       console.log(
-        `Player ${move.playerID} tried to play while it was player ${localGameState.currentTurn.currentPlayerID} move`,
+        `Player ${move.playerID} tried to play while it was player ${localGameState.currentRound.currentTurn.currentPlayerID} move`,
       );
       return;
     }
@@ -48,19 +50,20 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
   };
 
   useEffect(() => {
-    const currentPlayer = findPlayerById(
-      localGameState.players,
-      localGameState.currentTurn.currentPlayerID,
+    const currentPlayer = localGameState.currentRound.players.find(
+      p =>
+        p.playerID === localGameState.currentRound.currentTurn.currentPlayerID,
     );
     // `currentPlayer.hand.length` is needed when the current turn is over
     // and the user has to tap DealCardsButton to start a new turn
-    if (!currentPlayer.isHuman && currentPlayer.hand.length) {
+    if (currentPlayer && !currentPlayer.isHuman && currentPlayer.cards.length) {
       setTimeout(() => {
         const aiMove = aiMoveToPlay(
           currentPlayer,
-          localGameState.currentTurn,
-          localGameState.pastTurns,
+          localGameState.currentRound.currentTurn,
+          localGameState.currentRound.pastTurns,
         );
+        console.log(aiMove);
         playCard(localGameState, aiMove.playerID, aiMove.card);
 
         setLocalGameState({...localGameState});
@@ -69,38 +72,52 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
   });
 
   const doDealCards = () => {
-    dealCards(localGameState.deck, localGameState.players);
+    nextRound(localGameState);
     setLocalGameState({...localGameState});
   };
 
   return (
     <ScrollView>
       <StickyHeader />
-      <TableComponent moves={localGameState.currentTurn.moves} />
+      {/* Show deal card button instead of table when all turns have been player */}
+      {localGameState.currentRound.pastTurns.length === 7 ? (
+        <View style={styles.gameSummaryContainer}>
+          <DealCardsButton doDealCards={doDealCards} />
+        </View>
+      ) : (
+        <TableComponent moves={localGameState.currentRound.currentTurn.moves} />
+      )}
       {localGameState.players.map((player, index) => (
         <View key={index}>
           <Text
             style={
-              player.ID === localGameState.currentTurn.currentPlayerID
+              player.ID ===
+              localGameState.currentRound.currentTurn.currentPlayerID
                 ? styles.currentPlayer
                 : null
             }>
             Player name: {player.name} - ID {player.ID} - score{' '}
-            {localGameState.scores[player.ID] || 0} - lives {player.lifeCount}
+            {localGameState.currentRound.scoresMap[player.ID] || 0} - lives{' '}
+            {player.lifeCount}
           </Text>
           {player.isHuman && (
-            <PlayerHand player={player} onCardSelect={handleCardSelect} />
+            <PlayerHandComponent
+              hand={
+                localGameState.currentRound.players.find(
+                  p => p.playerID === player.ID,
+                )!
+              }
+              onCardSelect={handleCardSelect}
+            />
           )}
           <PastTurn
             key={index}
-            turns={localGameState.pastTurns.filter(
+            turns={localGameState.currentRound.pastTurns.filter(
               t => t.winnerID === player.ID,
             )}
           />
         </View>
       ))}
-      {/* Implement UI elements for game controls */}
-      <DealCardsButton state={localGameState} doDealCards={doDealCards} />
       {showDebug && <StateDebugComponent state={localGameState} />}
     </ScrollView>
   );
@@ -109,6 +126,9 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
 const styles = StyleSheet.create({
   currentPlayer: {
     fontWeight: 'bold',
+  },
+  gameSummaryContainer: {
+    minHeight: 40,
   },
 });
 

@@ -1,38 +1,52 @@
 import {Suit} from './utils/constants';
 
+export type PlayerID = number;
+
 export interface Card {
-  suit: Suit;
-  rank: number;
-  points: number;
+  readonly suit: Suit;
+  readonly rank: number;
+  readonly points: number;
 }
 
 export interface Player {
-  readonly ID: number;
+  readonly ID: PlayerID;
   readonly name: string;
   readonly isHuman: boolean;
   lifeCount: number;
-  hand: Card[];
 }
 
 export interface Move {
-  playerID: number;
-  card: Card;
+  readonly playerID: PlayerID;
+  readonly card: Card;
+}
+
+export interface PlayerHand {
+  readonly isHuman: boolean;
+  readonly playerID: PlayerID;
+  cards: Card[];
 }
 
 export interface Turn {
-  currentPlayerID: number;
+  currentPlayerID: PlayerID;
   highestCard: Card | null; // Highest card played in the turn
   moves: Move[];
   suit: Suit | null; // Suit that must be followed, if applicable
-  winnerID: number | null; // ID of the player who won the last round
+  winnerID: PlayerID | null; // ID of the player who won the last round
+}
+
+export interface Round {
+  readonly ID: number;
+  readonly initialPlayerID: PlayerID;
+  currentTurn: Turn;
+  pastTurns: Turn[];
+  players: PlayerHand[];
+  scoresMap: {[playerID: PlayerID]: number};
 }
 
 export interface GameState {
   players: Player[];
-  initialPlayerID: number;
-  deck: Card[];
-  currentTurn: Turn;
-  pastTurns: Turn[];
-  scores: {[playerID: number]: number};
-  maxLifeCount: number;
+  initialPlayerID: PlayerID;
+  currentRound: Round;
+  pastRounds: Round[];
+  readonly maxLifeCount: number;
 }

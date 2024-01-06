@@ -2,7 +2,7 @@ import {beforeEach, describe, expect, it} from '@jest/globals';
 
 import {aiMoveToPlay} from './aiPlayerLogic';
 import {Suit} from './constants';
-import {Move, Player, Turn} from '../types';
+import {Move, PlayerHand, Turn} from '../types';
 
 const card_3ori = {suit: Suit.Ori, rank: 3, points: 0};
 const card_7ori = {suit: Suit.Ori, rank: 7, points: 0};
@@ -27,14 +27,14 @@ const pastTurn: Turn = {
 };
 
 describe('aiMoveToPlay', () => {
-  let player: Player;
+  let player: PlayerHand;
   let currentTurn: Turn;
   let pastTurns: Turn[];
 
   beforeEach(() => {
-    player = {ID: 0, name: 'foo', hand: [], lifeCount: 3, isHuman: false};
+    player = {playerID: 0, cards: [], isHuman: false};
     currentTurn = {
-      currentPlayerID: player.ID,
+      currentPlayerID: player.playerID,
       moves: [],
       highestCard: null,
       suit: null,
@@ -44,17 +44,17 @@ describe('aiMoveToPlay', () => {
   });
 
   it('throws an exception if the player has an empty hand', () => {
-    expect(player.hand.length).toEqual(0);
+    expect(player.cards.length).toEqual(0);
     expect(() => {
       aiMoveToPlay(player, currentTurn, pastTurns);
     }).toThrowError();
   });
 
   it('RULE-1 if player has a single card, it would play it', () => {
-    player.hand = [card_7ori];
+    player.cards = [card_7ori];
     expect(aiMoveToPlay(player, currentTurn, [])).toEqual({
       card: card_7ori,
-      playerID: player.ID,
+      playerID: player.playerID,
     });
   });
 
@@ -66,10 +66,10 @@ describe('aiMoveToPlay', () => {
       suit: Suit.Bastoni,
     };
 
-    player.hand = [card_7ori, card_3bastoni];
+    player.cards = [card_7ori, card_3bastoni];
     expect(aiMoveToPlay(player, currentTurn2A, [])).toEqual({
       card: card_3bastoni,
-      playerID: player.ID,
+      playerID: player.playerID,
     });
   });
 
@@ -85,10 +85,10 @@ describe('aiMoveToPlay', () => {
       suit: Suit.Bastoni,
     };
 
-    player.hand = [card_7ori, card_3bastoni, card_9bastoni];
+    player.cards = [card_7ori, card_3bastoni, card_9bastoni];
     expect(aiMoveToPlay(player, currentTurn2B, [])).toEqual({
       card: card_9bastoni,
-      playerID: player.ID,
+      playerID: player.playerID,
     });
   });
 
@@ -97,10 +97,10 @@ describe('aiMoveToPlay', () => {
       ...currentTurn,
       suit: null,
     };
-    player.hand = [card_7ori, card_3bastoni, card_11bastoni, card_5bastoni];
+    player.cards = [card_7ori, card_3bastoni, card_11bastoni, card_5bastoni];
     expect(aiMoveToPlay(player, currentTurn3A, [])).toEqual({
       card: card_7ori,
-      playerID: player.ID,
+      playerID: player.playerID,
     });
   });
 
@@ -109,10 +109,10 @@ describe('aiMoveToPlay', () => {
       ...currentTurn,
       suit: Suit.Coppe,
     };
-    player.hand = [card_7ori, card_3bastoni, card_11bastoni];
+    player.cards = [card_7ori, card_3bastoni, card_11bastoni];
     expect(aiMoveToPlay(player, currentTurn3B, [])).toEqual({
       card: card_7ori,
-      playerID: player.ID,
+      playerID: player.playerID,
     });
   });
 
@@ -127,10 +127,10 @@ describe('aiMoveToPlay', () => {
       ],
       suit: Suit.Bastoni,
     };
-    player.hand = [card_7ori, card_3bastoni, card_11bastoni];
+    player.cards = [card_7ori, card_3bastoni, card_11bastoni];
     const aiMove: Move = aiMoveToPlay(player, currentTurnRandSuit, []);
 
-    expect(aiMove.playerID).toEqual(player.ID);
+    expect(aiMove.playerID).toEqual(player.playerID);
     expect(aiMove.card.suit).toEqual(Suit.Bastoni);
   });
 
@@ -145,10 +145,10 @@ describe('aiMoveToPlay', () => {
       ],
       suit: Suit.Ori,
     };
-    player.hand = [card_3bastoni, card_10bastoni];
+    player.cards = [card_3bastoni, card_10bastoni];
     const aiMove: Move = aiMoveToPlay(player, currentTurnRandSuit, [pastTurn]);
 
-    expect(aiMove.playerID).toEqual(player.ID);
+    expect(aiMove.playerID).toEqual(player.playerID);
     expect(aiMove.card.suit).toEqual(Suit.Bastoni);
   });
 });

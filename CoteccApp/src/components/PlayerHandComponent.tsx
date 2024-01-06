@@ -2,22 +2,22 @@ import React from 'react';
 import {FlatList, StyleSheet, View} from 'react-native';
 
 import CardComponent from './CardComponent';
-import {Move, Player} from '../types';
+import {Move, PlayerHand} from '../types';
 
-const PlayerHand = ({
-  player,
+const PlayerHandComponent = ({
+  hand,
   onCardSelect,
 }: {
-  player: Player;
+  hand: PlayerHand;
   onCardSelect: (move: Move) => void;
 }) => (
   <View style={styles.container}>
     <FlatList
-      data={player.hand}
+      data={hand.cards}
       renderItem={({item}) => (
         <CardComponent
           card={item}
-          playerID={player.ID}
+          playerID={hand.playerID}
           onCardSelect={onCardSelect}
         />
       )}
@@ -41,4 +41,4 @@ const styles = StyleSheet.create({
   // Add styles for CardComponent if necessary
 });
 
-export default PlayerHand;
+export default PlayerHandComponent;

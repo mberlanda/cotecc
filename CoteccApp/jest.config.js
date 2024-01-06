@@ -14,6 +14,8 @@ const config = {
   // https://jestjs.io/docs/configuration#modulenamemapper-objectstring-string--arraystring
   // moduleNameMapper: {},
   preset: 'react-native',
+  // https://callstack.github.io/react-native-testing-library/docs/getting-started#additional-jest-matchers
+  setupFilesAfterEnv: ['<rootDir>/jest-setup.js'],
   // https://github.com/react-navigation/react-navigation/issues/8669#issuecomment-926020453
   transformIgnorePatterns: [
     'node_modules/(?!(jest-)?react-native|react-clone-referenced-element|@react-native-community|rollbar-react-native|@fortawesome|@react-native|@react-navigation)',

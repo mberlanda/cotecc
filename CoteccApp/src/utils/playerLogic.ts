@@ -1,6 +1,9 @@
-import {Player} from '../types';
+import {Player, PlayerID} from '../types';
 
-export const findPlayerById = (players: Player[], playerID: number): Player => {
+export const findPlayerById = (
+  players: Player[],
+  playerID: PlayerID,
+): Player => {
   const player = players.find(p => p.ID === playerID);
   if (!player) {
     throw RangeError(`PlayerID ${playerID} out of range`);
@@ -8,17 +11,22 @@ export const findPlayerById = (players: Player[], playerID: number): Player => {
   return player;
 };
 
-export const nextPlayerID = (players: Player[], playerID: number): number => {
+// TODO: refactor to reflect the logic to keep in account only players
+// alive
+export const nextPlayerID = (
+  players: Player[],
+  playerID: PlayerID,
+): PlayerID => {
   const playersCount = players.length;
   const currentPlayerIndex = players.findIndex(p => p.ID === playerID);
   return players[(currentPlayerIndex + 1) % playersCount].ID;
 };
 
 const placeholderPlayers = (maxLifeCount: number): Player[] => [
-  {ID: 1, name: 'bar', hand: [], lifeCount: maxLifeCount, isHuman: false},
-  {ID: 2, name: 'baz', hand: [], lifeCount: maxLifeCount, isHuman: false},
-  {ID: 3, name: 'baz', hand: [], lifeCount: maxLifeCount, isHuman: false},
-  {ID: 4, name: 'baz', hand: [], lifeCount: maxLifeCount, isHuman: false},
+  {ID: 1, name: 'bar', lifeCount: maxLifeCount, isHuman: false},
+  {ID: 2, name: 'baz', lifeCount: maxLifeCount, isHuman: false},
+  {ID: 3, name: 'baz', lifeCount: maxLifeCount, isHuman: false},
+  {ID: 4, name: 'baz', lifeCount: maxLifeCount, isHuman: false},
 ];
 
 export const generatePlayers = (

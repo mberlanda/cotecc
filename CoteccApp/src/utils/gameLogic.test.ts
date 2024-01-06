@@ -1,18 +1,11 @@
 import {beforeEach, describe, expect, it} from '@jest/globals';
 
-import {Suit} from './constants';
-import {
-  endRound,
-  newRound,
-  newTurn,
-  playCard,
-  processCardPlay,
-  validateSuit,
-} from './gameLogic';
+import {endRound, newGame, playCard, processCardPlay} from './gameLogic';
+import {newTurn} from './turnLogic';
 import {Card, GameState, Player} from '../types';
 
-const playerOne = {ID: 0, name: 'foo', hand: [], lifeCount: 3, isHuman: true};
-const playerTwo = {ID: 1, name: 'bar', hand: [], lifeCount: 3, isHuman: false};
+const playerOne = {ID: 0, name: 'foo', lifeCount: 3, isHuman: true};
+const playerTwo = {ID: 1, name: 'bar', lifeCount: 3, isHuman: false};
 const playerThree = {
   ID: 2,
   name: 'baz',
@@ -26,7 +19,7 @@ describe('playCard', () => {
   let gameState: GameState;
 
   beforeEach(() => {
-    gameState = newRound(
+    gameState = newGame(
       players.map(p => Object.create(p)),
       players[0].ID,
       4,
@@ -34,18 +27,20 @@ describe('playCard', () => {
   });
 
   it('does not change the gameState when other player does not respect the turn', () => {
-    const otherPlayer = gameState.players[1];
-    playCard(gameState, otherPlayer.ID, otherPlayer.hand[0]);
+    const otherPlayer = gameState.currentRound.players[1];
+    playCard(gameState, otherPlayer.playerID, otherPlayer.cards[0]);
 
     expect(gameState).toEqual(gameState);
   });
 
   it('sets suit of the same card as the card played by the first player', () => {
-    const playedCard: Card = gameState.players[0].hand[0];
+    const currentPlayer = gameState.currentRound.players[0];
 
-    playCard(gameState, playerOne.ID, playedCard);
+    const playedCard: Card = currentPlayer.cards[0];
 
-    const currentTurn = gameState.currentTurn;
+    playCard(gameState, currentPlayer.playerID, playedCard);
+
+    const currentTurn = gameState.currentRound.currentTurn;
     expect(currentTurn.moves).toEqual([
       {playerID: playerOne.ID, card: playedCard},
     ]);
@@ -57,49 +52,11 @@ describe('playCard', () => {
   });
 });
 
-describe('validateSuit', () => {
-  let gameState: GameState;
-
-  beforeEach(() => {
-    gameState = newRound(
-      players.map(p => Object.create(p)),
-      players[0].ID,
-      4,
-    );
-  });
-
-  it('returns without exception if suit is not set', () => {
-    validateSuit(gameState, gameState.players[0], gameState.players[0].hand[0]);
-  });
-
-  it('returns without exception if player follows current turn suit', () => {
-    const playedCard = gameState.players[0].hand[0];
-    gameState.currentTurn.suit = playedCard.suit;
-
-    validateSuit(gameState, gameState.players[0], playedCard);
-  });
-
-  it('throws error when the player has at least one card of the suit and does not play it', () => {
-    const playedCard = gameState.players[0].hand[0];
-    gameState.currentTurn.suit = playedCard.suit;
-    const otherSuit = [Suit.Ori, Suit.Spade].find(
-      el => el !== playedCard.suit,
-    )!;
-
-    expect(() =>
-      validateSuit(gameState, gameState.players[0], {
-        ...playedCard,
-        suit: otherSuit,
-      }),
-    ).toThrowError();
-  });
-});
-
 describe('processCardPlay', () => {
   let gameState: GameState;
 
   beforeEach(() => {
-    gameState = newRound(
+    gameState = newGame(
       players.map(p => Object.create(p)),
       players[0].ID,
       4,
@@ -107,8 +64,8 @@ describe('processCardPlay', () => {
   });
 
   it('throws an exception if the player does not own the card', () => {
-    const aPlayer = gameState.players[0];
-    const otherPlayerCard = gameState.players[1].hand[0];
+    const aPlayer = gameState.currentRound.players[0];
+    const otherPlayerCard = gameState.currentRound.players[1].cards[0];
 
     expect(() => {
       processCardPlay(gameState, aPlayer, otherPlayerCard);
@@ -120,7 +77,7 @@ describe('endRound', () => {
   let gameState: GameState;
 
   beforeEach(() => {
-    gameState = newRound(
+    gameState = newGame(
       players.map(p => Object.create(p)),
       players[0].ID,
       4,
@@ -131,15 +88,15 @@ describe('endRound', () => {
     const winner = gameState.players[0];
 
     const fakeTurn = newTurn(winner.ID);
-    gameState.players.forEach(p => {
-      const playedCard = p.hand.slice(0, 1);
-      fakeTurn.currentPlayerID = p.ID;
+    gameState.currentRound.players.forEach(p => {
+      const playedCard = p.cards.slice(0, 1);
+      fakeTurn.currentPlayerID = p.playerID;
       fakeTurn.suit ||= playedCard[0].suit;
-      fakeTurn.moves.push({card: playedCard[0], playerID: p.ID});
-      p.hand = [];
+      fakeTurn.moves.push({card: playedCard[0], playerID: p.playerID});
+      p.cards = [];
     });
     fakeTurn.winnerID = winner.ID;
-    gameState.pastTurns.push(fakeTurn);
+    gameState.currentRound.pastTurns.push(fakeTurn);
 
     gameState.players.forEach(p => expect(p.lifeCount).toEqual(3));
 

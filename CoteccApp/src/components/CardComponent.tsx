@@ -7,7 +7,7 @@ import {
   ViewStyle,
 } from 'react-native';
 
-import {Card, Move} from '../types';
+import {Card, Move, PlayerID} from '../types';
 import cardImages from '../utils/cardAssets';
 
 const CardComponent = ({
@@ -17,7 +17,7 @@ const CardComponent = ({
   cardStyles,
 }: {
   card: Card;
-  playerID: number;
+  playerID: PlayerID;
   onCardSelect: (move: Move) => void;
   cardStyles?: ViewStyle | ViewStyle[];
 }) => {

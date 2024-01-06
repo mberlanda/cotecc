@@ -6,7 +6,7 @@ import renderer from 'react-test-renderer';
 import {StateDebugComponent} from './StateDebug';
 import {GameState, Player} from '../types';
 import {Suit} from '../utils/constants';
-import {newRound} from '../utils/gameLogic';
+import {newGame} from '../utils/gameLogic';
 
 const players: Player[] = [
   {ID: 0, name: 'foo', hand: [], lifeCount: 3, isHuman: true},
@@ -18,7 +18,7 @@ describe('StateDebug', () => {
   let gameState: GameState;
 
   beforeEach(() => {
-    gameState = newRound(players, players[0].ID);
+    gameState = newGame(players, players[0].ID, 4);
   });
 
   it('renders turn data in the initial state', () => {
@@ -33,7 +33,7 @@ describe('StateDebug', () => {
       player.hand.pop();
     });
 
-    gameState.pastTurns.push({
+    gameState.currentRound.pastTurns.push({
       suit: Suit.Spade,
       highestCard: {suit: Suit.Spade, rank: 4, points: 0},
       moves: [

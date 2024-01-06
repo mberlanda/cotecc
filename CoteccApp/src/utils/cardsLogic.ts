@@ -1,5 +1,5 @@
 import {Suit} from './constants';
-import {Card, Player} from '../types';
+import {Card, PlayerHand} from '../types';
 
 export const createDeck = (): Card[] => {
   // Implement deck creation logic
@@ -46,7 +46,7 @@ export const sortCards = (deck: Card[]): Card[] => {
   });
 };
 
-export const dealCards = (deck: Card[], players: Player[]): void => {
+export const dealCards = (deck: Card[], players: PlayerHand[]): void => {
   // Implement card dealing logic
   const cardsPerPlayer = 7;
   if (cardsPerPlayer * players.length > deck.length) {
@@ -59,7 +59,7 @@ export const dealCards = (deck: Card[], players: Player[]): void => {
     for (let i = 0; i < cardsPerPlayer; i++) {
       cards.push(deck.pop()!);
     }
-    player.hand = sortCards(cards);
+    player.cards = sortCards(cards);
   }
 };
 

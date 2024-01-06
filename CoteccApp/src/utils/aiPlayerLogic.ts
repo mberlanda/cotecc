@@ -1,6 +1,6 @@
 import {getCardsWithSuit} from './cardsLogic';
 import {Suit} from './constants';
-import {Card, Move, Player, Turn} from '../types';
+import {Card, Move, PlayerHand, Turn} from '../types';
 
 type SuitCardsRecord = Record<Suit, Card | null>;
 type SuitCountRecord = Record<Suit, number>;
@@ -59,24 +59,24 @@ const computeCards = (cards: Card[]): ComputedCards => {
 // TODO: think about a strategy to set different difficulty levels
 // TODO: think about either playing for capot or for making less points
 export const aiMoveToPlay = (
-  player: Player,
+  hand: PlayerHand,
   currentTurn: Turn,
   pastTurns: Turn[],
 ): Move => {
-  if (!player.hand.length) {
-    throw Error(`AI player ${player.ID} does not own any card`);
+  if (!hand.cards.length) {
+    throw Error(`AI player ${hand.playerID} does not own any card`);
   }
 
   // RULE-1 if player has a single card, it would play it
-  if (player.hand.length === 1) {
-    console.log(`Player ${player.ID}: RULE-1 single card`);
+  if (hand.cards.length === 1) {
+    console.log(`Player ${hand.playerID}: RULE-1 single card`);
     return {
-      card: player.hand[0],
-      playerID: player.ID,
+      card: hand.cards[0],
+      playerID: hand.playerID,
     };
   }
 
-  const hand = computeCards(player.hand);
+  const computedHand = computeCards(hand.cards);
   // TODO-2: pastTurns and currentTurns should be modeled
   // so that ai player can consume card already played by
   // suit and make decisions based on the cards in their
@@ -84,20 +84,20 @@ export const aiMoveToPlay = (
   const currentSuit: Suit | null = currentTurn.suit;
   const isFirstToMove: boolean = !currentSuit;
   const cardsOfSameSuit: number = currentSuit
-    ? hand.suitCounts[currentSuit]
+    ? computedHand.suitCounts[currentSuit]
     : 0;
   const hasSameSuit: boolean = cardsOfSameSuit > 0;
 
   // RULE-2 respects the rule of responding with the same suit
   if (currentSuit && hasSameSuit) {
-    const highestInSuit = hand.highestRankInSuit[currentSuit] as Card;
+    const highestInSuit = computedHand.highestRankInSuit[currentSuit] as Card;
 
     // 2.a only one eligible card is a forced move
     if (cardsOfSameSuit === 1) {
-      console.log(`Player ${player.ID}: RULE-2.A only one eligible card`);
+      console.log(`Player ${hand.playerID}: RULE-2.A only one eligible card`);
       return {
         card: highestInSuit,
-        playerID: player.ID,
+        playerID: hand.playerID,
       };
     }
 
@@ -105,11 +105,11 @@ export const aiMoveToPlay = (
     if (highestInSuit.rank < (currentTurn.highestCard?.rank || 0)) {
       // TODO: reconsider this behavior depending the on what has been played previously
       console.log(
-        `Player ${player.ID}: RULE-2.B highest in rank lower than already played`,
+        `Player ${hand.playerID}: RULE-2.B highest in rank lower than already played`,
       );
       return {
         card: highestInSuit,
-        playerID: player.ID,
+        playerID: hand.playerID,
       };
     }
   }
@@ -117,28 +117,32 @@ export const aiMoveToPlay = (
   // RULE-3 When no past turn
   if (
     !pastTurns.length &&
-    hand.fewestSuit &&
-    hand.highestRankInSuit[hand.fewestSuit]
+    computedHand.fewestSuit &&
+    computedHand.highestRankInSuit[computedHand.fewestSuit]
   ) {
-    const highestOfFewestSuit = hand.highestRankInSuit[hand.fewestSuit] as Card;
+    const highestOfFewestSuit = computedHand.highestRankInSuit[
+      computedHand.fewestSuit
+    ] as Card;
     // 3.a if first player to move
     if (isFirstToMove) {
       // Highest rank from the fewest suit
-      console.log(`Player ${player.ID}: RULE-3.A first move no previous turn`);
+      console.log(
+        `Player ${hand.playerID}: RULE-3.A first move no previous turn`,
+      );
       return {
         card: highestOfFewestSuit,
-        playerID: player.ID,
+        playerID: hand.playerID,
       };
     }
     // 3.b if cannot reply with the same suit
     if (!hasSameSuit) {
       // TODO: reconsider this behavior depending the on what has been played previously
       console.log(
-        `Player ${player.ID}: RULE-3.B not same suit no previous turn`,
+        `Player ${hand.playerID}: RULE-3.B not same suit no previous turn`,
       );
       return {
         card: highestOfFewestSuit,
-        playerID: player.ID,
+        playerID: hand.playerID,
       };
     }
   }
@@ -146,18 +150,18 @@ export const aiMoveToPlay = (
   // TODO: implement some logic here
   if (hasSameSuit) {
     // TODO: group cards by suit in hand
-    const cardsWithSuit = getCardsWithSuit(currentTurn.suit, player.hand);
+    const cardsWithSuit = getCardsWithSuit(currentTurn.suit, hand.cards);
 
-    console.log(`Player ${player.ID}: RANDOM same suit`);
+    console.log(`Player ${hand.playerID}: RANDOM same suit`);
     return {
       card: cardsWithSuit[Math.floor(Math.random() * cardsWithSuit.length)],
-      playerID: player.ID,
+      playerID: hand.playerID,
     };
   }
 
-  console.log(`Player ${player.ID}: RANDOM any suit`);
+  console.log(`Player ${hand.playerID}: RANDOM any suit`);
   return {
-    card: player.hand[Math.floor(Math.random() * player.hand.length)],
-    playerID: player.ID,
+    card: hand.cards[Math.floor(Math.random() * hand.cards.length)],
+    playerID: hand.playerID,
   };
 };
