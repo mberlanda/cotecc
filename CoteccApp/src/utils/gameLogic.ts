@@ -1,7 +1,7 @@
 import {cardIsGreater} from './cardsLogic';
 import {validateMove} from './movesLogic';
 import {nextHandPlayerID} from './playerHandLogic';
-import {newRound} from './roundLogic';
+import {computeRoundOutcome, newRound} from './roundLogic';
 import {endTurn, resetTurnState} from './turnLogic';
 import {Card, GameState, Player, PlayerHand, PlayerID} from '../types';
 
@@ -105,50 +105,20 @@ const roundIsOver = (gameState: GameState): boolean => {
 };
 
 export const endRound = (gameState: GameState): void => {
-  // A player taking all cards does a "capòt", reducing their score by one,
-  // while others increase by one
-  const turnWinnersSet = new Set(
-    gameState.currentRound.pastTurns.map(t => t.winnerID),
-  );
-  if (turnWinnersSet.size === 1) {
-    // TODO: return some messages about the round outcome with a categorization
-    // between capot and max score so that it can be displayed in a message.
-    const winnerID = turnWinnersSet.values().next().value;
-    for (let i = 0; i < gameState.players.length; i++) {
-      const previousLifeCount = gameState.players[i].lifeCount;
-      if (gameState.players[i].ID === winnerID) {
-        gameState.players[i].lifeCount = Math.min(
-          previousLifeCount + 1,
-          gameState.maxLifeCount,
-        );
-      } else {
-        gameState.players[i].lifeCount = Math.max(previousLifeCount - 1, 0);
-      }
+  const roundOutcome = computeRoundOutcome(gameState.currentRound);
+
+  for (let i = 0; i < gameState.players.length; i++) {
+    const previousLifeCount = gameState.players[i].lifeCount;
+    if (gameState.players[i].ID === roundOutcome.winnerID) {
+      gameState.players[i].lifeCount = Math.min(
+        previousLifeCount + 1,
+        gameState.maxLifeCount,
+      );
+    } else if (roundOutcome.roundLosers.has(gameState.players[i].ID)) {
+      gameState.players[i].lifeCount = Math.max(previousLifeCount - 1, 0);
     }
-  }
-  // Give a bola to the players with the highest score
-  // This code can be made much more elegant
-  else {
-    let maxScore = -1;
-    let turnLosers: {[playerID: PlayerID]: boolean} = {};
-    for (let plID in gameState.currentRound.scoresMap) {
-      const score = gameState.currentRound.scoresMap[plID];
-      if (score > maxScore) {
-        maxScore = score;
-        turnLosers = {};
-      }
-      if (score === maxScore) {
-        turnLosers[plID] = true;
-      }
-    }
-    gameState.players.forEach(player => {
-      if (player.ID in turnLosers) {
-        player.lifeCount -= 1;
-      }
-    });
   }
 
-  // TODO: implement elimination logic
   checkForElimination(gameState.players);
   gameState.pastRounds.push({...gameState.currentRound});
 };

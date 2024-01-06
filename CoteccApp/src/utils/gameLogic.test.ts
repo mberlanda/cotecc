@@ -100,7 +100,7 @@ describe('endRound', () => {
 
     gameState.players.forEach(p => expect(p.lifeCount).toEqual(3));
 
-    endRound(gameState, winner.ID);
+    endRound(gameState);
     expect(gameState.players[0].lifeCount).toEqual(4);
     for (let i = 1; i < gameState.players.length; i++) {
       expect(gameState.players[i].lifeCount).toEqual(2);
