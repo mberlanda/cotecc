@@ -67,3 +67,10 @@ export const computeRoundOutcome = (currentRound: Round): RoundResult => {
     roundLosers,
   };
 };
+
+export const roundIsOver = (currentRound: Round): boolean => {
+  return currentRound.players.reduce(
+    (acc, p) => acc && p.cards.length === 0,
+    true,
+  );
+};

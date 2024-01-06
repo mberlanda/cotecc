@@ -3,6 +3,7 @@ import {validateMove} from './movesLogic';
 import {nextHandPlayerID} from './playerHandLogic';
 import {updateLivesCount} from './playerLogic';
 import {computeRoundOutcome, newRound} from './roundLogic';
+import {roundIsOver} from './roundLogic';
 import {endTurn, resetTurnState} from './turnLogic';
 import {Card, GameState, Player, PlayerHand, PlayerID} from '../types';
 
@@ -81,7 +82,7 @@ export const nextMove = (gameState: GameState, hand: PlayerHand): void => {
   if (gameState.currentRound.currentTurn.moves.length === playersCount) {
     // All players have moved
     const winnerID = endTurn(gameState.currentRound);
-    if (roundIsOver(gameState)) {
+    if (roundIsOver(gameState.currentRound)) {
       // The last hand awards an additional 6 points.
       gameState.currentRound.scoresMap[winnerID] += 6;
       endRound(gameState);
@@ -94,14 +95,6 @@ export const nextMove = (gameState: GameState, hand: PlayerHand): void => {
   gameState.currentRound.currentTurn.currentPlayerID = nextHandPlayerID(
     gameState.currentRound.players,
     hand.playerID,
-  );
-};
-
-// TODO: remove this method after moving player hand into Round
-const roundIsOver = (gameState: GameState): boolean => {
-  return gameState.currentRound.players.reduce(
-    (acc, p) => acc && p.cards.length === 0,
-    true,
   );
 };
 
