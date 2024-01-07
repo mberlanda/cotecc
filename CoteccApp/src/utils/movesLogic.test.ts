@@ -1,6 +1,7 @@
 import {Suit} from './constants';
 import {calculateScore, validateMove, ValidationError} from './movesLogic';
 import {newTurn} from './turnLogic';
+import {newPlayerHand} from '../__tests__/playerHandTestFixture';
 import {Card, Turn} from '../types';
 
 describe('calculateScore', () => {
@@ -28,7 +29,7 @@ describe('validateMove', () => {
   });
 
   it('passes if player plays at their turn and suit is not set', () => {
-    const hand = {playerID: 1, isHuman: false, cards: [playedCard]};
+    const hand = newPlayerHand({playerID: 1, cards: [playedCard]});
 
     expect(() => {
       validateMove(turn, hand, playedCard);
@@ -36,7 +37,7 @@ describe('validateMove', () => {
   });
 
   it('passes if player plays at their turn and follows the suit', () => {
-    const hand = {playerID: 1, isHuman: false, cards: [playedCard]};
+    const hand = newPlayerHand({playerID: 1, cards: [playedCard]});
     turn.suit = playedCard.suit;
 
     expect(() => {
@@ -45,7 +46,7 @@ describe('validateMove', () => {
   });
 
   it('passes if player plays at their turn and does not own the suit', () => {
-    const hand = {playerID: 1, isHuman: false, cards: [playedCard]};
+    const hand = newPlayerHand({playerID: 1, cards: [playedCard]});
     turn.suit = [Suit.Bastoni, Suit.Coppe].find(s => s !== playedCard.suit)!;
 
     expect(() => {
@@ -54,7 +55,7 @@ describe('validateMove', () => {
   });
 
   it('throws ValidationError when player turn validation fails', () => {
-    const hand = {playerID: 2, isHuman: false, cards: [playedCard]};
+    const hand = newPlayerHand({playerID: 2, cards: [playedCard]});
 
     expect(() => {
       validateMove(turn, hand, playedCard);
@@ -62,16 +63,15 @@ describe('validateMove', () => {
   });
 
   it('throws ValidationError when player owns the suit set and does not respect it', () => {
-    const hand = {
+    const hand = newPlayerHand({
       playerID: 1,
-      isHuman: false,
       cards: [
         playedCard,
         {suit: Suit.Bastoni, rank: 8, points: 2},
         {suit: Suit.Coppe, rank: 8, points: 2},
         {suit: Suit.Spade, rank: 8, points: 2},
       ],
-    };
+    });
 
     expect(playedCard.suit).not.toEqual(Suit.Coppe);
 

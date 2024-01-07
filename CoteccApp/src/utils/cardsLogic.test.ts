@@ -9,6 +9,7 @@ import {
   sortCards,
 } from './cardsLogic';
 import {Suit} from './constants';
+import {newPlayerHand} from '../__tests__/playerHandTestFixture';
 
 describe('createDeck', () => {
   it('creates a deck of 40 cards', () => {
@@ -77,9 +78,9 @@ describe('dealCards', () => {
   it('deals 7 cards to each player', () => {
     const deck = shuffleDeck(createDeck());
     const players = [
-      {playerID: 0, name: 'foo', cards: [], isHuman: true},
-      {playerID: 1, name: 'bar', cards: [], isHuman: false},
-      {playerID: 2, name: 'baz', cards: [], isHuman: true},
+      newPlayerHand({playerID: 0}),
+      newPlayerHand({playerID: 1}),
+      newPlayerHand({playerID: 2}),
     ];
     dealCards(deck, players);
     players.forEach(player => {

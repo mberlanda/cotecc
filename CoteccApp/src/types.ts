@@ -24,6 +24,7 @@ export interface PlayerHand {
   readonly isHuman: boolean;
   readonly playerID: PlayerID;
   cards: Card[];
+  cardsBySuit: Record<Suit, Card[]>;
 }
 
 export interface Turn {

@@ -2,6 +2,7 @@ import {beforeEach, describe, expect, it} from '@jest/globals';
 
 import {aiMoveToPlay} from './aiPlayerLogic';
 import {Suit} from './constants';
+import {newPlayerHand} from '../__tests__/playerHandTestFixture';
 import {Move, PlayerHand, Turn} from '../types';
 
 const card_3ori = {suit: Suit.Ori, rank: 3, points: 0};
@@ -32,7 +33,7 @@ describe('aiMoveToPlay', () => {
   let pastTurns: Turn[];
 
   beforeEach(() => {
-    player = {playerID: 0, cards: [], isHuman: false};
+    player = newPlayerHand({playerID: 0});
     currentTurn = {
       currentPlayerID: player.playerID,
       moves: [],
