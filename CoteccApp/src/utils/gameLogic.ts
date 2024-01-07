@@ -5,7 +5,7 @@ import {updateLivesCount} from './playerLogic';
 import {computeRoundOutcome, newRound} from './roundLogic';
 import {roundIsOver} from './roundLogic';
 import {endTurn, resetTurnState} from './turnLogic';
-import {Card, GameState, Player, PlayerHand, PlayerID} from '../types';
+import {Card, GameState, Player, PlayerHand, PlayerID, Turn} from '../types';
 
 export const newGame = (
   players: Player[],
@@ -31,7 +31,9 @@ export const playCard = (
       p => p.playerID === playerID,
     )!;
     validateMove(gameState.currentRound.currentTurn, hand, playedCard);
-    processCardPlay(gameState, hand, playedCard);
+    processCardPlay(gameState.currentRound.currentTurn, hand, playedCard, () =>
+      nextMove(gameState, hand),
+    );
   } catch (err) {
     console.log(err);
     // TODO: return an exception visible in the UI
@@ -40,9 +42,10 @@ export const playCard = (
 };
 
 export const processCardPlay = (
-  gameState: GameState,
+  currentTurn: Turn,
   hand: PlayerHand,
   playedCard: Card,
+  nextMove: () => void,
 ): void => {
   // Ensure player holds the card selected.
   const cardIndex = hand.cards.findIndex(c => c === playedCard);
@@ -54,26 +57,26 @@ export const processCardPlay = (
     );
   }
   // Update the current suit if this is the first card of the round
-  if (!gameState.currentRound.currentTurn.suit) {
-    gameState.currentRound.currentTurn.suit = playedCard.suit;
+  if (!currentTurn.suit) {
+    currentTurn.suit = playedCard.suit;
   }
 
   // Update the highest card if applicable
   if (
-    !gameState.currentRound.currentTurn.highestCard ||
-    (playedCard.suit === gameState.currentRound.currentTurn.suit &&
-      cardIsGreater(playedCard, gameState.currentRound.currentTurn.highestCard))
+    !currentTurn.highestCard ||
+    (playedCard.suit === currentTurn.suit &&
+      cardIsGreater(playedCard, currentTurn.highestCard))
   ) {
-    gameState.currentRound.currentTurn.highestCard = playedCard;
-    gameState.currentRound.currentTurn.winnerID = hand.playerID;
+    currentTurn.highestCard = playedCard;
+    currentTurn.winnerID = hand.playerID;
   }
 
   const removedCard = hand.cards.splice(cardIndex, 1);
-  gameState.currentRound.currentTurn.moves.push({
+  currentTurn.moves.push({
     playerID: hand.playerID,
     card: removedCard[0],
   });
-  nextMove(gameState, hand);
+  nextMove();
 };
 
 export const nextMove = (gameState: GameState, hand: PlayerHand): void => {

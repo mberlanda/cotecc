@@ -1,8 +1,14 @@
 import {newPlayersHand} from './playerHandLogic';
 import {nextPlayerID} from './playerLogic';
 import {newTurn} from './turnLogic';
-import {GameState, Player, PlayerID, Round} from '../types';
-import {RoundOutcome, RoundResult} from '../types';
+import {
+  GameState,
+  Player,
+  PlayerID,
+  Round,
+  RoundOutcome,
+  RoundResult,
+} from '../types';
 
 export const newRound = (
   ID: number,
@@ -69,8 +75,10 @@ export const computeRoundOutcome = (currentRound: Round): RoundResult => {
 };
 
 export const roundIsOver = (currentRound: Round): boolean => {
-  return currentRound.players.reduce(
-    (acc, p) => acc && p.cards.length === 0,
-    true,
-  );
+  currentRound.players.forEach(hand => {
+    if (hand.cards.length > 0) {
+      return false;
+    }
+  });
+  return true;
 };

@@ -66,9 +66,10 @@ describe('processCardPlay', () => {
   it('throws an exception if the player does not own the card', () => {
     const aPlayer = gameState.currentRound.players[0];
     const otherPlayerCard = gameState.currentRound.players[1].cards[0];
+    const currentTurn = gameState.currentRound.currentTurn;
 
     expect(() => {
-      processCardPlay(gameState, aPlayer, otherPlayerCard);
+      processCardPlay(currentTurn, aPlayer, otherPlayerCard, () => {});
     }).toThrowError();
   });
 });
