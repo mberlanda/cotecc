@@ -64,10 +64,10 @@ export interface GameState {
   readonly maxLifeCount: number;
 }
 
-export const newSuitMap = <T>(defaultValue: T): Record<Suit, T> => {
+export const newSuitMap = <T>(createDefaultValue: () => T): Record<Suit, T> => {
   return Object.fromEntries(
     Object.values(Suit)
       .filter(value => typeof value === 'string')
-      .map(suit => [suit, defaultValue]),
+      .map(suit => [suit, createDefaultValue()]),
   ) as Record<Suit, T>;
 };

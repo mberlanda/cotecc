@@ -15,7 +15,7 @@ export const toPlayerHand = (player: Player): PlayerHand => {
     isHuman: player.isHuman,
     playerID: player.ID,
     cards: [],
-    cardsBySuit: newSuitMap<Card[]>([]),
+    cardsBySuit: newSuitMap<Card[]>(() => []),
   };
 };
 

@@ -15,8 +15,8 @@ interface ComputedCards {
 
 const computeCards = (cards: Card[]): ComputedCards => {
   let fewestSuit: Suit | null = null;
-  const highestRankInSuit: SuitCardsRecord = newSuitMap<null>(null);
-  const suitCounts: SuitCountRecord = newSuitMap<number>(0);
+  const highestRankInSuit: SuitCardsRecord = newSuitMap<null>(() => null);
+  const suitCounts: SuitCountRecord = newSuitMap<number>(() => 0);
 
   cards.forEach((card: Card) => {
     suitCounts[card.suit] += 1;

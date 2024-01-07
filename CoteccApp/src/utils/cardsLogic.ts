@@ -37,13 +37,7 @@ export const shuffleDeck = (deck: Card[]): Card[] => {
 };
 
 export const sortCards = (deck: Card[]): Card[] => {
-  return deck.sort((a, b) => {
-    if (a.suit === b.suit) {
-      // TODO: update to take in account points
-      return a.rank - b.rank;
-    }
-    return a.suit.localeCompare(b.suit);
-  });
+  return deck.sort((a, b) => a.suit.localeCompare(b.suit) || a.rank - b.rank);
 };
 
 export const dealCards = (deck: Card[], players: PlayerHand[]): void => {
@@ -55,11 +49,16 @@ export const dealCards = (deck: Card[], players: PlayerHand[]): void => {
     );
   }
   for (const player of players) {
-    const cards = [];
+    player.cards = [];
     for (let i = 0; i < cardsPerPlayer; i++) {
-      cards.push(deck.pop()!);
+      const card = deck.pop()!;
+      player.cardsBySuit[card.suit].push(card);
     }
-    player.cards = sortCards(cards);
+    Object.keys(player.cardsBySuit).forEach((suit: string) => {
+      const sortedCards = sortCards(player.cardsBySuit[suit as Suit]);
+      player.cardsBySuit[suit as Suit] = sortedCards;
+      player.cards = [...player.cards, ...sortedCards];
+    });
   }
 };
 
