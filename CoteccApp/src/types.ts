@@ -62,3 +62,11 @@ export interface GameState {
   pastRounds: Round[];
   readonly maxLifeCount: number;
 }
+
+export const newSuitMap = <T>(defaultValue: T): Record<Suit, T> => {
+  return Object.fromEntries(
+    Object.values(Suit)
+      .filter(value => typeof value === 'string')
+      .map(suit => [suit, defaultValue]),
+  ) as Record<Suit, T>;
+};

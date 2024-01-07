@@ -1,25 +1,9 @@
 import {getCardsWithSuit} from './cardsLogic';
 import {Suit} from './constants';
-import {Card, Move, PlayerHand, Turn} from '../types';
+import {Card, Move, newSuitMap, PlayerHand, Turn} from '../types';
 
 type SuitCardsRecord = Record<Suit, Card | null>;
 type SuitCountRecord = Record<Suit, number>;
-
-const buildEmptySuitCount = (): SuitCardsRecord => {
-  return Object.fromEntries(
-    Object.values(Suit)
-      .filter(value => typeof value === 'string')
-      .map(suit => [suit, null]),
-  ) as SuitCardsRecord;
-};
-
-const buildSuitCount = (defaultValue: number): SuitCountRecord => {
-  return Object.fromEntries(
-    Object.values(Suit)
-      .filter(value => typeof value === 'string')
-      .map(suit => [suit, defaultValue]),
-  ) as SuitCountRecord;
-};
 
 // TODO-1: player hand may be refactored to perform
 // this transformation only when we deal cards
@@ -31,12 +15,8 @@ interface ComputedCards {
 
 const computeCards = (cards: Card[]): ComputedCards => {
   let fewestSuit: Suit | null = null;
-  const highestRankInSuit: SuitCardsRecord = {
-    ...buildEmptySuitCount(),
-  };
-  const suitCounts: SuitCountRecord = {
-    ...buildSuitCount(0),
-  };
+  const highestRankInSuit: SuitCardsRecord = newSuitMap<null>(null);
+  const suitCounts: SuitCountRecord = newSuitMap<number>(0);
 
   cards.forEach((card: Card) => {
     suitCounts[card.suit] += 1;
