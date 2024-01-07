@@ -5,7 +5,15 @@ import {updateLivesCount} from './playerLogic';
 import {computeRoundOutcome, newRound} from './roundLogic';
 import {roundIsOver} from './roundLogic';
 import {endTurn, resetTurnState} from './turnLogic';
-import {Card, GameState, Player, PlayerHand, PlayerID, Turn} from '../types';
+import {
+  Card,
+  GameState,
+  Player,
+  PlayerHand,
+  PlayerID,
+  Round,
+  Turn,
+} from '../types';
 
 export const newGame = (
   players: Player[],
@@ -31,8 +39,8 @@ export const playCard = (
       p => p.playerID === playerID,
     )!;
     validateMove(gameState.currentRound.currentTurn, hand, playedCard);
-    processCardPlay(gameState.currentRound.currentTurn, hand, playedCard, () =>
-      nextMove(gameState, hand),
+    makeMove(gameState.currentRound.currentTurn, hand, playedCard, () =>
+      nextMove(gameState.currentRound, hand, () => endRound(gameState)),
     );
   } catch (err) {
     console.log(err);
@@ -41,7 +49,7 @@ export const playCard = (
   }
 };
 
-export const processCardPlay = (
+export const makeMove = (
   currentTurn: Turn,
   hand: PlayerHand,
   playedCard: Card,
@@ -57,15 +65,14 @@ export const processCardPlay = (
     );
   }
   // Update the current suit if this is the first card of the round
-  if (!currentTurn.suit) {
-    currentTurn.suit = playedCard.suit;
-  }
+  currentTurn.suit ||= playedCard.suit;
+  currentTurn.highestCard ||= playedCard;
+  currentTurn.winnerID ||= hand.playerID;
 
   // Update the highest card if applicable
   if (
-    !currentTurn.highestCard ||
-    (playedCard.suit === currentTurn.suit &&
-      cardIsGreater(playedCard, currentTurn.highestCard))
+    playedCard.suit === currentTurn.suit &&
+    cardIsGreater(playedCard, currentTurn.highestCard)
   ) {
     currentTurn.highestCard = playedCard;
     currentTurn.winnerID = hand.playerID;
@@ -79,24 +86,28 @@ export const processCardPlay = (
   nextMove();
 };
 
-export const nextMove = (gameState: GameState, hand: PlayerHand): void => {
+export const nextMove = (
+  currentRound: Round,
+  hand: PlayerHand,
+  endRound: () => void,
+): void => {
   // When all players made their move, the round is over
-  const playersCount = gameState.currentRound.players.length;
-  if (gameState.currentRound.currentTurn.moves.length === playersCount) {
+  const playersCount = currentRound.players.length;
+  if (currentRound.currentTurn.moves.length === playersCount) {
     // All players have moved
-    const winnerID = endTurn(gameState.currentRound);
-    if (roundIsOver(gameState.currentRound)) {
+    const winnerID = endTurn(currentRound);
+    if (roundIsOver(currentRound)) {
       // The last hand awards an additional 6 points.
-      gameState.currentRound.scoresMap[winnerID] += 6;
-      endRound(gameState);
+      currentRound.scoresMap[winnerID] += 6;
+      endRound();
     } else {
-      resetTurnState(gameState.currentRound, winnerID);
+      resetTurnState(currentRound, winnerID);
     }
     return;
   }
 
-  gameState.currentRound.currentTurn.currentPlayerID = nextHandPlayerID(
-    gameState.currentRound.players,
+  currentRound.currentTurn.currentPlayerID = nextHandPlayerID(
+    currentRound.players,
     hand.playerID,
   );
 };
