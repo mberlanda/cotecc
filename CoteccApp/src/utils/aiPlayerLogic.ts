@@ -8,13 +8,11 @@ type SuitCountRecord = Record<Suit, number>;
 // TODO-1: player hand may be refactored to perform
 // this transformation only when we deal cards
 interface ComputedCards {
-  fewestSuit: Suit | null;
   highestRankInSuit: Record<Suit, Card | null>;
   suitCounts: SuitCountRecord;
 }
 
 const computeCards = (cards: Card[]): ComputedCards => {
-  let fewestSuit: Suit | null = null;
   const highestRankInSuit: SuitCardsRecord = newSuitMap<null>(() => null);
   const suitCounts: SuitCountRecord = newSuitMap<number>(() => 0);
 
@@ -24,13 +22,9 @@ const computeCards = (cards: Card[]): ComputedCards => {
     if (!highestCard || card.rank > highestCard.rank) {
       highestRankInSuit[card.suit] = card;
     }
-    if (fewestSuit === null || suitCounts[card.suit] < suitCounts[fewestSuit]) {
-      fewestSuit = card.suit;
-    }
   });
 
   return {
-    fewestSuit,
     highestRankInSuit,
     suitCounts,
   };
@@ -95,13 +89,17 @@ export const aiMoveToPlay = (
   }
 
   // RULE-3 When no past turn
+  const fewestSuit = Object.entries(hand.cardsBySuit)
+    .filter(([_, value]) => value.length > 0)
+    .reduce((a, b) => (a[1].length <= b[1].length ? a : b))[0] as Suit;
+
   if (
     !pastTurns.length &&
-    computedHand.fewestSuit &&
-    computedHand.highestRankInSuit[computedHand.fewestSuit]
+    fewestSuit &&
+    computedHand.highestRankInSuit[fewestSuit]
   ) {
     const highestOfFewestSuit = computedHand.highestRankInSuit[
-      computedHand.fewestSuit
+      fewestSuit
     ] as Card;
     // 3.a if first player to move
     if (isFirstToMove) {
