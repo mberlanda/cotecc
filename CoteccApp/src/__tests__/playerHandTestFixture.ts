@@ -12,6 +12,13 @@ export const newPlayerHand = (args: Partial<PlayerHand>): PlayerHand => {
   };
 };
 
+export const dealTestCards = (cards: Card[], hand: PlayerHand): void => {
+  cards.forEach(card => {
+    hand.cardsBySuit[card.suit].push(card);
+    hand.cards.push(card);
+  });
+};
+
 describe('newPlayerHand', () => {
   it('requires to be moved to a testing utility', () => {
     const hand = newPlayerHand({});

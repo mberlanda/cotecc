@@ -64,7 +64,7 @@ export const aiMoveToPlay = (
   const currentSuit: Suit | null = currentTurn.suit;
   const isFirstToMove: boolean = !currentSuit;
   const cardsOfSameSuit: number = currentSuit
-    ? computedHand.suitCounts[currentSuit]
+    ? hand.cardsBySuit[currentSuit].length
     : 0;
   const hasSameSuit: boolean = cardsOfSameSuit > 0;
 
