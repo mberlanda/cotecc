@@ -75,10 +75,8 @@ export const computeRoundOutcome = (currentRound: Round): RoundResult => {
 };
 
 export const roundIsOver = (currentRound: Round): boolean => {
-  currentRound.players.forEach(hand => {
-    if (hand.cards.length > 0) {
-      return false;
-    }
-  });
-  return true;
+  return currentRound.players.reduce(
+    (acc, hand) => acc && hand.cards.length === 0,
+    true,
+  );
 };
