@@ -34,6 +34,17 @@ export interface Turn {
   winnerID: PlayerID | null; // ID of the player who won the last round
 }
 
+export enum RoundOutcome {
+  CAPOT, // all hands
+  MAX_SCORE,
+}
+
+export interface RoundResult {
+  outcome: RoundOutcome;
+  roundLosers: Set<PlayerID>;
+  winnerID?: PlayerID;
+}
+
 export interface Round {
   readonly ID: number;
   readonly initialPlayerID: PlayerID;
@@ -41,6 +52,7 @@ export interface Round {
   pastTurns: Turn[];
   players: PlayerHand[];
   scoresMap: {[playerID: PlayerID]: number};
+  result?: RoundResult; // TODO: use this to display the outcome of the round in the UX
 }
 
 export interface GameState {

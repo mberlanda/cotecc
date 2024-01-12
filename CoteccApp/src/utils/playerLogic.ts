@@ -1,4 +1,4 @@
-import {Player, PlayerID} from '../types';
+import {Player, PlayerID, RoundResult} from '../types';
 
 export const findPlayerById = (
   players: Player[],
@@ -44,4 +44,19 @@ export const generatePlayers = (
   const aiPlayers = Math.min(numberOfPlayers, 4);
 
   return [human, ...placeholderPlayers(maxLifeCount).slice(0, aiPlayers)];
+};
+
+export const updateLivesCount = (
+  players: Player[],
+  roundOutcome: RoundResult,
+  maxLifeCount: number,
+): void => {
+  for (let i = 0; i < players.length; i++) {
+    const previousLifeCount = players[i].lifeCount;
+    if (players[i].ID === roundOutcome.winnerID) {
+      players[i].lifeCount = Math.min(previousLifeCount + 1, maxLifeCount);
+    } else if (roundOutcome.roundLosers.has(players[i].ID)) {
+      players[i].lifeCount = Math.max(previousLifeCount - 1, 0);
+    }
+  }
 };

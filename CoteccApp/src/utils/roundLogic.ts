@@ -1,7 +1,14 @@
 import {newPlayersHand} from './playerHandLogic';
 import {nextPlayerID} from './playerLogic';
 import {newTurn} from './turnLogic';
-import {GameState, Player, PlayerID, Round} from '../types';
+import {
+  GameState,
+  Player,
+  PlayerID,
+  Round,
+  RoundOutcome,
+  RoundResult,
+} from '../types';
 
 export const newRound = (
   ID: number,
@@ -27,5 +34,49 @@ export const nextRound = (gameState: GameState) => {
     gameState.currentRound.ID + 1,
     nextInitialPlayerID,
     gameState.players.filter(p => p.lifeCount > 0),
+  );
+};
+
+export const computeRoundOutcome = (currentRound: Round): RoundResult => {
+  const turnWinnersSet = new Set(currentRound.pastTurns.map(t => t.winnerID));
+  // A player taking all cards does a "capòt", reducing their score by one,
+  // while others increase by one
+  let roundLosers: Set<PlayerID> = new Set();
+  if (turnWinnersSet.size === 1) {
+    const winnerID: PlayerID = turnWinnersSet.values().next().value;
+    currentRound.players.forEach(p => {
+      if (p.playerID !== winnerID) {
+        roundLosers.add(p.playerID);
+      }
+    });
+    return {
+      outcome: RoundOutcome.CAPOT,
+      roundLosers,
+      winnerID,
+    };
+  }
+
+  let maxScore = -1;
+
+  for (let playerID in currentRound.scoresMap) {
+    const score = currentRound.scoresMap[playerID];
+    if (score > maxScore) {
+      maxScore = score;
+      roundLosers.clear();
+    }
+    if (score === maxScore) {
+      roundLosers.add(Number(playerID));
+    }
+  }
+  return {
+    outcome: RoundOutcome.MAX_SCORE,
+    roundLosers,
+  };
+};
+
+export const roundIsOver = (currentRound: Round): boolean => {
+  return currentRound.players.reduce(
+    (acc, hand) => acc && hand.cards.length === 0,
+    true,
   );
 };
