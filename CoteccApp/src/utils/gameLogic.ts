@@ -67,7 +67,7 @@ export const makeMove = (
   // Update the current suit if this is the first card of the round
   currentTurn.suit ||= playedCard.suit;
   currentTurn.highestCard ||= playedCard;
-  currentTurn.winnerID ||= hand.playerID;
+  currentTurn.winnerID ??= hand.playerID;
 
   // Update the highest card if applicable
   if (
