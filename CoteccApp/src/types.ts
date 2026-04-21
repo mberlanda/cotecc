@@ -24,6 +24,7 @@ export interface PlayerHand {
   readonly isHuman: boolean;
   readonly playerID: PlayerID;
   cards: Card[];
+  cardsBySuit: Record<Suit, Card[]>;
 }
 
 export interface Turn {
@@ -62,3 +63,11 @@ export interface GameState {
   pastRounds: Round[];
   readonly maxLifeCount: number;
 }
+
+export const newSuitMap = <T>(createDefaultValue: () => T): Record<Suit, T> => {
+  return Object.fromEntries(
+    Object.values(Suit)
+      .filter(value => typeof value === 'string')
+      .map(suit => [suit, createDefaultValue()]),
+  ) as Record<Suit, T>;
+};

@@ -78,11 +78,16 @@ export const makeMove = (
     currentTurn.winnerID = hand.playerID;
   }
 
-  const removedCard = hand.cards.splice(cardIndex, 1);
+  const removedCard = hand.cards.splice(cardIndex, 1)[0];
   currentTurn.moves.push({
     playerID: hand.playerID,
-    card: removedCard[0],
+    card: removedCard,
   });
+  const cardInSuitIndex = hand.cardsBySuit[removedCard.suit].findIndex(
+    c => c === playedCard,
+  );
+  hand.cardsBySuit[removedCard.suit].splice(cardInSuitIndex, 1);
+
   nextMove();
 };
 

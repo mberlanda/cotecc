@@ -2,6 +2,7 @@ import {describe, expect, it} from '@jest/globals';
 
 import {Suit} from './constants';
 import {endTurn, newTurn, resetTurnState} from './turnLogic';
+import {newPlayerHand} from '../__tests__/playerHandTestFixture';
 import {Round} from '../types';
 
 describe('newTurn', () => {
@@ -27,8 +28,8 @@ describe('resetTurnState', () => {
       currentTurn: newTurn(initialPlayerID),
       pastTurns: [],
       players: [
-        {cards: [], playerID: initialPlayerID, isHuman: false},
-        {cards: [], playerID: nextPlayerID, isHuman: false},
+        newPlayerHand({playerID: initialPlayerID}),
+        newPlayerHand({playerID: nextPlayerID}),
       ],
       scoresMap: {},
     };
@@ -57,16 +58,14 @@ describe('endTurn', () => {
       currentTurn: prevCurrentTurn,
       pastTurns: [],
       players: [
-        {
+        newPlayerHand({
           cards: [{suit: Suit.Ori, rank: 5, points: 0}],
           playerID: initialPlayerID,
-          isHuman: false,
-        },
-        {
+        }),
+        newPlayerHand({
           cards: [{suit: Suit.Ori, rank: 8, points: 2}],
           playerID: 2,
-          isHuman: false,
-        },
+        }),
       ],
       scoresMap: {},
     };

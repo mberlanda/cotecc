@@ -1,5 +1,5 @@
 import {createDeck, dealCards, shuffleDeck} from './cardsLogic';
-import {Player, PlayerHand, PlayerID} from '../types';
+import {Card, newSuitMap, Player, PlayerHand, PlayerID} from '../types';
 
 export const newPlayersHand = (players: Player[]): PlayerHand[] => {
   const shuffledDeck = shuffleDeck(createDeck());
@@ -15,6 +15,7 @@ export const toPlayerHand = (player: Player): PlayerHand => {
     isHuman: player.isHuman,
     playerID: player.ID,
     cards: [],
+    cardsBySuit: newSuitMap<Card[]>(() => []),
   };
 };
 

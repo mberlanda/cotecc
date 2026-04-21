@@ -1,60 +1,6 @@
-import {getCardsWithSuit} from './cardsLogic';
+import {cardIsGreater, getCardsWithSuit} from './cardsLogic';
 import {Suit} from './constants';
-import {Card, Move, PlayerHand, Turn} from '../types';
-
-type SuitCardsRecord = Record<Suit, Card | null>;
-type SuitCountRecord = Record<Suit, number>;
-
-const buildEmptySuitCount = (): SuitCardsRecord => {
-  return Object.fromEntries(
-    Object.values(Suit)
-      .filter(value => typeof value === 'string')
-      .map(suit => [suit, null]),
-  ) as SuitCardsRecord;
-};
-
-const buildSuitCount = (defaultValue: number): SuitCountRecord => {
-  return Object.fromEntries(
-    Object.values(Suit)
-      .filter(value => typeof value === 'string')
-      .map(suit => [suit, defaultValue]),
-  ) as SuitCountRecord;
-};
-
-// TODO-1: player hand may be refactored to perform
-// this transformation only when we deal cards
-interface ComputedCards {
-  fewestSuit: Suit | null;
-  highestRankInSuit: Record<Suit, Card | null>;
-  suitCounts: SuitCountRecord;
-}
-
-const computeCards = (cards: Card[]): ComputedCards => {
-  let fewestSuit: Suit | null = null;
-  const highestRankInSuit: SuitCardsRecord = {
-    ...buildEmptySuitCount(),
-  };
-  const suitCounts: SuitCountRecord = {
-    ...buildSuitCount(0),
-  };
-
-  cards.forEach((card: Card) => {
-    suitCounts[card.suit] += 1;
-    const highestCard = highestRankInSuit[card.suit];
-    if (!highestCard || card.rank > highestCard.rank) {
-      highestRankInSuit[card.suit] = card;
-    }
-    if (fewestSuit === null || suitCounts[card.suit] < suitCounts[fewestSuit]) {
-      fewestSuit = card.suit;
-    }
-  });
-
-  return {
-    fewestSuit,
-    highestRankInSuit,
-    suitCounts,
-  };
-};
+import {Move, PlayerHand, Turn} from '../types';
 
 // TODO: think about a strategy to set different difficulty levels
 // TODO: think about either playing for capot or for making less points
@@ -76,7 +22,6 @@ export const aiMoveToPlay = (
     };
   }
 
-  const computedHand = computeCards(hand.cards);
   // TODO-2: pastTurns and currentTurns should be modeled
   // so that ai player can consume card already played by
   // suit and make decisions based on the cards in their
@@ -84,23 +29,24 @@ export const aiMoveToPlay = (
   const currentSuit: Suit | null = currentTurn.suit;
   const isFirstToMove: boolean = !currentSuit;
   const cardsOfSameSuit: number = currentSuit
-    ? computedHand.suitCounts[currentSuit]
+    ? hand.cardsBySuit[currentSuit].length
     : 0;
   const hasSameSuit: boolean = cardsOfSameSuit > 0;
 
   // RULE-2 respects the rule of responding with the same suit
   if (currentSuit && hasSameSuit) {
-    const highestInSuit = computedHand.highestRankInSuit[currentSuit] as Card;
-
     // 2.a only one eligible card is a forced move
     if (cardsOfSameSuit === 1) {
       console.log(`Player ${hand.playerID}: RULE-2.A only one eligible card`);
       return {
-        card: highestInSuit,
+        card: hand.cardsBySuit[currentSuit][0],
         playerID: hand.playerID,
       };
     }
 
+    const highestInSuit = hand.cardsBySuit[currentSuit].reduce((c1, c2) =>
+      cardIsGreater(c1, c2) ? c1 : c2,
+    );
     // 2.b highest card is lower than the current highest
     if (highestInSuit.rank < (currentTurn.highestCard?.rank || 0)) {
       // TODO: reconsider this behavior depending the on what has been played previously
@@ -115,14 +61,14 @@ export const aiMoveToPlay = (
   }
 
   // RULE-3 When no past turn
-  if (
-    !pastTurns.length &&
-    computedHand.fewestSuit &&
-    computedHand.highestRankInSuit[computedHand.fewestSuit]
-  ) {
-    const highestOfFewestSuit = computedHand.highestRankInSuit[
-      computedHand.fewestSuit
-    ] as Card;
+  const fewestSuit = Object.entries(hand.cardsBySuit)
+    .filter(([_, value]) => value.length > 0)
+    .reduce((a, b) => (a[1].length <= b[1].length ? a : b))[0] as Suit;
+
+  if (!pastTurns.length && fewestSuit) {
+    const highestOfFewestSuit = hand.cardsBySuit[fewestSuit].reduce((c1, c2) =>
+      cardIsGreater(c1, c2) ? c1 : c2,
+    );
     // 3.a if first player to move
     if (isFirstToMove) {
       // Highest rank from the fewest suit

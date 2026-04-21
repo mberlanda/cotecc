@@ -1,22 +1,23 @@
 import {describe, expect, it} from '@jest/globals';
 
 import {nextHandPlayerID, toPlayerHand} from './playerHandLogic';
+import {newPlayerHand} from '../__tests__/playerHandTestFixture';
 import {PlayerHand} from '../types';
 
 describe('toPlayerHand', () => {
   it('returns a PlayerHand given a Player', () => {
     const player = {ID: 1, name: 'bar', hand: [], lifeCount: 3, isHuman: false};
-    expect(toPlayerHand(player)).toEqual({
-      isHuman: false,
-      playerID: 1,
-      cards: [],
-    });
+
+    const hand = toPlayerHand(player);
+    expect(hand.isHuman).toBeFalsy();
+    expect(hand.playerID).toEqual(1);
+    expect(hand.cards).toEqual([]);
   });
 });
 
-const handOne: PlayerHand = {playerID: 1, cards: [], isHuman: true};
-const handTwo: PlayerHand = {playerID: 2, cards: [], isHuman: false};
-const handThree: PlayerHand = {playerID: 3, cards: [], isHuman: false};
+const handOne: PlayerHand = newPlayerHand({playerID: 1, isHuman: true});
+const handTwo: PlayerHand = newPlayerHand({playerID: 2, isHuman: false});
+const handThree: PlayerHand = newPlayerHand({playerID: 3, isHuman: false});
 const hands = [handOne, handTwo, handThree];
 
 describe('nextHandPlayerID', () => {
