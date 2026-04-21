@@ -1,0 +1,10 @@
+node_modules
+.git
+.worktrees
+.DS_Store
+*.md
+coverage
+.vscode
+.github
+CoteccApp
+cotecc-web
