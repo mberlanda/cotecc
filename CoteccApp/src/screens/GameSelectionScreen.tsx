@@ -17,6 +17,7 @@ const GameSelectionScreen = ({
   const [opponents, setOpponents] = useState(3);
   const [name, setName] = useState('');
   const [showDebug, setShowDebug] = useState(false);
+  const [maxLifeCount, setMaxLifeCount] = useState(4);
 
   const opponentsOptions: {[key: string]: string} = {
     1: '1',
@@ -31,13 +32,26 @@ const GameSelectionScreen = ({
     1500: 'slow',
   };
 
+  const maxLifeCountOptions: {[key: number]: string} = {
+    2: '2',
+    3: '3',
+    4: '4',
+    5: '5',
+  };
+
   const startGame = () => {
     if (name.trim().length === 0) {
       Alert.alert('Invalid Input', 'Please enter your name.');
       return;
     }
 
-    navigation.navigate('GameScreen', {gameSpeed, opponents, name, showDebug});
+    navigation.navigate('GameScreen', {
+      gameSpeed,
+      opponents,
+      name,
+      showDebug,
+      maxLifeCount,
+    });
   };
 
   return (
@@ -63,6 +77,14 @@ const GameSelectionScreen = ({
         selectedValue={gameSpeed}
         title="Game speed"
         onValueChange={itemValue => setGameSpeed(+itemValue)}
+      />
+
+      <PickerModal
+        id={'max-life-count'}
+        options={maxLifeCountOptions}
+        selectedValue={maxLifeCount}
+        title="Max lives"
+        onValueChange={itemValue => setMaxLifeCount(+itemValue)}
       />
 
       <Checkbox

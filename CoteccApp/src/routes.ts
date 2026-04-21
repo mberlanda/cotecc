@@ -3,6 +3,7 @@ export interface GameScreenRouteParams {
   opponents: number;
   name: string;
   showDebug: boolean;
+  maxLifeCount: number;
 }
 
 export type RootStackParamList = {
