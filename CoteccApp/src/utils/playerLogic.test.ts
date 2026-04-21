@@ -72,6 +72,39 @@ describe('generatePlayers', () => {
       {ID: 0, name: 'human name', hand: [], lifeCount: -1, isHuman: true},
     ]);
   });
+
+  it('generates 2 players when 1 opponent is requested', () => {
+    const players = generatePlayers('Alice', 1, 3);
+
+    expect(players).toHaveLength(2);
+    expect(players[0]).toMatchObject({ID: 0, name: 'Alice', isHuman: true});
+    expect(players[1].isHuman).toBe(false);
+    expect(players.every(p => p.lifeCount === 3)).toBe(true);
+  });
+
+  it('generates 3 players when 2 opponents are requested', () => {
+    const players = generatePlayers('Bob', 2, 5);
+
+    expect(players).toHaveLength(3);
+    expect(players[0]).toMatchObject({ID: 0, name: 'Bob', isHuman: true});
+    expect(players.filter(p => !p.isHuman)).toHaveLength(2);
+    expect(players.every(p => p.lifeCount === 5)).toBe(true);
+  });
+
+  it('generates 5 players when 4 opponents are requested', () => {
+    const players = generatePlayers('Carol', 4, 3);
+
+    expect(players).toHaveLength(5);
+    expect(players[0]).toMatchObject({ID: 0, name: 'Carol', isHuman: true});
+    expect(players.filter(p => !p.isHuman)).toHaveLength(4);
+  });
+
+  it('caps AI opponents at 4 even when more are requested', () => {
+    const players = generatePlayers('Dave', 10, 3);
+
+    expect(players).toHaveLength(5);
+    expect(players.filter(p => !p.isHuman)).toHaveLength(4);
+  });
 });
 
 describe('updateLivesCount', () => {

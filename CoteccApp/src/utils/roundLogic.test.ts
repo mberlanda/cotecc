@@ -90,4 +90,46 @@ describe('computeRoundOutcome', () => {
     expect(computedOutcome.winnerID).toBeUndefined();
     expect(computedOutcome.roundLosers).toEqual(new Set([playerOne.ID]));
   });
+
+  it('returns multiple losers when players are tied for max score', () => {
+    const playerThree = {ID: 2, name: 'baz', lifeCount: 3, isHuman: false};
+    const players = [playerOne, playerTwo, playerThree];
+    const round = newRound(1, playerOne.ID, players);
+
+    round.pastTurns = [
+      {
+        currentPlayerID: playerOne.ID,
+        highestCard: null,
+        moves: [],
+        suit: null,
+        winnerID: playerOne.ID,
+      },
+      {
+        currentPlayerID: playerTwo.ID,
+        highestCard: null,
+        moves: [],
+        suit: null,
+        winnerID: playerTwo.ID,
+      },
+      {
+        currentPlayerID: playerThree.ID,
+        highestCard: null,
+        moves: [],
+        suit: null,
+        winnerID: playerThree.ID,
+      },
+    ];
+
+    round.scoresMap[playerOne.ID] = 8;
+    round.scoresMap[playerTwo.ID] = 8;
+    round.scoresMap[playerThree.ID] = 4;
+
+    const computedOutcome = computeRoundOutcome(round);
+
+    expect(computedOutcome.outcome).toEqual(RoundOutcome.MAX_SCORE);
+    expect(computedOutcome.winnerID).toBeUndefined();
+    expect(computedOutcome.roundLosers).toEqual(
+      new Set([playerOne.ID, playerTwo.ID]),
+    );
+  });
 });
