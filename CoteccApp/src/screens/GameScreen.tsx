@@ -12,7 +12,7 @@ import TableComponent from '../components/TableComponent';
 import {GameScreenRouteParams, RootStackParamList} from '../routes';
 import {GameState, Move} from '../types';
 import {aiMoveToPlay} from '../utils/aiPlayerLogic';
-import {newGame, playCard} from '../utils/gameLogic';
+import {getGameWinner, isGameOver, newGame, playCard} from '../utils/gameLogic';
 import {generatePlayers} from '../utils/playerLogic';
 import {nextRound} from '../utils/roundLogic';
 
@@ -22,10 +22,13 @@ interface GameScreenProps {
 }
 
 const GameScreen: React.FC<GameScreenProps> = ({route}) => {
-  const {gameSpeed, opponents, name, showDebug}: GameScreenRouteParams =
-    route.params;
-  // TODO: retrieve the maxLifeCount from the GameSelectionScreen
-  const maxLifeCount: number = 4;
+  const {
+    gameSpeed,
+    opponents,
+    name,
+    showDebug,
+    maxLifeCount,
+  }: GameScreenRouteParams = route.params;
   const initialPlayers = useMemo(
     () => generatePlayers(name, opponents, maxLifeCount),
     [name, opponents, maxLifeCount],
@@ -71,6 +74,9 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
     }
   });
 
+  const gameOver = isGameOver(localGameState.players);
+  const winner = gameOver ? getGameWinner(localGameState.players) : undefined;
+
   const doDealCards = () => {
     nextRound(localGameState);
     setLocalGameState({...localGameState});
@@ -79,8 +85,13 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
   return (
     <ScrollView>
       <StickyHeader />
-      {/* Show deal card button instead of table when all turns have been player */}
-      {localGameState.currentRound.pastTurns.length === 7 ? (
+      {gameOver ? (
+        <View style={styles.gameSummaryContainer}>
+          <Text style={styles.gameOverText}>
+            {winner ? `${winner.name} wins the game!` : 'Game Over - No winner'}
+          </Text>
+        </View>
+      ) : localGameState.currentRound.pastTurns.length === 7 ? (
         <View style={styles.gameSummaryContainer}>
           <DealCardsButton doDealCards={doDealCards} />
         </View>
@@ -90,17 +101,19 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
       {localGameState.players.map((player, index) => (
         <View key={index}>
           <Text
-            style={
+            style={[
               player.ID ===
               localGameState.currentRound.currentTurn.currentPlayerID
                 ? styles.currentPlayer
-                : null
-            }>
+                : null,
+              player.lifeCount === 0 ? styles.eliminatedPlayer : null,
+            ]}>
             Player name: {player.name} - ID {player.ID} - score{' '}
             {localGameState.currentRound.scoresMap[player.ID] || 0} - lives{' '}
             {player.lifeCount}
+            {player.lifeCount === 0 ? ' (eliminated)' : ''}
           </Text>
-          {player.isHuman && (
+          {player.isHuman && !gameOver && player.lifeCount > 0 && (
             <PlayerHandComponent
               hand={
                 localGameState.currentRound.players.find(
@@ -127,8 +140,19 @@ const styles = StyleSheet.create({
   currentPlayer: {
     fontWeight: 'bold',
   },
+  eliminatedPlayer: {
+    opacity: 0.4,
+  },
   gameSummaryContainer: {
     minHeight: 40,
+    alignItems: 'center',
+    padding: 10,
+  },
+  gameOverText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    padding: 20,
   },
 });
 

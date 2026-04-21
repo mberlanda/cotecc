@@ -125,14 +125,35 @@ export const endRound = (gameState: GameState): void => {
   gameState.pastRounds.push({...gameState.currentRound});
 };
 
-export const checkForElimination = (players: Player[]): void => {
-  // Implement elimination check logic
-  players.forEach(player => {
-    if (player.lifeCount === 0) {
-      // TODO: Eliminate player by creating rounds in a game and fitering out players with 0 lives
-      // TODO: Additional logic for re-entering the game with a higher score might be needed
-      // e.g. if after elimination the second last player has more than one life, the eliminated
-      // one can be re-admitted with minLifes -1.
-    }
-  });
+export const checkForElimination = (players: Player[]): Player[] => {
+  const activePlayers = players.filter(p => p.lifeCount > 0);
+  const eliminatedPlayers = players.filter(p => p.lifeCount === 0);
+
+  if (eliminatedPlayers.length === 0 || activePlayers.length <= 1) {
+    return eliminatedPlayers;
+  }
+
+  // Re-entry: if there is more than one active player left and the
+  // second-lowest life count among active players is > 1, eliminated
+  // players can re-enter with 1 life.
+  const sortedLives = activePlayers.map(p => p.lifeCount).sort((a, b) => a - b);
+  const secondLowest = sortedLives.length > 1 ? sortedLives[1] : sortedLives[0];
+
+  if (secondLowest > 1) {
+    eliminatedPlayers.forEach(p => {
+      p.lifeCount = 1;
+    });
+    return [];
+  }
+
+  return eliminatedPlayers;
+};
+
+export const isGameOver = (players: Player[]): boolean => {
+  return players.filter(p => p.lifeCount > 0).length <= 1;
+};
+
+export const getGameWinner = (players: Player[]): Player | undefined => {
+  const activePlayers = players.filter(p => p.lifeCount > 0);
+  return activePlayers.length === 1 ? activePlayers[0] : undefined;
 };

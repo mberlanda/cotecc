@@ -2,7 +2,16 @@ import {beforeEach, describe, expect, it} from '@jest/globals';
 
 import {shuffleDeck} from './cardsLogic';
 import {Suit} from './constants';
-import {endRound, makeMove, newGame, nextMove, playCard} from './gameLogic';
+import {
+  checkForElimination,
+  endRound,
+  getGameWinner,
+  isGameOver,
+  makeMove,
+  newGame,
+  nextMove,
+  playCard,
+} from './gameLogic';
 import {newTurn} from './turnLogic';
 import {Card, GameState, Player} from '../types';
 
@@ -138,7 +147,96 @@ describe('gameLogic', () => {
       endRound(gameState);
       expect(gameState.players[0].lifeCount).toEqual(4);
       expect(gameState.players[1].lifeCount).toEqual(2);
-      expect(gameState.players[2].lifeCount).toEqual(0);
+      // Player 2 was eliminated (0 lives) but re-entered with 1 life
+      // because the second-lowest active player (player 1) has lifeCount > 1
+      expect(gameState.players[2].lifeCount).toEqual(1);
+    });
+  });
+
+  describe('checkForElimination', () => {
+    it('returns empty array when no players are eliminated', () => {
+      const activePlayers: Player[] = [
+        {ID: 0, name: 'a', lifeCount: 3, isHuman: true},
+        {ID: 1, name: 'b', lifeCount: 2, isHuman: false},
+      ];
+      expect(checkForElimination(activePlayers)).toEqual([]);
+    });
+
+    it('returns eliminated players when no re-entry is possible', () => {
+      const testPlayers: Player[] = [
+        {ID: 0, name: 'a', lifeCount: 1, isHuman: true},
+        {ID: 1, name: 'b', lifeCount: 1, isHuman: false},
+        {ID: 2, name: 'c', lifeCount: 0, isHuman: false},
+      ];
+      const eliminated = checkForElimination(testPlayers);
+      expect(eliminated.map(p => p.ID)).toEqual([2]);
+      expect(testPlayers[2].lifeCount).toEqual(0);
+    });
+
+    it('re-enters eliminated players when second-lowest active life count > 1', () => {
+      const testPlayers: Player[] = [
+        {ID: 0, name: 'a', lifeCount: 3, isHuman: true},
+        {ID: 1, name: 'b', lifeCount: 2, isHuman: false},
+        {ID: 2, name: 'c', lifeCount: 0, isHuman: false},
+      ];
+      const eliminated = checkForElimination(testPlayers);
+      expect(eliminated).toEqual([]);
+      expect(testPlayers[2].lifeCount).toEqual(1);
+    });
+
+    it('returns eliminated players when only one active player remains', () => {
+      const testPlayers: Player[] = [
+        {ID: 0, name: 'a', lifeCount: 3, isHuman: true},
+        {ID: 1, name: 'b', lifeCount: 0, isHuman: false},
+        {ID: 2, name: 'c', lifeCount: 0, isHuman: false},
+      ];
+      const eliminated = checkForElimination(testPlayers);
+      expect(eliminated.map(p => p.ID)).toEqual([1, 2]);
+    });
+  });
+
+  describe('isGameOver', () => {
+    it('returns false when multiple players have lives', () => {
+      const testPlayers: Player[] = [
+        {ID: 0, name: 'a', lifeCount: 3, isHuman: true},
+        {ID: 1, name: 'b', lifeCount: 1, isHuman: false},
+      ];
+      expect(isGameOver(testPlayers)).toBe(false);
+    });
+
+    it('returns true when only one player has lives', () => {
+      const testPlayers: Player[] = [
+        {ID: 0, name: 'a', lifeCount: 3, isHuman: true},
+        {ID: 1, name: 'b', lifeCount: 0, isHuman: false},
+        {ID: 2, name: 'c', lifeCount: 0, isHuman: false},
+      ];
+      expect(isGameOver(testPlayers)).toBe(true);
+    });
+
+    it('returns true when no players have lives', () => {
+      const testPlayers: Player[] = [
+        {ID: 0, name: 'a', lifeCount: 0, isHuman: true},
+        {ID: 1, name: 'b', lifeCount: 0, isHuman: false},
+      ];
+      expect(isGameOver(testPlayers)).toBe(true);
+    });
+  });
+
+  describe('getGameWinner', () => {
+    it('returns the winner when exactly one player has lives', () => {
+      const testPlayers: Player[] = [
+        {ID: 0, name: 'a', lifeCount: 3, isHuman: true},
+        {ID: 1, name: 'b', lifeCount: 0, isHuman: false},
+      ];
+      expect(getGameWinner(testPlayers)?.ID).toEqual(0);
+    });
+
+    it('returns undefined when multiple players have lives', () => {
+      const testPlayers: Player[] = [
+        {ID: 0, name: 'a', lifeCount: 3, isHuman: true},
+        {ID: 1, name: 'b', lifeCount: 1, isHuman: false},
+      ];
+      expect(getGameWinner(testPlayers)).toBeUndefined();
     });
   });
 });
