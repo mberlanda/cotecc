@@ -1,5 +1,5 @@
-import {Suit} from './utils/constants';
 import {newSuitMap} from './types';
+import {Suit} from './utils/constants';
 
 describe('newSuitMap', () => {
   it('creates an entry for each of the 4 suits', () => {

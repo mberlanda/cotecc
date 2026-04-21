@@ -74,36 +74,36 @@ describe('generatePlayers', () => {
   });
 
   it('generates 2 players when 1 opponent is requested', () => {
-    const players = generatePlayers('Alice', 1, 3);
+    const result = generatePlayers('Alice', 1, 3);
 
-    expect(players).toHaveLength(2);
-    expect(players[0]).toMatchObject({ID: 0, name: 'Alice', isHuman: true});
-    expect(players[1].isHuman).toBe(false);
-    expect(players.every(p => p.lifeCount === 3)).toBe(true);
+    expect(result).toHaveLength(2);
+    expect(result[0]).toMatchObject({ID: 0, name: 'Alice', isHuman: true});
+    expect(result[1].isHuman).toBe(false);
+    expect(result.every(p => p.lifeCount === 3)).toBe(true);
   });
 
   it('generates 3 players when 2 opponents are requested', () => {
-    const players = generatePlayers('Bob', 2, 5);
+    const result = generatePlayers('Bob', 2, 5);
 
-    expect(players).toHaveLength(3);
-    expect(players[0]).toMatchObject({ID: 0, name: 'Bob', isHuman: true});
-    expect(players.filter(p => !p.isHuman)).toHaveLength(2);
-    expect(players.every(p => p.lifeCount === 5)).toBe(true);
+    expect(result).toHaveLength(3);
+    expect(result[0]).toMatchObject({ID: 0, name: 'Bob', isHuman: true});
+    expect(result.filter(p => !p.isHuman)).toHaveLength(2);
+    expect(result.every(p => p.lifeCount === 5)).toBe(true);
   });
 
   it('generates 5 players when 4 opponents are requested', () => {
-    const players = generatePlayers('Carol', 4, 3);
+    const result = generatePlayers('Carol', 4, 3);
 
-    expect(players).toHaveLength(5);
-    expect(players[0]).toMatchObject({ID: 0, name: 'Carol', isHuman: true});
-    expect(players.filter(p => !p.isHuman)).toHaveLength(4);
+    expect(result).toHaveLength(5);
+    expect(result[0]).toMatchObject({ID: 0, name: 'Carol', isHuman: true});
+    expect(result.filter(p => !p.isHuman)).toHaveLength(4);
   });
 
   it('caps AI opponents at 4 even when more are requested', () => {
-    const players = generatePlayers('Dave', 10, 3);
+    const result = generatePlayers('Dave', 10, 3);
 
-    expect(players).toHaveLength(5);
-    expect(players.filter(p => !p.isHuman)).toHaveLength(4);
+    expect(result).toHaveLength(5);
+    expect(result.filter(p => !p.isHuman)).toHaveLength(4);
   });
 });
 
