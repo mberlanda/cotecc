@@ -3,16 +3,26 @@ import {beforeEach, describe, expect, it} from '@jest/globals';
 import {aiMoveToPlay} from './aiPlayerLogic';
 import {Suit} from './constants';
 import {dealTestCards, newPlayerHand} from '../__tests__/playerHandTestFixture';
-import {Move, PlayerHand, Turn} from '../types';
+import {PlayerHand, Turn} from '../types';
 
 const card_3ori = {suit: Suit.Ori, rank: 3, points: 0};
+const card_5ori = {suit: Suit.Ori, rank: 5, points: 0};
+const card_6ori = {suit: Suit.Ori, rank: 6, points: 0};
 const card_7ori = {suit: Suit.Ori, rank: 7, points: 0};
+const card_11ori = {suit: Suit.Ori, rank: 11, points: 6};
+const card_2bastoni = {suit: Suit.Bastoni, rank: 2, points: 0};
 const card_3bastoni = {suit: Suit.Bastoni, rank: 3, points: 0};
+const card_4bastoni = {suit: Suit.Bastoni, rank: 4, points: 0};
 const card_5bastoni = {suit: Suit.Bastoni, rank: 5, points: 0};
+const card_6bastoni = {suit: Suit.Bastoni, rank: 6, points: 0};
+const card_7bastoni = {suit: Suit.Bastoni, rank: 7, points: 0};
 const card_8bastoni = {suit: Suit.Bastoni, rank: 8, points: 3};
 const card_9bastoni = {suit: Suit.Bastoni, rank: 9, points: 4};
 const card_10bastoni = {suit: Suit.Bastoni, rank: 10, points: 5};
 const card_11bastoni = {suit: Suit.Bastoni, rank: 11, points: 6};
+const card_2coppe = {suit: Suit.Coppe, rank: 2, points: 0};
+const card_7coppe = {suit: Suit.Coppe, rank: 7, points: 0};
+const card_8coppe = {suit: Suit.Coppe, rank: 8, points: 3};
 
 const pastTurn: Turn = {
   currentPlayerID: 15,
@@ -91,6 +101,84 @@ describe('aiMoveToPlay', () => {
     });
   });
 
+  it('RULE-2.B ducks with the highest losing card when holding a mix', () => {
+    const currentTurnMix = {
+      ...currentTurn,
+      highestCard: card_10bastoni,
+      moves: [{card: card_10bastoni, playerID: 10}],
+      suit: Suit.Bastoni,
+    };
+    dealTestCards([card_3bastoni, card_9bastoni, card_11bastoni], player);
+    expect(aiMoveToPlay(player, currentTurnMix, [])).toEqual({
+      card: card_9bastoni,
+      playerID: player.playerID,
+    });
+  });
+
+  it('RULE-2.B sheds the only losing card of the led suit', () => {
+    const currentTurnRandSuit = {
+      ...currentTurn,
+      highestCard: card_8bastoni,
+      moves: [
+        {card: card_8bastoni, playerID: 10},
+        {card: card_3ori, playerID: 20},
+      ],
+      suit: Suit.Bastoni,
+    };
+    dealTestCards([card_7ori, card_3bastoni, card_11bastoni], player);
+    expect(aiMoveToPlay(player, currentTurnRandSuit, [])).toEqual({
+      card: card_3bastoni,
+      playerID: player.playerID,
+    });
+  });
+
+  it('RULE-2.C plays the weakest winning card when not last to act', () => {
+    const currentTurn2C = {
+      ...currentTurn,
+      highestCard: card_8bastoni,
+      moves: [{card: card_8bastoni, playerID: 10}],
+      suit: Suit.Bastoni,
+    };
+    dealTestCards([card_9bastoni, card_11bastoni], player);
+    expect(aiMoveToPlay(player, currentTurn2C, [], 5)).toEqual({
+      card: card_9bastoni,
+      playerID: player.playerID,
+    });
+  });
+
+  it('RULE-2.C defaults to the weakest winning card without playersInRound', () => {
+    const currentTurn2C = {
+      ...currentTurn,
+      highestCard: card_8bastoni,
+      moves: [{card: card_8bastoni, playerID: 10}],
+      suit: Suit.Bastoni,
+    };
+    dealTestCards([card_9bastoni, card_11bastoni], player);
+    expect(aiMoveToPlay(player, currentTurn2C, [])).toEqual({
+      card: card_9bastoni,
+      playerID: player.playerID,
+    });
+  });
+
+  it('RULE-2.C dumps the strongest card when last to act and forced to win', () => {
+    const currentTurnLast = {
+      ...currentTurn,
+      highestCard: card_8bastoni,
+      moves: [
+        {card: card_8bastoni, playerID: 10},
+        {card: card_3ori, playerID: 15},
+        {card: card_2coppe, playerID: 20},
+        {card: card_5ori, playerID: 25},
+      ],
+      suit: Suit.Bastoni,
+    };
+    dealTestCards([card_9bastoni, card_11bastoni], player);
+    expect(aiMoveToPlay(player, currentTurnLast, [], 5)).toEqual({
+      card: card_11bastoni,
+      playerID: player.playerID,
+    });
+  });
+
   it('RULE-3.A first move no previous turn returns highest of the fewest suit', () => {
     const currentTurn3A = {
       ...currentTurn,
@@ -106,39 +194,68 @@ describe('aiMoveToPlay', () => {
     });
   });
 
-  it('RULE-3.B not same suit no previous turn returns highest of the fewest suit', () => {
-    const currentTurn3B = {
+  it('RULE-3.A does not lead a point card to build a void', () => {
+    const currentTurn3A = {
       ...currentTurn,
-      suit: Suit.Coppe,
+      suit: null,
     };
-    dealTestCards([card_7ori, card_3bastoni, card_11bastoni], player);
-    expect(aiMoveToPlay(player, currentTurn3B, [])).toEqual({
-      card: card_7ori,
+    dealTestCards(
+      [card_11ori, card_3bastoni, card_5bastoni, card_7coppe, card_8coppe],
+      player,
+    );
+    expect(aiMoveToPlay(player, currentTurn3A, [])).toEqual({
+      card: card_3bastoni,
       playerID: player.playerID,
     });
   });
 
-  it('TODO: RANDOM LOGIC TO BE IMPLEMENTED FOR 2+ SAME SUIT NOT GREATER', () => {
-    // E.g. more than one card of the same suit, at least one higher than the highest
-    const currentTurnRandSuit = {
-      ...currentTurn,
-      highestCard: card_8bastoni,
-      moves: [
-        {card: card_8bastoni, playerID: 10},
-        {card: card_3ori, playerID: 20},
-      ],
-      suit: Suit.Bastoni,
-    };
-    dealTestCards([card_7ori, card_3bastoni, card_11bastoni], player);
-    const aiMove: Move = aiMoveToPlay(player, currentTurnRandSuit, []);
-
-    expect(aiMove.playerID).toEqual(player.playerID);
-    expect(aiMove.card.suit).toEqual(Suit.Bastoni);
+  it('RULE-3.B mid-game lead plays the weakest beatable card', () => {
+    dealTestCards([card_7ori, card_3bastoni, card_10bastoni], player);
+    expect(aiMoveToPlay(player, currentTurn, [pastTurn])).toEqual({
+      card: card_3bastoni,
+      playerID: player.playerID,
+    });
   });
 
-  it('TODO: RANDOM LOGIC TO BE IMPLEMENTED FOR 2+ NOT SUIT', () => {
-    // E.g. more than one card of the same suit, at least one higher than the highest
-    const currentTurnRandSuit = {
+  it('RULE-3.B mid-game lead avoids cards that cannot be beaten anymore', () => {
+    const bastoniRunDown: Turn[] = [
+      {
+        currentPlayerID: 0,
+        highestCard: card_11bastoni,
+        moves: [
+          {card: card_3bastoni, playerID: 5},
+          {card: card_4bastoni, playerID: 10},
+          {card: card_5bastoni, playerID: 15},
+          {card: card_6bastoni, playerID: 20},
+          {card: card_11bastoni, playerID: 25},
+        ],
+        suit: Suit.Bastoni,
+        winnerID: 25,
+      },
+      {
+        currentPlayerID: 25,
+        highestCard: card_10bastoni,
+        moves: [
+          {card: card_7bastoni, playerID: 5},
+          {card: card_8bastoni, playerID: 10},
+          {card: card_9bastoni, playerID: 15},
+          {card: card_10bastoni, playerID: 20},
+          {card: card_2coppe, playerID: 25},
+        ],
+        suit: Suit.Bastoni,
+        winnerID: 20,
+      },
+    ];
+    // every bastoni above the 2 has been played: leading it would win the turn
+    dealTestCards([card_2bastoni, card_5ori, card_6ori], player);
+    expect(aiMoveToPlay(player, currentTurn, bastoniRunDown)).toEqual({
+      card: card_5ori,
+      playerID: player.playerID,
+    });
+  });
+
+  it('RULE-4 discards the most dangerous card when void in the led suit', () => {
+    const currentTurnVoid = {
       ...currentTurn,
       highestCard: card_7ori,
       moves: [
@@ -148,9 +265,23 @@ describe('aiMoveToPlay', () => {
       suit: Suit.Ori,
     };
     dealTestCards([card_3bastoni, card_10bastoni], player);
-    const aiMove: Move = aiMoveToPlay(player, currentTurnRandSuit, [pastTurn]);
+    expect(aiMoveToPlay(player, currentTurnVoid, [pastTurn])).toEqual({
+      card: card_10bastoni,
+      playerID: player.playerID,
+    });
+  });
 
-    expect(aiMove.playerID).toEqual(player.playerID);
-    expect(aiMove.card.suit).toEqual(Suit.Bastoni);
+  it('RULE-4 dumps points even on the first trick when void', () => {
+    const currentTurnVoid = {
+      ...currentTurn,
+      highestCard: card_7coppe,
+      moves: [{card: card_7coppe, playerID: 10}],
+      suit: Suit.Coppe,
+    };
+    dealTestCards([card_7ori, card_3bastoni, card_11bastoni], player);
+    expect(aiMoveToPlay(player, currentTurnVoid, [])).toEqual({
+      card: card_11bastoni,
+      playerID: player.playerID,
+    });
   });
 });

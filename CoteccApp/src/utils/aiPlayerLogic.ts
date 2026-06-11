@@ -1,113 +1,128 @@
-import {cardIsGreater, getCardsWithSuit} from './cardsLogic';
+import {cardIsGreater} from './cardsLogic';
 import {Suit} from './constants';
-import {Move, PlayerHand, Turn} from '../types';
+import {Card, Move, PlayerHand, Turn} from '../types';
 
-// TODO: think about a strategy to set different difficulty levels
-// TODO: think about either playing for capot or for making less points
+const MAX_RANK = 11;
+
+const strongest = (cards: Card[]): Card =>
+  cards.reduce((c1, c2) => (cardIsGreater(c1, c2) ? c1 : c2));
+
+const weakest = (cards: Card[]): Card =>
+  cards.reduce((c1, c2) => (cardIsGreater(c1, c2) ? c2 : c1));
+
+const seenCards = (currentTurn: Turn, pastTurns: Turn[]): Card[] => [
+  ...pastTurns.flatMap(turn => turn.moves.map(move => move.card)),
+  ...currentTurn.moves.map(move => move.card),
+];
+
+// true while an opponent may still hold a higher card of the same suit
+const canBeBeaten = (card: Card, hand: PlayerHand, seen: Card[]): boolean => {
+  for (let rank = card.rank + 1; rank <= MAX_RANK; rank++) {
+    const accountedFor =
+      hand.cardsBySuit[card.suit].some(c => c.rank === rank) ||
+      seen.some(c => c.suit === card.suit && c.rank === rank);
+    if (!accountedFor) {
+      return true;
+    }
+  }
+  return false;
+};
+
+// highest points, then highest rank; tie-break towards emptying short suits
+const mostDangerous = (hand: PlayerHand): Card =>
+  hand.cards.reduce((best, card) => {
+    if (card.points !== best.points) {
+      return card.points > best.points ? card : best;
+    }
+    if (card.rank !== best.rank) {
+      return card.rank > best.rank ? card : best;
+    }
+    return hand.cardsBySuit[card.suit].length <
+      hand.cardsBySuit[best.suit].length
+      ? card
+      : best;
+  });
+
+// The goal of the game is avoiding to take points, so the AI always
+// tries to lose the turn and sheds its dangerous cards when it can
+// not win or is winning anyway.
 export const aiMoveToPlay = (
   hand: PlayerHand,
   currentTurn: Turn,
   pastTurns: Turn[],
+  playersInRound?: number,
 ): Move => {
   if (!hand.cards.length) {
     throw Error(`AI player ${hand.playerID} does not own any card`);
   }
 
-  // RULE-1 if player has a single card, it would play it
-  if (hand.cards.length === 1) {
-    console.log(`Player ${hand.playerID}: RULE-1 single card`);
-    return {
-      card: hand.cards[0],
-      playerID: hand.playerID,
-    };
-  }
-
-  // TODO-2: pastTurns and currentTurns should be modeled
-  // so that ai player can consume card already played by
-  // suit and make decisions based on the cards in their
-  // hand
-  const currentSuit: Suit | null = currentTurn.suit;
-  const isFirstToMove: boolean = !currentSuit;
-  const cardsOfSameSuit: number = currentSuit
-    ? hand.cardsBySuit[currentSuit].length
-    : 0;
-  const hasSameSuit: boolean = cardsOfSameSuit > 0;
-
-  // RULE-2 respects the rule of responding with the same suit
-  if (currentSuit && hasSameSuit) {
-    // 2.a only one eligible card is a forced move
-    if (cardsOfSameSuit === 1) {
-      console.log(`Player ${hand.playerID}: RULE-2.A only one eligible card`);
-      return {
-        card: hand.cardsBySuit[currentSuit][0],
-        playerID: hand.playerID,
-      };
-    }
-
-    const highestInSuit = hand.cardsBySuit[currentSuit].reduce((c1, c2) =>
-      cardIsGreater(c1, c2) ? c1 : c2,
-    );
-    // 2.b highest card is lower than the current highest
-    if (highestInSuit.rank < (currentTurn.highestCard?.rank || 0)) {
-      // TODO: reconsider this behavior depending the on what has been played previously
-      console.log(
-        `Player ${hand.playerID}: RULE-2.B highest in rank lower than already played`,
-      );
-      return {
-        card: highestInSuit,
-        playerID: hand.playerID,
-      };
-    }
-  }
-
-  // RULE-3 When no past turn
-  const fewestSuit = Object.entries(hand.cardsBySuit)
-    .filter(([_, value]) => value.length > 0)
-    .reduce((a, b) => (a[1].length <= b[1].length ? a : b))[0] as Suit;
-
-  if (!pastTurns.length && fewestSuit) {
-    const highestOfFewestSuit = hand.cardsBySuit[fewestSuit].reduce((c1, c2) =>
-      cardIsGreater(c1, c2) ? c1 : c2,
-    );
-    // 3.a if first player to move
-    if (isFirstToMove) {
-      // Highest rank from the fewest suit
-      console.log(
-        `Player ${hand.playerID}: RULE-3.A first move no previous turn`,
-      );
-      return {
-        card: highestOfFewestSuit,
-        playerID: hand.playerID,
-      };
-    }
-    // 3.b if cannot reply with the same suit
-    if (!hasSameSuit) {
-      // TODO: reconsider this behavior depending the on what has been played previously
-      console.log(
-        `Player ${hand.playerID}: RULE-3.B not same suit no previous turn`,
-      );
-      return {
-        card: highestOfFewestSuit,
-        playerID: hand.playerID,
-      };
-    }
-  }
-
-  // TODO: implement some logic here
-  if (hasSameSuit) {
-    // TODO: group cards by suit in hand
-    const cardsWithSuit = getCardsWithSuit(currentTurn.suit, hand.cards);
-
-    console.log(`Player ${hand.playerID}: RANDOM same suit`);
-    return {
-      card: cardsWithSuit[Math.floor(Math.random() * cardsWithSuit.length)],
-      playerID: hand.playerID,
-    };
-  }
-
-  console.log(`Player ${hand.playerID}: RANDOM any suit`);
-  return {
-    card: hand.cards[Math.floor(Math.random() * hand.cards.length)],
-    playerID: hand.playerID,
+  const play = (card: Card, rule: string): Move => {
+    console.log(`Player ${hand.playerID}: ${rule}`);
+    return {card, playerID: hand.playerID};
   };
+
+  // RULE-1 a single card is a forced move
+  if (hand.cards.length === 1) {
+    return play(hand.cards[0], 'RULE-1 single card');
+  }
+
+  const currentSuit: Suit | null = currentTurn.suit;
+  const eligible: Card[] = currentSuit ? hand.cardsBySuit[currentSuit] : [];
+
+  // RULE-2 must respond with the led suit
+  if (currentSuit && eligible.length) {
+    // 2.a a single eligible card is a forced move
+    if (eligible.length === 1) {
+      return play(eligible[0], 'RULE-2.A only one eligible card');
+    }
+
+    const highestPlayed = currentTurn.highestCard;
+    const losing = highestPlayed
+      ? eligible.filter(card => cardIsGreater(highestPlayed, card))
+      : [];
+    // 2.b duck with the highest card that still loses the turn
+    if (losing.length) {
+      return play(strongest(losing), 'RULE-2.B highest losing card');
+    }
+
+    // 2.c every eligible card wins the turn so far: when last to act the
+    // turn is taken regardless, so shed the strongest card; otherwise
+    // play the weakest and hope a later player goes higher
+    const isLastToAct =
+      playersInRound != null && currentTurn.moves.length === playersInRound - 1;
+    return isLastToAct
+      ? play(strongest(eligible), 'RULE-2.C dump strongest, turn is taken')
+      : play(weakest(eligible), 'RULE-2.C weakest winning card');
+  }
+
+  // RULE-3 leading the turn
+  if (!currentSuit) {
+    const seen = seenCards(currentTurn, pastTurns);
+
+    // 3.a on the first trick, lead the highest of the fewest suit to build
+    // a void, as long as it carries no points and can still be beaten
+    if (!pastTurns.length) {
+      const fewestSuit = Object.entries(hand.cardsBySuit)
+        .filter(([_, cards]) => cards.length > 0)
+        .reduce((a, b) => (a[1].length <= b[1].length ? a : b))[0] as Suit;
+      const highestOfFewest = strongest(hand.cardsBySuit[fewestSuit]);
+      if (
+        highestOfFewest.points === 0 &&
+        canBeBeaten(highestOfFewest, hand, seen)
+      ) {
+        return play(highestOfFewest, 'RULE-3.A highest of fewest suit');
+      }
+    }
+
+    // 3.b lead the weakest card an opponent can still beat
+    const beatable = hand.cards.filter(card => canBeBeaten(card, hand, seen));
+    return play(
+      weakest(beatable.length ? beatable : hand.cards),
+      'RULE-3.B weakest beatable lead',
+    );
+  }
+
+  // RULE-4 void in the led suit: the turn can not be won, so this is a
+  // free chance to discard the most dangerous card
+  return play(mostDangerous(hand), 'RULE-4 most dangerous discard');
 };
