@@ -12,6 +12,9 @@
       "image": "./src/assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#7A9E9F"
+    },
+    "web": {
+      "bundler": "metro"
     }
   }
 }
