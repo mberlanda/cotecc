@@ -65,6 +65,7 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
           currentPlayer,
           localGameState.currentRound.currentTurn,
           localGameState.currentRound.pastTurns,
+          localGameState.currentRound.players.length,
         );
         console.log(aiMove);
         playCard(localGameState, aiMove.playerID, aiMove.card);
