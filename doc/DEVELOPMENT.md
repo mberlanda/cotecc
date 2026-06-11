@@ -65,8 +65,20 @@ npm start
 
 
 ### web
+The app runs in the browser through react-native-web (metro bundler):
 ```
-npx create-react-app cotecc-web --template typescript
-cd cotecc-web
+cd CoteccApp
+npm run web -- --port 8090
+```
+
+### screenshots
+`doc/screenshots/` holds the reference screenshots used for design work
+(selection screen, game screen and a turn in progress at mobile, tablet
+and desktop viewports). To regenerate them with the web app running:
+```
+cd tools/screenshots
+npm install
+npx playwright install chromium
+npm run capture            # BASE_URL defaults to http://localhost:8090
 ```
 
