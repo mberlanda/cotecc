@@ -32,7 +32,7 @@ describe('JSON body parsing', () => {
       .send({ key: 'value' })
       .set('Content-Type', 'application/json');
 
-    // The route doesn't exist, but body-parser should have parsed
+    // The route doesn't exist, but express.json should have parsed
     // without throwing — a 404 confirms the middleware chain ran cleanly.
     expect(res.status).toBe(404);
   });
@@ -43,6 +43,14 @@ describe('JSON body parsing', () => {
       .set('Content-Type', 'application/json')
       .send('{ bad json }');
     expect(res.status).toBe(400);
+  });
+});
+
+describe('Security headers', () => {
+  it('sets security headers via helmet', async () => {
+    const res = await request(app).get('/health');
+    expect(res.headers['x-content-type-options']).toEqual('nosniff');
+    expect(res.headers['x-powered-by']).toBeUndefined();
   });
 });
 
