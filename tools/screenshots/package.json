@@ -1,0 +1,12 @@
+{
+  "name": "cotecc-screenshots",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Captures the CoteccApp web target at multiple viewports into doc/screenshots",
+  "scripts": {
+    "capture": "node capture.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0"
+  }
+}
