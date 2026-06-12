@@ -23,16 +23,6 @@ sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 sudo xcodebuild -license accept
 ```
 
-### api
-
-```
-mkdir cotecc-api && cd cotecc-api
-npm init -y
-npm install express body-parser cors
-npm install  --save-dev typescript ts-node @types/express @types/body-parser @types/cors
-npx tsc --init
-```
-
 ### mobile
 
 ```
