@@ -168,7 +168,10 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
               styles.trickRow,
               player.lifeCount === 0 ? styles.eliminatedPlayer : null,
             ]}>
-            <Text style={styles.trickName}>{player.name}</Text>
+            <Text style={styles.trickName}>
+              {player.name} -{' '}
+              {localGameState.currentRound.scoresMap[player.ID] || 0} pts
+            </Text>
             <PastTurn
               turns={localGameState.currentRound.pastTurns.filter(
                 turn => turn.winnerID === player.ID,
