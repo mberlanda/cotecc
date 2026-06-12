@@ -1,9 +1,0 @@
-node_modules
-dist
-.git
-.gitignore
-coverage
-*.test.ts
-*.test.js
-*.md
-.DS_Store
