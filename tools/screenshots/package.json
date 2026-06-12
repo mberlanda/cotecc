@@ -4,6 +4,7 @@
   "private": true,
   "description": "Captures the CoteccApp web target at multiple viewports into doc/screenshots",
   "scripts": {
+    "assert:web-render": "node assert-web-render.js",
     "capture": "node capture.js"
   },
   "devDependencies": {
