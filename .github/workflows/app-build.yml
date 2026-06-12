@@ -57,6 +57,15 @@ jobs:
       run: docker compose up -d cotecc-web
     - name: Ping web service
       run: curl --fail --retry 10 --retry-delay 2 --retry-connrefused http://localhost:8080/health
+    - name: Install render smoke test dependencies
+      working-directory: tools/screenshots
+      run: npm ci
+    - name: Install Playwright browser
+      working-directory: tools/screenshots
+      run: npx playwright install --with-deps chromium
+    - name: Assert web app renders
+      working-directory: tools/screenshots
+      run: npm run assert:web-render
     - name: Show compose logs
       if: failure()
       run: docker compose logs cotecc-web
