@@ -33,7 +33,7 @@ exports[`CheckBox renders when checked 1`] = `
     {
       "alignItems": "center",
       "flexDirection": "row",
-      "marginBottom": 20,
+      "minHeight": 36,
       "opacity": 1,
     }
   }
@@ -42,20 +42,41 @@ exports[`CheckBox renders when checked 1`] = `
     style={
       [
         {
-          "backgroundColor": "#FFF",
-          "borderColor": "#000",
+          "alignItems": "center",
+          "backgroundColor": "#FFFFFF",
+          "borderColor": "#B3261E",
+          "borderRadius": 4,
           "borderWidth": 1,
-          "height": 20,
-          "marginRight": 10,
-          "width": 20,
+          "height": 22,
+          "justifyContent": "center",
+          "marginRight": 8,
+          "width": 22,
         },
         {
-          "backgroundColor": "#000",
+          "backgroundColor": "#B3261E",
         },
       ]
     }
-  />
-  <Text>
+  >
+    <Text
+      style={
+        {
+          "color": "#FFFFFF",
+          "fontWeight": "900",
+        }
+      }
+    >
+      ✓
+    </Text>
+  </View>
+  <Text
+    style={
+      {
+        "color": "#17120D",
+        "fontWeight": "700",
+      }
+    }
+  >
     foo
   </Text>
 </View>
@@ -94,7 +115,7 @@ exports[`CheckBox renders when un-checked 1`] = `
     {
       "alignItems": "center",
       "flexDirection": "row",
-      "marginBottom": 20,
+      "minHeight": 36,
       "opacity": 1,
     }
   }
@@ -103,18 +124,28 @@ exports[`CheckBox renders when un-checked 1`] = `
     style={
       [
         {
-          "backgroundColor": "#FFF",
-          "borderColor": "#000",
+          "alignItems": "center",
+          "backgroundColor": "#FFFFFF",
+          "borderColor": "#B3261E",
+          "borderRadius": 4,
           "borderWidth": 1,
-          "height": 20,
-          "marginRight": 10,
-          "width": 20,
+          "height": 22,
+          "justifyContent": "center",
+          "marginRight": 8,
+          "width": 22,
         },
         false,
       ]
     }
   />
-  <Text>
+  <Text
+    style={
+      {
+        "color": "#17120D",
+        "fontWeight": "700",
+      }
+    }
+  >
     foo
   </Text>
 </View>

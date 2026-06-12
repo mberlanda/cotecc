@@ -1,37 +1,64 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`StickyHeader renders without exception 1`] = `
-<RCTScrollView
-  stickyHeaderIndices={
-    [
-      0,
-    ]
+<View
+  style={
+    {
+      "backgroundColor": "#23150F",
+      "height": 132,
+      "justifyContent": "center",
+      "overflow": "hidden",
+      "width": "100%",
+    }
   }
 >
-  <View>
-    <View
+  <View
+    style={
+      {
+        "left": 24,
+        "maxWidth": 320,
+      }
+    }
+  >
+    <Text
       style={
         {
-          "height": 100,
-          "width": "100%",
+          "color": "#FFFFFF",
+          "fontSize": 32,
+          "fontWeight": "900",
         }
       }
     >
-      <Image
-        resizeMode="cover"
-        source={
-          {
-            "testUri": "../../../src/assets/placeholder-header.png",
-          }
+      Cotecc
+    </Text>
+    <Text
+      style={
+        {
+          "color": "#E8D2A3",
+          "fontSize": 14,
+          "fontWeight": "700",
         }
-        style={
-          {
-            "height": "100%",
-            "width": "100%",
-          }
-        }
-      />
-    </View>
+      }
+    >
+      Point-avoidance at the table
+    </Text>
   </View>
-</RCTScrollView>
+  <Image
+    resizeMode="contain"
+    source={
+      {
+        "testUri": "../../../src/assets/round-logo.png",
+      }
+    }
+    style={
+      {
+        "height": 118,
+        "opacity": 0.94,
+        "position": "absolute",
+        "right": 24,
+        "width": 118,
+      }
+    }
+  />
+</View>
 `;

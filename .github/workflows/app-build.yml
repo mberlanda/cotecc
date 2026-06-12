@@ -45,3 +45,21 @@ jobs:
       run: npm ci
     - name: Test
       run: npm test
+  web-docker-image:
+    name: Web Docker Image
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Build web image
+      run: docker compose build cotecc-web
+    - name: Start web service
+      run: docker compose up -d cotecc-web
+    - name: Ping web service
+      run: curl --fail --retry 10 --retry-delay 2 --retry-connrefused http://localhost:8080/health
+    - name: Show compose logs
+      if: failure()
+      run: docker compose logs cotecc-web
+    - name: Stop compose services
+      if: always()
+      run: docker compose down --volumes

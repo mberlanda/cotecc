@@ -5,8 +5,11 @@ import {createStackNavigator} from '@react-navigation/stack';
 import * as SplashScreen from 'expo-splash-screen';
 
 import {RootStackParamList} from './routes';
+import AuthScreen from './screens/AuthScreen';
 import GameScreen from './screens/GameScreen';
-import GameSelectionScreen from './screens/GameSelectionScreen';
+import HomeScreen from './screens/HomeScreen';
+import HowToPlayScreen from './screens/HowToPlayScreen';
+import {theme} from './theme';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync()
@@ -41,16 +44,33 @@ const App = () => {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="GameSelectionScreen">
+      <Stack.Navigator
+        initialRouteName="AuthScreen"
+        screenOptions={{
+          headerStyle: {backgroundColor: theme.colors.surface},
+          headerTintColor: theme.colors.ink,
+          headerTitleStyle: {fontWeight: '900'},
+          cardStyle: {backgroundColor: theme.colors.background},
+        }}>
         <Stack.Screen
-          name="GameSelectionScreen"
-          component={GameSelectionScreen}
-          options={{title: 'New Game'}}
+          name="AuthScreen"
+          component={AuthScreen}
+          options={{title: 'Cotecc'}}
+        />
+        <Stack.Screen
+          name="HowToPlayScreen"
+          component={HowToPlayScreen}
+          options={{title: 'Cotecc'}}
+        />
+        <Stack.Screen
+          name="HomeScreen"
+          component={HomeScreen}
+          options={{title: 'Cotecc'}}
         />
         <Stack.Screen
           name="GameScreen"
           component={GameScreen}
-          options={{title: 'Game'}}
+          options={{title: 'Cotecc'}}
         />
       </Stack.Navigator>
     </NavigationContainer>
