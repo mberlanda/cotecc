@@ -1,0 +1,16 @@
+node_modules
+dist
+.expo
+coverage
+.git
+.husky
+
+android
+ios
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+Dockerfile
+.dockerignore
