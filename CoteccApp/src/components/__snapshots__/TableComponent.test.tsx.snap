@@ -127,9 +127,10 @@ exports[`TableComponent renders without exception when moves provided 1`] = `
                   "borderRadius": 4,
                   "borderWidth": 1,
                   "elevation": 2,
-                  "height": 90,
+                  "height": 101,
                   "justifyContent": "center",
-                  "margin": 5,
+                  "margin": 4,
+                  "overflow": "hidden",
                   "shadowColor": "#000000",
                   "shadowOffset": {
                     "height": 3,
@@ -137,12 +138,12 @@ exports[`TableComponent renders without exception when moves provided 1`] = `
                   },
                   "shadowOpacity": 0.18,
                   "shadowRadius": 5,
-                  "width": 60,
+                  "width": 54,
                 },
                 {
                   "height": 84,
                   "margin": 2,
-                  "width": 56,
+                  "width": 45,
                 },
               ]
             }
@@ -156,6 +157,7 @@ exports[`TableComponent renders without exception when moves provided 1`] = `
               }
               style={
                 {
+                  "borderRadius": 4,
                   "height": "100%",
                   "width": "100%",
                 }
@@ -209,9 +211,10 @@ exports[`TableComponent renders without exception when moves provided 1`] = `
                   "borderRadius": 4,
                   "borderWidth": 1,
                   "elevation": 2,
-                  "height": 90,
+                  "height": 101,
                   "justifyContent": "center",
-                  "margin": 5,
+                  "margin": 4,
+                  "overflow": "hidden",
                   "shadowColor": "#000000",
                   "shadowOffset": {
                     "height": 3,
@@ -219,12 +222,12 @@ exports[`TableComponent renders without exception when moves provided 1`] = `
                   },
                   "shadowOpacity": 0.18,
                   "shadowRadius": 5,
-                  "width": 60,
+                  "width": 54,
                 },
                 {
                   "height": 84,
                   "margin": 2,
-                  "width": 56,
+                  "width": 45,
                 },
               ]
             }
@@ -238,6 +241,7 @@ exports[`TableComponent renders without exception when moves provided 1`] = `
               }
               style={
                 {
+                  "borderRadius": 4,
                   "height": "100%",
                   "width": "100%",
                 }

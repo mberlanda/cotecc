@@ -47,7 +47,7 @@ exports[`StickyHeader renders without exception 1`] = `
     resizeMode="contain"
     source={
       {
-        "testUri": "../../../src/assets/icon.png",
+        "testUri": "../../../src/assets/round-logo.png",
       }
     }
     style={

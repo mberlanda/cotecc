@@ -4,7 +4,7 @@ import {Image, StyleSheet, Text, View} from 'react-native';
 import {theme} from '../theme';
 
 const StickyHeader = () => {
-  const headerSource = require('../assets/icon.png');
+  const headerSource = require('../assets/round-logo.png');
 
   return (
     <View style={styles.header}>

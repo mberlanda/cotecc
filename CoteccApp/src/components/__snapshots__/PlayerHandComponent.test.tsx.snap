@@ -124,9 +124,10 @@ exports[`PlayerHand should render correctly with given props 1`] = `
                 "borderRadius": 4,
                 "borderWidth": 1,
                 "elevation": 2,
-                "height": 90,
+                "height": 101,
                 "justifyContent": "center",
-                "margin": 5,
+                "margin": 4,
+                "overflow": "hidden",
                 "shadowColor": "#000000",
                 "shadowOffset": {
                   "height": 3,
@@ -134,7 +135,7 @@ exports[`PlayerHand should render correctly with given props 1`] = `
                 },
                 "shadowOpacity": 0.18,
                 "shadowRadius": 5,
-                "width": 60,
+                "width": 54,
               }
             }
           >
@@ -147,6 +148,7 @@ exports[`PlayerHand should render correctly with given props 1`] = `
               }
               style={
                 {
+                  "borderRadius": 4,
                   "height": "100%",
                   "width": "100%",
                 }
@@ -212,9 +214,10 @@ exports[`PlayerHand should render correctly with given props 1`] = `
                 "borderRadius": 4,
                 "borderWidth": 1,
                 "elevation": 2,
-                "height": 90,
+                "height": 101,
                 "justifyContent": "center",
-                "margin": 5,
+                "margin": 4,
+                "overflow": "hidden",
                 "shadowColor": "#000000",
                 "shadowOffset": {
                   "height": 3,
@@ -222,7 +225,7 @@ exports[`PlayerHand should render correctly with given props 1`] = `
                 },
                 "shadowOpacity": 0.18,
                 "shadowRadius": 5,
-                "width": 60,
+                "width": 54,
               }
             }
           >
@@ -235,6 +238,7 @@ exports[`PlayerHand should render correctly with given props 1`] = `
               }
               style={
                 {
+                  "borderRadius": 4,
                   "height": "100%",
                   "width": "100%",
                 }

@@ -214,12 +214,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   tableCard: {
-    width: 56,
+    width: 45,
     height: 84,
     margin: 2,
   },
   tableCardCompact: {
-    width: 42,
+    width: 34,
     height: 63,
     margin: 1,
   },

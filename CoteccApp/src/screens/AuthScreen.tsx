@@ -86,7 +86,7 @@ const AuthScreen = ({
         />
         <View style={styles.logoMark}>
           <Image
-            source={require('../assets/cards/card_3_0.jpeg')}
+            source={require('../assets/asso-coppe-mark.png')}
             resizeMode="contain"
             style={styles.logoCard}
           />
@@ -202,8 +202,8 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.gold,
   },
   logoCard: {
-    width: 42,
-    height: 66,
+    width: 56,
+    height: 56,
   },
   title: {
     color: theme.colors.ink,

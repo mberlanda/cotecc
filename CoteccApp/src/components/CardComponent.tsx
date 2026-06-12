@@ -50,15 +50,16 @@ const CardComponent = ({
 
 const styles = StyleSheet.create({
   card: {
-    width: 60,
-    height: 90,
+    width: 54,
+    height: 101,
     borderRadius: theme.radii.sm,
     justifyContent: 'center',
     alignItems: 'center',
-    margin: 5,
+    margin: 4,
     borderWidth: 1,
     borderColor: theme.colors.border,
     backgroundColor: theme.colors.white,
+    overflow: 'hidden',
     shadowColor: '#000000',
     shadowOpacity: 0.18,
     shadowRadius: 5,
@@ -68,6 +69,7 @@ const styles = StyleSheet.create({
   cardImage: {
     width: '100%',
     height: '100%',
+    borderRadius: theme.radii.sm,
   },
   missingCardText: {
     position: 'absolute',

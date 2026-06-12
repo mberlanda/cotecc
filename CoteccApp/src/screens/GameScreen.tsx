@@ -239,8 +239,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
   },
   handCard: {
-    width: 64,
-    height: 96,
+    width: 54,
+    height: 101,
   },
   tricksPanel: {
     width: '100%',
