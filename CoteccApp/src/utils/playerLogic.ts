@@ -1,5 +1,8 @@
 import {Player, PlayerID, RoundResult} from '../types';
 
+export const MIN_PLAYERS = 2;
+export const MAX_PLAYERS = 6;
+
 export const findPlayerById = (
   players: Player[],
   playerID: PlayerID,
@@ -23,15 +26,16 @@ export const nextPlayerID = (
 };
 
 const placeholderPlayers = (maxLifeCount: number): Player[] => [
-  {ID: 1, name: 'bar', lifeCount: maxLifeCount, isHuman: false},
-  {ID: 2, name: 'baz', lifeCount: maxLifeCount, isHuman: false},
-  {ID: 3, name: 'baz', lifeCount: maxLifeCount, isHuman: false},
-  {ID: 4, name: 'baz', lifeCount: maxLifeCount, isHuman: false},
+  {ID: 1, name: 'Bruno', lifeCount: maxLifeCount, isHuman: false},
+  {ID: 2, name: 'Clara', lifeCount: maxLifeCount, isHuman: false},
+  {ID: 3, name: 'Dino', lifeCount: maxLifeCount, isHuman: false},
+  {ID: 4, name: 'Elena', lifeCount: maxLifeCount, isHuman: false},
+  {ID: 5, name: 'Franco', lifeCount: maxLifeCount, isHuman: false},
 ];
 
 export const generatePlayers = (
   humanName: string,
-  numberOfPlayers: number,
+  totalPlayers: number,
   maxLifeCount: number,
 ): Player[] => {
   const human = {
@@ -41,7 +45,11 @@ export const generatePlayers = (
     lifeCount: maxLifeCount,
     isHuman: true,
   };
-  const aiPlayers = Math.min(numberOfPlayers, 4);
+  const playerCount = Math.max(
+    MIN_PLAYERS,
+    Math.min(totalPlayers, MAX_PLAYERS),
+  );
+  const aiPlayers = playerCount - 1;
 
   return [human, ...placeholderPlayers(maxLifeCount).slice(0, aiPlayers)];
 };

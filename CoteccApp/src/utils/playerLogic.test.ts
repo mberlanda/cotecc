@@ -67,14 +67,15 @@ describe('nextPlayerID', () => {
 });
 
 describe('generatePlayers', () => {
-  it('returns a single player with no input validation when invalid input', () => {
+  it('clamps invalid input to the minimum table size', () => {
     expect(generatePlayers('human name', 0, -1)).toEqual([
       {ID: 0, name: 'human name', hand: [], lifeCount: -1, isHuman: true},
+      {ID: 1, name: 'Bruno', lifeCount: -1, isHuman: false},
     ]);
   });
 
-  it('generates 2 players when 1 opponent is requested', () => {
-    const result = generatePlayers('Alice', 1, 3);
+  it('generates 2 players when 2 total players are requested', () => {
+    const result = generatePlayers('Alice', 2, 3);
 
     expect(result).toHaveLength(2);
     expect(result[0]).toMatchObject({ID: 0, name: 'Alice', isHuman: true});
@@ -82,8 +83,8 @@ describe('generatePlayers', () => {
     expect(result.every(p => p.lifeCount === 3)).toBe(true);
   });
 
-  it('generates 3 players when 2 opponents are requested', () => {
-    const result = generatePlayers('Bob', 2, 5);
+  it('generates 3 players when 3 total players are requested', () => {
+    const result = generatePlayers('Bob', 3, 5);
 
     expect(result).toHaveLength(3);
     expect(result[0]).toMatchObject({ID: 0, name: 'Bob', isHuman: true});
@@ -91,19 +92,19 @@ describe('generatePlayers', () => {
     expect(result.every(p => p.lifeCount === 5)).toBe(true);
   });
 
-  it('generates 5 players when 4 opponents are requested', () => {
-    const result = generatePlayers('Carol', 4, 3);
+  it('generates 6 players when 6 total players are requested', () => {
+    const result = generatePlayers('Carol', 6, 3);
 
-    expect(result).toHaveLength(5);
+    expect(result).toHaveLength(6);
     expect(result[0]).toMatchObject({ID: 0, name: 'Carol', isHuman: true});
-    expect(result.filter(p => !p.isHuman)).toHaveLength(4);
+    expect(result.filter(p => !p.isHuman)).toHaveLength(5);
   });
 
-  it('caps AI opponents at 4 even when more are requested', () => {
+  it('caps total players at 6 even when more are requested', () => {
     const result = generatePlayers('Dave', 10, 3);
 
-    expect(result).toHaveLength(5);
-    expect(result.filter(p => !p.isHuman)).toHaveLength(4);
+    expect(result).toHaveLength(6);
+    expect(result.filter(p => !p.isHuman)).toHaveLength(5);
   });
 });
 

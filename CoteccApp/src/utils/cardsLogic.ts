@@ -10,6 +10,8 @@ const pointsRankMap: {[rank: number]: number} = {
 
 const minRank = 2;
 const maxRank = 11;
+const maxCardsPerPlayer = 7;
+const deckSize = Object.values(Suit).length * (maxRank - minRank + 1);
 
 export const createDeck = (): Card[] => {
   // Implement deck creation logic
@@ -40,9 +42,17 @@ export const sortCards = (deck: Card[]): Card[] => {
   return deck.sort((a, b) => a.suit.localeCompare(b.suit) || a.rank - b.rank);
 };
 
+export const cardsPerPlayerFor = (playersCount: number): number => {
+  if (playersCount <= 0) {
+    throw RangeError(`Invalid number of players ${playersCount}`);
+  }
+
+  return Math.min(maxCardsPerPlayer, Math.floor(deckSize / playersCount));
+};
+
 export const dealCards = (deck: Card[], players: PlayerHand[]): void => {
   // Implement card dealing logic
-  const cardsPerPlayer = 7;
+  const cardsPerPlayer = cardsPerPlayerFor(players.length);
   if (cardsPerPlayer * players.length > deck.length) {
     throw RangeError(
       `Invalid number of players ${players.length} for cardsPerPlayer ${cardsPerPlayer}`,
@@ -50,6 +60,9 @@ export const dealCards = (deck: Card[], players: PlayerHand[]): void => {
   }
   for (const player of players) {
     player.cards = [];
+    Object.keys(player.cardsBySuit).forEach((suit: string) => {
+      player.cardsBySuit[suit as Suit] = [];
+    });
     for (let i = 0; i < cardsPerPlayer; i++) {
       const card = deck.pop()!;
       player.cardsBySuit[card.suit].push(card);

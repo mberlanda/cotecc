@@ -2,6 +2,7 @@ import {describe, expect, it} from '@jest/globals';
 
 import {
   cardIsGreater,
+  cardsPerPlayerFor,
   createDeck,
   dealCards,
   getCardsWithSuit,
@@ -86,6 +87,28 @@ describe('dealCards', () => {
     players.forEach(player => {
       expect(player.cards).toHaveLength(7);
     });
+  });
+
+  it('deals 6 cards to each player at a six-player table', () => {
+    const deck = shuffleDeck(createDeck());
+    const players = [
+      newPlayerHand({playerID: 0}),
+      newPlayerHand({playerID: 1}),
+      newPlayerHand({playerID: 2}),
+      newPlayerHand({playerID: 3}),
+      newPlayerHand({playerID: 4}),
+      newPlayerHand({playerID: 5}),
+    ];
+    dealCards(deck, players);
+    players.forEach(player => {
+      expect(player.cards).toHaveLength(6);
+    });
+  });
+
+  it('calculates cards per player from the table size', () => {
+    expect(cardsPerPlayerFor(2)).toEqual(7);
+    expect(cardsPerPlayerFor(5)).toEqual(7);
+    expect(cardsPerPlayerFor(6)).toEqual(6);
   });
 });
 
