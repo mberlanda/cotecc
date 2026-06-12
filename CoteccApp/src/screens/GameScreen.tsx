@@ -9,7 +9,9 @@ import PlayerHandComponent from '../components/PlayerHandComponent';
 import {StateDebugComponent} from '../components/StateDebug';
 import StickyHeader from '../components/StickyHeader';
 import TableComponent from '../components/TableComponent';
+import {translate} from '../i18n';
 import {GameScreenRouteParams, RootStackParamList} from '../routes';
+import {theme} from '../theme';
 import {GameState, Move} from '../types';
 import {aiMoveToPlay} from '../utils/aiPlayerLogic';
 import {getGameWinner, isGameOver, newGame, playCard} from '../utils/gameLogic';
@@ -24,14 +26,16 @@ interface GameScreenProps {
 const GameScreen: React.FC<GameScreenProps> = ({route}) => {
   const {
     gameSpeed,
-    opponents,
+    playerCount,
     name,
     showDebug,
     maxLifeCount,
+    language,
   }: GameScreenRouteParams = route.params;
+  const t = (key: Parameters<typeof translate>[1]) => translate(language, key);
   const initialPlayers = useMemo(
-    () => generatePlayers(name, opponents, maxLifeCount),
-    [name, opponents, maxLifeCount],
+    () => generatePlayers(name, playerCount, maxLifeCount),
+    [name, playerCount, maxLifeCount],
   );
   const [localGameState, setLocalGameState] = useState<GameState>(() => {
     return newGame(initialPlayers, initialPlayers[0].ID, maxLifeCount);
@@ -53,16 +57,20 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
   };
 
   useEffect(() => {
-    const currentPlayer = localGameState.currentRound.players.find(
+    const currentPlayerHand = localGameState.currentRound.players.find(
       p =>
         p.playerID === localGameState.currentRound.currentTurn.currentPlayerID,
     );
     // `currentPlayer.hand.length` is needed when the current turn is over
     // and the user has to tap DealCardsButton to start a new turn
-    if (currentPlayer && !currentPlayer.isHuman && currentPlayer.cards.length) {
+    if (
+      currentPlayerHand &&
+      !currentPlayerHand.isHuman &&
+      currentPlayerHand.cards.length
+    ) {
       setTimeout(() => {
         const aiMove = aiMoveToPlay(
-          currentPlayer,
+          currentPlayerHand,
           localGameState.currentRound.currentTurn,
           localGameState.currentRound.pastTurns,
           localGameState.currentRound.players.length,
@@ -77,6 +85,16 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
 
   const gameOver = isGameOver(localGameState.players);
   const winner = gameOver ? getGameWinner(localGameState.players) : undefined;
+  const currentPlayer = localGameState.players.find(
+    player =>
+      player.ID === localGameState.currentRound.currentTurn.currentPlayerID,
+  );
+  const roundReadyForDeal = localGameState.currentRound.players.every(
+    player => player.cards.length === 0,
+  );
+  const humanHand = localGameState.currentRound.players.find(
+    player => player.isHuman,
+  );
 
   const doDealCards = () => {
     nextRound(localGameState);
@@ -84,76 +102,169 @@ const GameScreen: React.FC<GameScreenProps> = ({route}) => {
   };
 
   return (
-    <ScrollView>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}>
       <StickyHeader />
+      <View style={styles.roundBar}>
+        <View>
+          <Text style={styles.roundLabel}>
+            {t('round')} {localGameState.currentRound.ID}
+          </Text>
+          <Text style={styles.roundTitle}>
+            {currentPlayer
+              ? `${currentPlayer.name}${t('turnSuffix')}`
+              : t('table')}
+          </Text>
+        </View>
+        <Text style={styles.playerCount}>
+          {localGameState.players.length} {t('players').toLowerCase()}
+        </Text>
+      </View>
       {gameOver ? (
         <View style={styles.gameSummaryContainer}>
           <Text style={styles.gameOverText}>
-            {winner ? `${winner.name} wins the game!` : 'Game Over - No winner'}
+            {winner ? `${winner.name} ${t('winsGame')}` : t('noWinner')}
           </Text>
         </View>
-      ) : localGameState.currentRound.pastTurns.length === 7 ? (
+      ) : roundReadyForDeal ? (
         <View style={styles.gameSummaryContainer}>
-          <DealCardsButton doDealCards={doDealCards} />
+          <Text style={styles.roundTitle}>{t('roundComplete')}</Text>
+          <DealCardsButton doDealCards={doDealCards} title={t('dealCards')} />
         </View>
       ) : (
-        <TableComponent moves={localGameState.currentRound.currentTurn.moves} />
+        <TableComponent
+          players={localGameState.players}
+          hands={localGameState.currentRound.players}
+          moves={localGameState.currentRound.currentTurn.moves}
+          currentPlayerID={
+            localGameState.currentRound.currentTurn.currentPlayerID
+          }
+          scoresMap={localGameState.currentRound.scoresMap}
+          labels={{
+            cards: t('cards'),
+            currentTrick: t('currentTrick'),
+            waitingForLead: t('waitingForLead'),
+          }}
+        />
       )}
-      {localGameState.players.map((player, index) => (
-        <View key={index}>
-          <Text
-            style={[
-              player.ID ===
-              localGameState.currentRound.currentTurn.currentPlayerID
-                ? styles.currentPlayer
-                : null,
-              player.lifeCount === 0 ? styles.eliminatedPlayer : null,
-            ]}>
-            Player name: {player.name} - ID {player.ID} - score{' '}
-            {localGameState.currentRound.scoresMap[player.ID] || 0} - lives{' '}
-            {player.lifeCount}
-            {player.lifeCount === 0 ? ' (eliminated)' : ''}
-          </Text>
-          {player.isHuman && !gameOver && player.lifeCount > 0 && (
-            <PlayerHandComponent
-              hand={
-                localGameState.currentRound.players.find(
-                  p => p.playerID === player.ID,
-                )!
-              }
-              onCardSelect={handleCardSelect}
-            />
-          )}
-          <PastTurn
-            key={index}
-            turns={localGameState.currentRound.pastTurns.filter(
-              t => t.winnerID === player.ID,
-            )}
+      {humanHand && !gameOver && humanHand.cards.length > 0 && (
+        <View style={styles.handPanel}>
+          <PlayerHandComponent
+            hand={humanHand}
+            onCardSelect={handleCardSelect}
+            title={t('yourHand')}
+            cardStyles={styles.handCard}
           />
         </View>
-      ))}
+      )}
+      <View style={styles.tricksPanel}>
+        <Text style={styles.sectionTitle}>{t('takenTricks')}</Text>
+        {localGameState.players.map(player => (
+          <View
+            key={player.ID}
+            style={[
+              styles.trickRow,
+              player.lifeCount === 0 ? styles.eliminatedPlayer : null,
+            ]}>
+            <Text style={styles.trickName}>{player.name}</Text>
+            <PastTurn
+              turns={localGameState.currentRound.pastTurns.filter(
+                turn => turn.winnerID === player.ID,
+              )}
+            />
+          </View>
+        ))}
+      </View>
       {showDebug && <StateDebugComponent state={localGameState} />}
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  currentPlayer: {
-    fontWeight: 'bold',
+  screen: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  content: {
+    paddingBottom: theme.spacing.xxl,
   },
   eliminatedPlayer: {
     opacity: 0.4,
   },
-  gameSummaryContainer: {
-    minHeight: 40,
+  roundBar: {
+    width: '100%',
+    maxWidth: 920,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 10,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+  },
+  roundLabel: {
+    color: theme.colors.accent,
+    fontSize: 12,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  roundTitle: {
+    color: theme.colors.ink,
+    fontSize: 20,
+    fontWeight: '900',
+  },
+  playerCount: {
+    color: theme.colors.inkMuted,
+    fontWeight: '800',
+  },
+  gameSummaryContainer: {
+    minHeight: 240,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: theme.spacing.xl,
+    gap: theme.spacing.md,
   },
   gameOverText: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    color: theme.colors.ink,
+    fontSize: 24,
+    fontWeight: '900',
     textAlign: 'center',
-    padding: 20,
+    padding: theme.spacing.xl,
+  },
+  handPanel: {
+    width: '100%',
+    maxWidth: 920,
+    alignSelf: 'center',
+    paddingHorizontal: theme.spacing.md,
+  },
+  handCard: {
+    width: 64,
+    height: 96,
+  },
+  tricksPanel: {
+    width: '100%',
+    maxWidth: 920,
+    alignSelf: 'center',
+    padding: theme.spacing.lg,
+    gap: theme.spacing.md,
+  },
+  sectionTitle: {
+    color: theme.colors.ink,
+    fontSize: 18,
+    fontWeight: '900',
+  },
+  trickRow: {
+    padding: theme.spacing.md,
+    borderRadius: theme.radii.md,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  trickName: {
+    color: theme.colors.ink,
+    fontWeight: '900',
+    marginBottom: theme.spacing.sm,
   },
 });
 

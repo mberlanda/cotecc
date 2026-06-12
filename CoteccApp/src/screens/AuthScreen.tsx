@@ -1,0 +1,280 @@
+import React, {useState} from 'react';
+import {
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+
+import {NavigationProp} from '@react-navigation/native';
+
+import PickerModal from '../components/PickerModal';
+import PrimaryButton from '../components/PrimaryButton';
+import {Language, languageOptions, translate} from '../i18n';
+import {RootStackParamList} from '../routes';
+import {theme} from '../theme';
+
+type AccountMode = 'login' | 'register' | 'password';
+
+const AuthScreen = ({
+  navigation,
+}: {
+  navigation: NavigationProp<RootStackParamList, 'AuthScreen'>;
+}) => {
+  const [language, setLanguage] = useState<Language>('en');
+  const [mode, setMode] = useState<AccountMode>('login');
+  const [guestName, setGuestName] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const t = (key: Parameters<typeof translate>[1]) => translate(language, key);
+
+  const continueAsGuest = () => {
+    const displayName = guestName.trim();
+    if (!displayName) {
+      Alert.alert(t('guestNameRequired'), t('guestNameRequiredMessage'));
+      return;
+    }
+
+    navigation.navigate('HomeScreen', {
+      name: displayName,
+      sessionType: 'guest',
+      language,
+    });
+  };
+
+  const continueWithAccount = () => {
+    const displayName = username.trim();
+    const typedPassword = password.trim();
+    if (!displayName) {
+      Alert.alert(t('emailRequired'), t('emailRequiredMessage'));
+      return;
+    }
+
+    if (!typedPassword) {
+      Alert.alert(t('passwordRequired'), t('passwordRequiredMessage'));
+      return;
+    }
+
+    if (mode === 'password') {
+      Alert.alert(t('passwordChanged'), t('passwordChangedMessage'));
+      setMode('login');
+      setPassword('');
+      return;
+    }
+
+    navigation.navigate('HomeScreen', {
+      name: displayName,
+      sessionType: mode,
+      language,
+    });
+  };
+
+  return (
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled">
+      <View style={styles.hero}>
+        <Image
+          source={require('../assets/cotecc-banner.png')}
+          resizeMode="cover"
+          style={styles.banner}
+        />
+        <View style={styles.logoMark}>
+          <Image
+            source={require('../assets/cards/card_3_0.jpeg')}
+            resizeMode="contain"
+            style={styles.logoCard}
+          />
+        </View>
+        <Text style={styles.title}>Cotecc</Text>
+      </View>
+
+      <View style={styles.languagePanel}>
+        <PickerModal
+          id="language"
+          options={languageOptions}
+          selectedValue={language}
+          title={t('language')}
+          onValueChange={itemValue => setLanguage(itemValue as Language)}
+        />
+      </View>
+
+      <View style={styles.panel}>
+        <View style={styles.panelHeader}>
+          <Text style={styles.panelTitle}>{t('playAsGuest')}</Text>
+          <Text style={styles.panelHint}>{t('guestHint')}</Text>
+        </View>
+        <TextInput
+          style={styles.input}
+          onChangeText={setGuestName}
+          value={guestName}
+          placeholder={t('playerName')}
+          placeholderTextColor={theme.colors.inkMuted}
+        />
+        <PrimaryButton title={t('playAsGuest')} onPress={continueAsGuest} />
+      </View>
+
+      <View style={styles.panel}>
+        <View style={styles.panelHeader}>
+          <Text style={styles.panelTitle}>{t('account')}</Text>
+          <Text style={styles.panelHint}>{t('accountHint')}</Text>
+        </View>
+        <View style={styles.segmentedControl}>
+          {(['login', 'register', 'password'] as AccountMode[]).map(item => (
+            <TouchableOpacity
+              key={item}
+              onPress={() => setMode(item)}
+              style={[
+                styles.segment,
+                mode === item ? styles.segmentActive : null,
+              ]}>
+              <Text
+                style={[
+                  styles.segmentText,
+                  mode === item ? styles.segmentTextActive : null,
+                ]}>
+                {item === 'password' ? t('changePassword') : t(item)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <TextInput
+          style={styles.input}
+          onChangeText={setUsername}
+          value={username}
+          placeholder={t('username')}
+          placeholderTextColor={theme.colors.inkMuted}
+          autoCapitalize="none"
+        />
+        <TextInput
+          style={styles.input}
+          onChangeText={setPassword}
+          value={password}
+          placeholder={t('password')}
+          placeholderTextColor={theme.colors.inkMuted}
+          secureTextEntry
+        />
+        <PrimaryButton
+          title={mode === 'password' ? t('changePassword') : t('continue')}
+          onPress={continueWithAccount}
+        />
+      </View>
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  content: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: theme.spacing.xl,
+    gap: theme.spacing.lg,
+  },
+  hero: {
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
+  banner: {
+    width: '100%',
+    height: 138,
+    borderRadius: theme.radii.md,
+    overflow: 'hidden',
+    backgroundColor: theme.colors.primaryDark,
+  },
+  logoMark: {
+    width: 74,
+    height: 74,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -46,
+    borderRadius: 37,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 3,
+    borderColor: theme.colors.gold,
+  },
+  logoCard: {
+    width: 42,
+    height: 66,
+  },
+  title: {
+    color: theme.colors.ink,
+    fontSize: 38,
+    fontWeight: '900',
+  },
+  languagePanel: {
+    width: '100%',
+    maxWidth: 520,
+    alignSelf: 'center',
+  },
+  panel: {
+    gap: theme.spacing.md,
+    width: '100%',
+    maxWidth: 520,
+    alignSelf: 'center',
+    padding: theme.spacing.lg,
+    borderRadius: theme.radii.md,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    ...theme.shadow,
+  },
+  panelHeader: {
+    gap: theme.spacing.xs,
+  },
+  panelTitle: {
+    color: theme.colors.ink,
+    fontSize: 20,
+    fontWeight: '900',
+  },
+  panelHint: {
+    color: theme.colors.inkMuted,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  segmentedControl: {
+    flexDirection: 'row',
+    gap: theme.spacing.xs,
+    padding: theme.spacing.xs,
+    borderRadius: theme.radii.md,
+    backgroundColor: theme.colors.surfaceMuted,
+  },
+  segment: {
+    flex: 1,
+    minHeight: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: theme.radii.sm,
+    paddingHorizontal: theme.spacing.xs,
+  },
+  segmentActive: {
+    backgroundColor: theme.colors.primary,
+  },
+  segmentText: {
+    color: theme.colors.ink,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  segmentTextActive: {
+    color: theme.colors.white,
+  },
+  input: {
+    minHeight: 48,
+    borderColor: theme.colors.border,
+    borderWidth: 1,
+    borderRadius: theme.radii.sm,
+    color: theme.colors.ink,
+    paddingHorizontal: theme.spacing.md,
+    backgroundColor: theme.colors.white,
+  },
+});
+
+export default AuthScreen;

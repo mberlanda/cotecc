@@ -8,11 +8,16 @@ import {Move} from '../types';
 import {Suit} from '../utils/constants';
 
 const mockCardOne = {suit: Suit.Ori, rank: 5, points: 0};
-const mockCardTwo = {suit: Suit.Ori, rank: 1, points: 6};
+const mockCardTwo = {suit: Suit.Ori, rank: 11, points: 6};
 const mockPlayer = {
   playerID: 0,
-  name: 'foo',
   cards: [mockCardOne, mockCardTwo],
+  cardsBySuit: {
+    bastoni: [],
+    coppe: [],
+    ori: [mockCardOne, mockCardTwo],
+    spade: [],
+  },
   isHuman: false,
 };
 const mockOnCardSelect = (_move: Move): void => {};

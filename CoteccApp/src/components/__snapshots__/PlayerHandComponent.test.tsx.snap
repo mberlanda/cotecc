@@ -5,11 +5,30 @@ exports[`PlayerHand should render correctly with given props 1`] = `
   style={
     {
       "alignItems": "center",
-      "marginBottom": 20,
+      "marginBottom": 16,
+      "width": "100%",
     }
   }
 >
+  <Text
+    style={
+      {
+        "color": "#17120D",
+        "fontSize": 16,
+        "fontWeight": "900",
+        "marginBottom": 8,
+      }
+    }
+  >
+    Your hand
+  </Text>
   <RCTScrollView
+    contentContainerStyle={
+      {
+        "alignItems": "center",
+        "paddingHorizontal": 12,
+      }
+    }
     data={
       [
         {
@@ -19,7 +38,7 @@ exports[`PlayerHand should render correctly with given props 1`] = `
         },
         {
           "points": 6,
-          "rank": 1,
+          "rank": 11,
           "suit": "ori",
         },
       ]
@@ -40,6 +59,11 @@ exports[`PlayerHand should render correctly with given props 1`] = `
     scrollEventThrottle={50}
     showsHorizontalScrollIndicator={false}
     stickyHeaderIndices={[]}
+    style={
+      {
+        "width": "100%",
+      }
+    }
     viewabilityConfigCallbackPairs={[]}
   >
     <View>
@@ -56,6 +80,8 @@ exports[`PlayerHand should render correctly with given props 1`] = `
         }
       >
         <View
+          accessibilityLabel="Play card 5 ori"
+          accessibilityRole="button"
           accessibilityState={
             {
               "busy": undefined,
@@ -93,12 +119,21 @@ exports[`PlayerHand should render correctly with given props 1`] = `
             style={
               {
                 "alignItems": "center",
-                "borderColor": "black",
-                "borderRadius": 10,
+                "backgroundColor": "#FFFFFF",
+                "borderColor": "#9E7A3A",
+                "borderRadius": 4,
                 "borderWidth": 1,
+                "elevation": 2,
                 "height": 90,
                 "justifyContent": "center",
                 "margin": 5,
+                "shadowColor": "#000000",
+                "shadowOffset": {
+                  "height": 3,
+                  "width": 0,
+                },
+                "shadowOpacity": 0.18,
+                "shadowRadius": 5,
                 "width": 60,
               }
             }
@@ -133,6 +168,8 @@ exports[`PlayerHand should render correctly with given props 1`] = `
         }
       >
         <View
+          accessibilityLabel="Play card 11 ori"
+          accessibilityRole="button"
           accessibilityState={
             {
               "busy": undefined,
@@ -170,18 +207,32 @@ exports[`PlayerHand should render correctly with given props 1`] = `
             style={
               {
                 "alignItems": "center",
-                "borderColor": "black",
-                "borderRadius": 10,
+                "backgroundColor": "#FFFFFF",
+                "borderColor": "#9E7A3A",
+                "borderRadius": 4,
                 "borderWidth": 1,
+                "elevation": 2,
                 "height": 90,
                 "justifyContent": "center",
                 "margin": 5,
+                "shadowColor": "#000000",
+                "shadowOffset": {
+                  "height": 3,
+                  "width": 0,
+                },
+                "shadowOpacity": 0.18,
+                "shadowRadius": 5,
                 "width": 60,
               }
             }
           >
             <Image
               resizeMode="contain"
+              source={
+                {
+                  "testUri": "../../../src/assets/cards/card_3_0.jpeg",
+                }
+              }
               style={
                 {
                   "height": "100%",

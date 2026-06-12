@@ -2,6 +2,8 @@
 
 exports[`CardComponent should render correctly with given props 1`] = `
 <View
+  accessibilityLabel="Play card 5 ori"
+  accessibilityRole="button"
   accessibilityState={
     {
       "busy": undefined,
@@ -39,12 +41,21 @@ exports[`CardComponent should render correctly with given props 1`] = `
     style={
       {
         "alignItems": "center",
-        "borderColor": "black",
-        "borderRadius": 10,
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#9E7A3A",
+        "borderRadius": 4,
         "borderWidth": 1,
+        "elevation": 2,
         "height": 90,
         "justifyContent": "center",
         "margin": 5,
+        "shadowColor": "#000000",
+        "shadowOffset": {
+          "height": 3,
+          "width": 0,
+        },
+        "shadowOpacity": 0.18,
+        "shadowRadius": 5,
         "width": 60,
       }
     }

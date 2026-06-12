@@ -1,6 +1,8 @@
 import React from 'react';
 import {StyleSheet, Text, TouchableOpacity} from 'react-native';
 
+import {theme} from '../theme';
+
 const PrimaryButton = ({
   title,
   onPress,
@@ -9,7 +11,11 @@ const PrimaryButton = ({
   onPress: () => void;
 }) => {
   return (
-    <TouchableOpacity onPress={onPress} style={styles.button}>
+    <TouchableOpacity
+      accessibilityLabel={title}
+      accessibilityRole="button"
+      onPress={onPress}
+      style={styles.button}>
       <Text style={styles.buttonText}>{title}</Text>
     </TouchableOpacity>
   );
@@ -17,17 +23,19 @@ const PrimaryButton = ({
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#007bff', // Standard blue for primary buttons
-    paddingVertical: 10,
+    minHeight: 48,
+    backgroundColor: theme.colors.primary,
+    paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 5,
+    borderRadius: theme.radii.sm,
     alignItems: 'center',
-    marginVertical: 5,
+    justifyContent: 'center',
+    marginVertical: 4,
   },
   buttonText: {
-    color: 'white',
+    color: theme.colors.white,
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '900',
   },
 });
 

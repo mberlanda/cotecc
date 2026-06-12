@@ -8,6 +8,8 @@ import {
   View,
 } from 'react-native';
 
+import {theme} from '../theme';
+
 const PickerModal = ({
   id,
   options,
@@ -62,16 +64,18 @@ const PickerModal = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20,
     width: '100%',
   },
   text: {
-    color: 'blue',
-    textDecorationLine: 'underline',
-    fontWeight: 'bold',
-    padding: 10,
-    backgroundColor: '#ddd',
-    borderRadius: 4,
+    minHeight: 46,
+    color: theme.colors.ink,
+    fontWeight: '800',
+    paddingVertical: 13,
+    paddingHorizontal: theme.spacing.md,
+    backgroundColor: theme.colors.surfaceMuted,
+    borderRadius: theme.radii.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   modalOverlay: {
     flex: 1,
@@ -82,15 +86,19 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'white',
-    maxHeight: 200,
+    backgroundColor: theme.colors.surface,
+    maxHeight: 280,
+    borderTopLeftRadius: theme.radii.md,
+    borderTopRightRadius: theme.radii.md,
   },
   option: {
-    padding: 20,
+    padding: theme.spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: theme.colors.border,
   },
   optionText: {
+    color: theme.colors.ink,
+    fontWeight: '800',
     textAlign: 'center',
   },
 });

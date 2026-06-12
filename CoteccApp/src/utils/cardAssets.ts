@@ -1,5 +1,5 @@
 interface CardImages {
-  [key: string]: any; // Use the appropriate type instead of 'any' for the images
+  [key: string]: number;
 }
 
 const cardImages: CardImages = {
