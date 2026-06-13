@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Upgrade CoteccApp from Expo SDK 49 to SDK 56 (React Native 0.86 / React 19), adopt Continuous Native Generation, migrate navigation from React Navigation v6 to Expo Router (web stays static-only), and centralize all developer commands in the README.
+**Goal:** Upgrade CoteccApp from Expo SDK 49 to SDK 56 (React Native 0.85 / React 19), adopt Continuous Native Generation, migrate navigation from React Navigation v6 to Expo Router (web stays static-only), and centralize all developer commands in the README.
 
 **Architecture:** One branch (`feat/sdk56-expo-router`), four logical commit groups: (1) dependencies & tooling, (2) CNG adoption, (3) Expo Router migration, (4) web/Docker/CI/docs. Screens use Expo Router hooks (`useRouter`, `useLocalSearchParams`); thin `app/*` route files re-export the screen components kept in `src/screens/`. Native `android/`/`ios/` dirs are deleted and regenerated on demand via `expo prebuild`.
 
-**Tech Stack:** Expo SDK 56, React Native 0.86, React 19, Expo Router, jest-expo, @testing-library/react-native v13, ESLint flat config, Node 22.
+**Tech Stack:** Expo SDK 56, React Native 0.85, React 19, Expo Router, jest-expo, @testing-library/react-native v13, ESLint flat config, Node 22.
 
 **Working directory for all commands:** `CoteccApp/` unless stated otherwise.
 
@@ -113,7 +113,7 @@ Expected: passes. For any reported version mismatch, resolve with `npx expo inst
 
 ```bash
 git add CoteccApp/package.json CoteccApp/package-lock.json
-git commit -m "chore: upgrade to Expo SDK 56 (RN 0.86 / React 19)"
+git commit -m "chore: upgrade to Expo SDK 56 (RN 0.85 / React 19)"
 ```
 
 ---
@@ -199,7 +199,7 @@ npm uninstall react-test-renderer @types/react-test-renderer @testing-library/re
 - [ ] **Step 2: Delete the stale manual react-native mock**
 
 Run: `git rm CoteccApp/__mocks__/react-native.js`
-(It exists only for the old `react-native` jest preset; jest-expo provides RN setup and this mock conflicts with RN 0.86.)
+(It exists only for the old `react-native` jest preset; jest-expo provides RN setup and this mock conflicts with RN 0.85.)
 
 - [ ] **Step 3: Rewrite jest.config.js for jest-expo**
 

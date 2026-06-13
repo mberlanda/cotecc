@@ -36,7 +36,7 @@ is only needed for API Routes, which are out of scope.
 | Package | From | To |
 | --- | --- | --- |
 | Expo SDK | 49 | **56** (`latest`) |
-| React Native | 0.72.6 | 0.86 (via `expo install`) |
+| React Native | 0.72.6 | 0.85 (via `expo install`) |
 | React / react-dom | 18.2 | 19.x |
 | Node | 18 | **22 LTS** |
 | ESLint | 8 | 10 (flat config) |

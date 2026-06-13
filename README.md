@@ -14,7 +14,7 @@ https://it.m.wikipedia.org/wiki/Cotecchio#Regole_bergamasche
 ## Development
 
 The app lives in [`CoteccApp/`](./CoteccApp) and is built with **Expo SDK 56**
-(React Native 0.86 / React 19) using **Expo Router** for navigation. It is a
+(React Native 0.85 / React 19) using **Expo Router** for navigation. It is a
 fully local, offline game — the web target is a **static** bundle (no server or
 database). Native `android/`/`ios/` folders are not committed; they are
 regenerated on demand via Continuous Native Generation (`expo prebuild`).
