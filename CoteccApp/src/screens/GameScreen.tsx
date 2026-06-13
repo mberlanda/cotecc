@@ -1,7 +1,7 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {ScrollView, StyleSheet, Text, View} from 'react-native';
 
-import {RouteProp} from '@react-navigation/native';
+import {useLocalSearchParams} from 'expo-router';
 
 import DealCardsButton from '../components/DealCardsButton';
 import PastTurn from '../components/PastTurn';
@@ -9,8 +9,7 @@ import PlayerHandComponent from '../components/PlayerHandComponent';
 import {StateDebugComponent} from '../components/StateDebug';
 import StickyHeader from '../components/StickyHeader';
 import TableComponent from '../components/TableComponent';
-import {translate} from '../i18n';
-import {GameScreenRouteParams, RootStackParamList} from '../routes';
+import {Language, translate} from '../i18n';
 import {theme} from '../theme';
 import {GameState, Move} from '../types';
 import {aiMoveToPlay} from '../utils/aiPlayerLogic';
@@ -18,20 +17,14 @@ import {getGameWinner, isGameOver, newGame, playCard} from '../utils/gameLogic';
 import {generatePlayers} from '../utils/playerLogic';
 import {nextRound} from '../utils/roundLogic';
 
-// Define an interface for the props
-interface GameScreenProps {
-  route: RouteProp<RootStackParamList, 'GameScreen'>;
-}
-
-const GameScreen: React.FC<GameScreenProps> = ({route}) => {
-  const {
-    gameSpeed,
-    playerCount,
-    name,
-    showDebug,
-    maxLifeCount,
-    language,
-  }: GameScreenRouteParams = route.params;
+const GameScreen: React.FC = () => {
+  const params = useLocalSearchParams();
+  const gameSpeed = Number(params.gameSpeed);
+  const playerCount = Number(params.playerCount);
+  const name = String(params.name);
+  const showDebug = params.showDebug === 'true';
+  const maxLifeCount = Number(params.maxLifeCount);
+  const language = params.language as Language;
   const t = (key: Parameters<typeof translate>[1]) => translate(language, key);
   const initialPlayers = useMemo(
     () => generatePlayers(name, playerCount, maxLifeCount),

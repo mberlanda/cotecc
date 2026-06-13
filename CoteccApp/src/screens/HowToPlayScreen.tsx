@@ -1,21 +1,17 @@
 import React from 'react';
 import {ScrollView, StyleSheet, Text, View} from 'react-native';
 
-import {NavigationProp, RouteProp} from '@react-navigation/native';
+import {useLocalSearchParams, useRouter} from 'expo-router';
 
 import PrimaryButton from '../components/PrimaryButton';
 import {translate} from '../i18n';
-import {RootStackParamList} from '../routes';
+import {SessionRouteParams} from '../routes';
 import {theme} from '../theme';
 
-const HowToPlayScreen = ({
-  navigation,
-  route,
-}: {
-  navigation: NavigationProp<RootStackParamList, 'HowToPlayScreen'>;
-  route: RouteProp<RootStackParamList, 'HowToPlayScreen'>;
-}) => {
-  const {language, name} = route.params;
+const HowToPlayScreen = () => {
+  const router = useRouter();
+  const {language, name, sessionType} =
+    useLocalSearchParams() as unknown as SessionRouteParams;
   const t = (key: Parameters<typeof translate>[1]) => translate(language, key);
   const rules = [t('rule1'), t('rule2'), t('rule3'), t('rule4')];
 
@@ -42,7 +38,12 @@ const HowToPlayScreen = ({
 
       <PrimaryButton
         title={t('home')}
-        onPress={() => navigation.navigate('HomeScreen', route.params)}
+        onPress={() =>
+          router.push({
+            pathname: '/home',
+            params: {name, sessionType, language},
+          })
+        }
       />
     </ScrollView>
   );

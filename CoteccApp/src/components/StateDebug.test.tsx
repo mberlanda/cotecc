@@ -9,9 +9,9 @@ import {Suit} from '../utils/constants';
 import {newGame} from '../utils/gameLogic';
 
 const players: Player[] = [
-  {ID: 0, name: 'foo', hand: [], lifeCount: 3, isHuman: true},
-  {ID: 1, name: 'bar', hand: [], lifeCount: 3, isHuman: false},
-  {ID: 2, name: 'baz', hand: [], lifeCount: 3, isHuman: false},
+  {ID: 0, name: 'foo', lifeCount: 3, isHuman: true},
+  {ID: 1, name: 'bar', lifeCount: 3, isHuman: false},
+  {ID: 2, name: 'baz', lifeCount: 3, isHuman: false},
 ];
 
 describe('StateDebug', () => {
@@ -28,10 +28,6 @@ describe('StateDebug', () => {
   });
 
   it('renders turn data after the first turn', () => {
-    gameState.players.forEach(player => {
-      player.hand.pop();
-    });
-
     gameState.currentRound.pastTurns.push({
       suit: Suit.Spade,
       highestCard: {suit: Suit.Spade, rank: 4, points: 0},
