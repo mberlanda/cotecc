@@ -1,23 +1,27 @@
 import React, {useState} from 'react';
 import {Image, ScrollView, StyleSheet, Text, View} from 'react-native';
 
-import {NavigationProp, RouteProp} from '@react-navigation/native';
+import {useLocalSearchParams, useRouter} from 'expo-router';
 
 import Checkbox from '../components/Checkbox';
 import PickerModal from '../components/PickerModal';
 import PrimaryButton from '../components/PrimaryButton';
 import {Language, languageOptions, translate} from '../i18n';
-import {RootStackParamList} from '../routes';
+import {SessionRouteParams} from '../routes';
 import {theme} from '../theme';
+import {firstParam} from '../utils/searchParams';
 
-const HomeScreen = ({
-  navigation,
-  route,
-}: {
-  navigation: NavigationProp<RootStackParamList, 'HomeScreen'>;
-  route: RouteProp<RootStackParamList, 'HomeScreen'>;
-}) => {
-  const [language, setLanguage] = useState<Language>(route.params.language);
+const HomeScreen = () => {
+  const router = useRouter();
+  const params = useLocalSearchParams();
+  const name = firstParam(params.name, 'Player');
+  const sessionType = firstParam(
+    params.sessionType,
+    'guest',
+  ) as SessionRouteParams['sessionType'];
+  const [language, setLanguage] = useState<Language>(
+    firstParam(params.language, 'en') as Language,
+  );
   const [gameSpeed, setGameSpeed] = useState(500);
   const [playerCount, setPlayerCount] = useState(4);
   const [showDebug, setShowDebug] = useState(false);
@@ -44,21 +48,24 @@ const HomeScreen = ({
   };
 
   const startGame = () => {
-    navigation.navigate('GameScreen', {
-      gameSpeed,
-      playerCount,
-      name: route.params.name,
-      showDebug,
-      maxLifeCount,
-      sessionType: route.params.sessionType,
-      language,
+    router.push({
+      pathname: '/game',
+      params: {
+        gameSpeed,
+        playerCount,
+        name,
+        showDebug: String(showDebug),
+        maxLifeCount,
+        sessionType,
+        language,
+      },
     });
   };
 
   const openHowToPlay = () => {
-    navigation.navigate('HowToPlayScreen', {
-      ...route.params,
-      language,
+    router.push({
+      pathname: '/how-to-play',
+      params: {name, sessionType, language},
     });
   };
 
@@ -75,7 +82,7 @@ const HomeScreen = ({
         />
         <View style={styles.heroCopy}>
           <Text style={styles.kicker}>{t('welcome')}</Text>
-          <Text style={styles.title}>{route.params.name}</Text>
+          <Text style={styles.title}>{name}</Text>
           <Text style={styles.subtitle}>{t('versusComputer')}</Text>
         </View>
       </View>

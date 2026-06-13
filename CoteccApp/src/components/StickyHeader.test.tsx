@@ -1,13 +1,13 @@
 import React from 'react';
 
 import {describe, expect, it} from '@jest/globals';
-import renderer from 'react-test-renderer';
+import {render} from '@testing-library/react-native';
 
 import StickyHeader from './StickyHeader';
 
 describe('StickyHeader', () => {
   it('renders without exception', () => {
-    const tree = renderer.create(<StickyHeader />).toJSON();
+    const tree = render(<StickyHeader />).toJSON();
     expect(tree).toMatchSnapshot();
   });
 });

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import {beforeEach, describe, expect, it} from '@jest/globals';
-import renderer from 'react-test-renderer';
+import {render} from '@testing-library/react-native';
 
 import {StateDebugComponent} from './StateDebug';
 import {GameState, Player} from '../types';
@@ -9,9 +9,9 @@ import {Suit} from '../utils/constants';
 import {newGame} from '../utils/gameLogic';
 
 const players: Player[] = [
-  {ID: 0, name: 'foo', hand: [], lifeCount: 3, isHuman: true},
-  {ID: 1, name: 'bar', hand: [], lifeCount: 3, isHuman: false},
-  {ID: 2, name: 'baz', hand: [], lifeCount: 3, isHuman: false},
+  {ID: 0, name: 'foo', lifeCount: 3, isHuman: true},
+  {ID: 1, name: 'bar', lifeCount: 3, isHuman: false},
+  {ID: 2, name: 'baz', lifeCount: 3, isHuman: false},
 ];
 
 describe('StateDebug', () => {
@@ -22,17 +22,12 @@ describe('StateDebug', () => {
   });
 
   it('renders turn data in the initial state', () => {
-    const tree = renderer
-      .create(<StateDebugComponent state={gameState} />)
+    const tree = render(<StateDebugComponent state={gameState} />)
       .toJSON();
     expect(tree).toMatchSnapshot();
   });
 
   it('renders turn data after the first turn', () => {
-    gameState.players.forEach(player => {
-      player.hand.pop();
-    });
-
     gameState.currentRound.pastTurns.push({
       suit: Suit.Spade,
       highestCard: {suit: Suit.Spade, rank: 4, points: 0},
@@ -44,8 +39,7 @@ describe('StateDebug', () => {
       currentPlayerID: 0,
       winnerID: 0,
     });
-    const tree = renderer
-      .create(<StateDebugComponent state={gameState} />)
+    const tree = render(<StateDebugComponent state={gameState} />)
       .toJSON();
     expect(tree).toMatchSnapshot();
   });

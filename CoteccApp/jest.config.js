@@ -1,25 +1,26 @@
 /** @type {import('jest').Config} */
-
 const config = {
+  preset: 'jest-expo',
   collectCoverage: true,
   collectCoverageFrom: [
-    './src/**/*.{js,jsx,ts,tsx}', // Include all JavaScript and TypeScript files
-    '!**/*.d.ts', // Exclude TypeScript declaration files
-    '!**/node_modules/**', // Exclude node_modules
-    '!**/vendor/**', // Exclude vendor
-    '!**/*.{jpg,jpeg,png,gif,svg}', // Exclude image files
+    // app/ is Expo Router glue (thin route re-exports + layout); the real logic
+    // lives in src/ and is exercised by the screen/unit tests.
+    './src/**/*.{js,jsx,ts,tsx}',
+    '!**/*.d.ts',
+    '!**/node_modules/**',
+    '!**/vendor/**',
+    '!**/*.{jpg,jpeg,png,gif,svg}',
   ],
   coverageDirectory: './coverage',
   coverageReporters: ['json', 'lcov', 'text', 'clover'],
-  // https://jestjs.io/docs/configuration#modulenamemapper-objectstring-string--arraystring
-  // moduleNameMapper: {},
-  preset: 'react-native',
-  // https://callstack.github.io/react-native-testing-library/docs/getting-started#additional-jest-matchers
-  setupFilesAfterEnv: ['<rootDir>/jest-setup.js'],
-  // https://github.com/react-navigation/react-navigation/issues/8669#issuecomment-926020453
-  transformIgnorePatterns: [
-    'node_modules/(?!(jest-)?react-native|react-clone-referenced-element|@react-native-community|rollbar-react-native|@fortawesome|@react-native|@react-navigation)',
-  ],
+  coverageThreshold: {
+    global: {
+      statements: 88,
+      branches: 77,
+      functions: 85,
+      lines: 88,
+    },
+  },
 };
 
 module.exports = config;

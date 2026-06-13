@@ -15,10 +15,3 @@ export interface SessionRouteParams {
   sessionType: 'guest' | 'login' | 'register';
   language: Language;
 }
-
-export type RootStackParamList = {
-  AuthScreen: {};
-  HomeScreen: SessionRouteParams;
-  HowToPlayScreen: SessionRouteParams;
-  GameScreen: GameScreenRouteParams;
-};

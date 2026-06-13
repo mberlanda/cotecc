@@ -1,3 +1,5 @@
+import {describe, expect, it} from '@jest/globals';
+
 import {newSuitMap} from './types';
 import {Suit} from './utils/constants';
 

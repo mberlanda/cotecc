@@ -62,11 +62,5 @@ exports[`PickerModal renders without errors 1`] = `
       Option 2
     </Text>
   </View>
-  <Modal
-    hardwareAccelerated={false}
-    onRequestClose={[Function]}
-    transparent={true}
-    visible={false}
-  />
 </View>
 `;

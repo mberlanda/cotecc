@@ -1,6 +1,10 @@
+// Intentionally using the legacy .eslintrc format (not flat eslint.config.js).
+// Expo SDK 56 pins eslint 8.57, where flat config is opt-in only; eslint-config-expo
+// ships and validates the legacy `extends: 'expo'` config against that version.
+// Revisit (migrate to eslint.config.js) when Expo's SDK moves the toolchain to eslint 9.
 module.exports = {
   root: true,
-  extends: '@react-native',
+  extends: 'expo',
   plugins: ['import'],
   // rules from https://manurana.medium.com/organizing-imports-in-react-and-react-native-faf982a3a3b5
   rules: {
@@ -36,5 +40,13 @@ module.exports = {
       },
     ],
   },
-  ignorePatterns: ['**/node_modules/**', '**/coverage/**'],
+  ignorePatterns: [
+    '**/node_modules/**',
+    '**/coverage/**',
+    '**/dist/**',
+    '/android/**',
+    '/ios/**',
+    '/.expo/**',
+    '/vendor/**',
+  ],
 };

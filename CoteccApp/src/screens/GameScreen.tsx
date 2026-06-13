@@ -1,7 +1,7 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {ScrollView, StyleSheet, Text, View} from 'react-native';
 
-import {RouteProp} from '@react-navigation/native';
+import {useLocalSearchParams} from 'expo-router';
 
 import DealCardsButton from '../components/DealCardsButton';
 import PastTurn from '../components/PastTurn';
@@ -9,29 +9,24 @@ import PlayerHandComponent from '../components/PlayerHandComponent';
 import {StateDebugComponent} from '../components/StateDebug';
 import StickyHeader from '../components/StickyHeader';
 import TableComponent from '../components/TableComponent';
-import {translate} from '../i18n';
-import {GameScreenRouteParams, RootStackParamList} from '../routes';
+import {Language, translate} from '../i18n';
 import {theme} from '../theme';
 import {GameState, Move} from '../types';
 import {aiMoveToPlay} from '../utils/aiPlayerLogic';
 import {getGameWinner, isGameOver, newGame, playCard} from '../utils/gameLogic';
 import {generatePlayers} from '../utils/playerLogic';
 import {nextRound} from '../utils/roundLogic';
+import {boolParam, firstParam, numberParam} from '../utils/searchParams';
 
-// Define an interface for the props
-interface GameScreenProps {
-  route: RouteProp<RootStackParamList, 'GameScreen'>;
-}
-
-const GameScreen: React.FC<GameScreenProps> = ({route}) => {
-  const {
-    gameSpeed,
-    playerCount,
-    name,
-    showDebug,
-    maxLifeCount,
-    language,
-  }: GameScreenRouteParams = route.params;
+const GameScreen: React.FC = () => {
+  const params = useLocalSearchParams();
+  // Public URL: params may be missing (direct deep link / refresh) — default safely.
+  const gameSpeed = numberParam(params.gameSpeed, 500);
+  const playerCount = numberParam(params.playerCount, 4);
+  const name = firstParam(params.name, 'Player');
+  const showDebug = boolParam(params.showDebug);
+  const maxLifeCount = numberParam(params.maxLifeCount, 4);
+  const language = firstParam(params.language, 'en') as Language;
   const t = (key: Parameters<typeof translate>[1]) => translate(language, key);
   const initialPlayers = useMemo(
     () => generatePlayers(name, playerCount, maxLifeCount),

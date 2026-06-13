@@ -43,7 +43,8 @@ export const computeRoundOutcome = (currentRound: Round): RoundResult => {
   // while others increase by one
   let roundLosers: Set<PlayerID> = new Set();
   if (turnWinnersSet.size === 1) {
-    const winnerID: PlayerID = turnWinnersSet.values().next().value;
+    // Guaranteed defined: this branch only runs when the set has exactly one entry.
+    const winnerID = turnWinnersSet.values().next().value as PlayerID;
     currentRound.players.forEach(p => {
       if (p.playerID !== winnerID) {
         roundLosers.add(p.playerID);

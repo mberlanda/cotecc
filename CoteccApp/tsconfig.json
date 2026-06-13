@@ -1,3 +1,16 @@
 {
-  "extends": "@react-native/typescript-config/tsconfig.json"
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    // Explicit `types` is required so the global Jest matchers resolve under
+    // expo/tsconfig.base. Note this is exclusionary: any other @types/* package
+    // added later must be appended here or its ambient types won't load.
+    "types": ["jest", "node", "react"]
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ]
 }

@@ -1,13 +1,10 @@
-/** @jest-environment jsdom */
 import React from 'react';
 
-import {describe, expect, it} from '@jest/globals';
+import {describe, expect, it, jest} from '@jest/globals';
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import renderer from 'react-test-renderer';
 
 import PickerModal from './PickerModal';
 
-jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
 // https://callstack.github.io/react-native-testing-library/docs/getting-started
 describe('PickerModal', () => {
   const mockOnValueChange = jest.fn();
@@ -63,17 +60,15 @@ describe('PickerModal', () => {
   });
 
   it('renders without errors', () => {
-    const tree = renderer
-      .create(
-        <PickerModal
-          id={'foo'}
-          options={options}
-          title={'foobarbaz'}
-          selectedValue={2}
-          onValueChange={() => {}}
-        />,
-      )
-      .toJSON();
-    expect(tree).toMatchSnapshot();
+    const {toJSON} = render(
+      <PickerModal
+        id={'foo'}
+        options={options}
+        title={'foobarbaz'}
+        selectedValue={2}
+        onValueChange={() => {}}
+      />,
+    );
+    expect(toJSON()).toMatchSnapshot();
   });
 });

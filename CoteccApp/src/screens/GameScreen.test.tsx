@@ -41,27 +41,25 @@ const mockCompletedRoundState: GameState = {
 };
 
 jest.mock('../utils/gameLogic', () => ({
-  ...jest.requireActual('../utils/gameLogic'),
+  ...(jest.requireActual('../utils/gameLogic') as object),
   newGame: jest.fn(() => mockCompletedRoundState),
 }));
 
-const route = {
-  key: 'GameScreen',
-  name: 'GameScreen',
-  params: {
-    gameSpeed: 0,
-    playerCount: 2,
+jest.mock('expo-router', () => ({
+  useLocalSearchParams: () => ({
+    gameSpeed: '0',
+    playerCount: '2',
     name: 'Mauro',
-    showDebug: false,
-    maxLifeCount: 4,
+    showDebug: 'false',
+    maxLifeCount: '4',
     sessionType: 'guest',
     language: 'en',
-  },
-} as const;
+  }),
+}));
 
 describe('GameScreen', () => {
   it('shows each player total points when the round is complete', () => {
-    const {getByText} = render(<GameScreen route={route} />);
+    const {getByText} = render(<GameScreen />);
 
     expect(getByText('Mauro - 18 pts')).toBeTruthy();
     expect(getByText('Bruno - 6 pts')).toBeTruthy();

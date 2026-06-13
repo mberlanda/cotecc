@@ -1,7 +1,7 @@
 import React from 'react';
 
 import {describe, expect, it} from '@jest/globals';
-import renderer from 'react-test-renderer';
+import {render} from '@testing-library/react-native';
 
 import PastTurn from './PastTurn';
 import {Suit} from '../utils/constants';
@@ -20,7 +20,7 @@ describe('PastTurn', () => {
       winnerID: 2,
     };
 
-    const tree = renderer.create(<PastTurn turns={[previousTurn]} />).toJSON();
+    const tree = render(<PastTurn turns={[previousTurn]} />).toJSON();
     expect(tree).toMatchSnapshot();
   });
 });

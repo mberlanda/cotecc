@@ -10,21 +10,17 @@ import {
   View,
 } from 'react-native';
 
-import {NavigationProp} from '@react-navigation/native';
+import {useRouter} from 'expo-router';
 
 import PickerModal from '../components/PickerModal';
 import PrimaryButton from '../components/PrimaryButton';
 import {Language, languageOptions, translate} from '../i18n';
-import {RootStackParamList} from '../routes';
 import {theme} from '../theme';
 
 type AccountMode = 'login' | 'register' | 'password';
 
-const AuthScreen = ({
-  navigation,
-}: {
-  navigation: NavigationProp<RootStackParamList, 'AuthScreen'>;
-}) => {
+const AuthScreen = () => {
+  const router = useRouter();
   const [language, setLanguage] = useState<Language>('en');
   const [mode, setMode] = useState<AccountMode>('login');
   const [guestName, setGuestName] = useState('');
@@ -39,10 +35,9 @@ const AuthScreen = ({
       return;
     }
 
-    navigation.navigate('HomeScreen', {
-      name: displayName,
-      sessionType: 'guest',
-      language,
+    router.push({
+      pathname: '/home',
+      params: {name: displayName, sessionType: 'guest', language},
     });
   };
 
@@ -66,10 +61,9 @@ const AuthScreen = ({
       return;
     }
 
-    navigation.navigate('HomeScreen', {
-      name: displayName,
-      sessionType: mode,
-      language,
+    router.push({
+      pathname: '/home',
+      params: {name: displayName, sessionType: mode, language},
     });
   };
 

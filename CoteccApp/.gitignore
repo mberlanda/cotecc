@@ -70,3 +70,7 @@ yarn-error.log
 dist/
 web-build/
 ios/assets
+
+# Continuous Native Generation — android/ios are regenerated via `expo prebuild`
+/android
+/ios
