@@ -1,15 +1,16 @@
-# Development
+# Development — environment prerequisites
 
-The purpose of the file is to keep track of the step by step
-istructions adopted.
+This file covers the **OS-level toolchain** needed for native iOS/Android
+development. For all build/run/test/export commands, see the **Development**
+section in the root [README](../README.md).
 
-Dependecies:
+## Dependencies
 
 https://reactnative.dev/docs/environment-setup?os=macos&platform=android&guide=native#installing-dependencies
 
 - `brew install curl-openssl`
-- node >= 18. It can be installed using `nvm` https://github.com/nvm-sh/nvm
-- ruby >= 2.7. It can be installed using `rbenv` https://github.com/rbenv/rbenv
+- node >= 22. It can be installed using `nvm` https://github.com/nvm-sh/nvm (see [`.nvmrc`](../.nvmrc))
+- ruby >= 2.7 (CocoaPods, iOS). It can be installed using `rbenv` https://github.com/rbenv/rbenv
 - watchman for watching changes in filesystem and improve performances `brew install watchman`
 - openjdk (recommended `zulu17` compatible with both arm and amd architecture). It can be installed via `sdkman` https://sdkman.io/install or via brew
 
@@ -23,60 +24,18 @@ sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 sudo xcodebuild -license accept
 ```
 
-### mobile
+## Running on a device without the native SDK (Expo Go)
+
+You can run on iOS or Android without the full native toolchain using Expo Go:
 
 ```
-npx react-native init CoteccApp --template react-native-template-typescript
 cd CoteccApp
-```
-
-### mobile without SDK
-
-You can use Expo GO to run for iOS or Android without the SDK installed.
-
-To use Expo GO run the app with
-
-```
 npx expo start
 ```
 
-download Expo GO from Play Store or App Store and scan the QRCode generated.
+Download Expo Go from the Play Store or App Store and scan the QR code. To
+expose the dev server over the internet use `npx expo start --tunnel`.
 
-To expose the system use
-
-```
-npx expo start --tunnel
-```
-
-This command will expose the service through a port and everybody that scan the QRCode could use the app via internet.
-
-#### Troubleshooting:
-
-> No bundle URL present
-
-```
-npm install
-npm start
-```
-
-### web
-
-The app runs in the browser through react-native-web (metro bundler):
-
-```
-cd CoteccApp
-npm run web -- --port 8090
-```
-
-### screenshots
-
-`doc/screenshots/` holds the reference screenshots used for design work
-(auth, home, how-to-play, game screen and a turn in progress at mobile,
-tablet and desktop viewports). To regenerate them with the web app running:
-
-```
-cd tools/screenshots
-npm install
-npx playwright install chromium
-npm run capture            # BASE_URL defaults to http://127.0.0.1:8090
-```
+> Note: Expo Go does not include custom native modules; for a full native build
+> use `npm run ios` / `npm run android` (which run `expo prebuild` + the native
+> toolchain). See the root README.
