@@ -61,7 +61,7 @@ describe('GameScreen', () => {
   it('shows each player total points when the round is complete', () => {
     const {getByText} = render(<GameScreen />);
 
-    expect(getByText('Mauro - 18 pts')).toBeTruthy();
-    expect(getByText('Bruno - 6 pts')).toBeTruthy();
+    expect(getByText('Mauro — 18 pts · 4 lives')).toBeTruthy();
+    expect(getByText('Bruno — 6 pts · 4 lives')).toBeTruthy();
   });
 });
