@@ -16,15 +16,17 @@ import {aiMoveToPlay} from '../utils/aiPlayerLogic';
 import {getGameWinner, isGameOver, newGame, playCard} from '../utils/gameLogic';
 import {generatePlayers} from '../utils/playerLogic';
 import {nextRound} from '../utils/roundLogic';
+import {boolParam, firstParam, numberParam} from '../utils/searchParams';
 
 const GameScreen: React.FC = () => {
   const params = useLocalSearchParams();
-  const gameSpeed = Number(params.gameSpeed);
-  const playerCount = Number(params.playerCount);
-  const name = String(params.name);
-  const showDebug = params.showDebug === 'true';
-  const maxLifeCount = Number(params.maxLifeCount);
-  const language = params.language as Language;
+  // Public URL: params may be missing (direct deep link / refresh) — default safely.
+  const gameSpeed = numberParam(params.gameSpeed, 500);
+  const playerCount = numberParam(params.playerCount, 4);
+  const name = firstParam(params.name, 'Player');
+  const showDebug = boolParam(params.showDebug);
+  const maxLifeCount = numberParam(params.maxLifeCount, 4);
+  const language = firstParam(params.language, 'en') as Language;
   const t = (key: Parameters<typeof translate>[1]) => translate(language, key);
   const initialPlayers = useMemo(
     () => generatePlayers(name, playerCount, maxLifeCount),

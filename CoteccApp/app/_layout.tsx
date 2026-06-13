@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 
 import {Stack} from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -8,22 +8,10 @@ import {theme} from '../src/theme';
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
-  const [isAppReady, setIsAppReady] = useState(false);
-
   useEffect(() => {
-    async function prepare() {
-      if (!isAppReady) {
-        try {
-          await new Promise(r => setTimeout(r, 500));
-          await SplashScreen.hideAsync();
-          setIsAppReady(true);
-        } catch (e) {
-          console.warn(e);
-        }
-      }
-    }
-    prepare();
-  }, [isAppReady]);
+    // No async resource loading to wait on — hide the splash once mounted.
+    SplashScreen.hideAsync().catch(() => {});
+  }, []);
 
   return (
     <Stack

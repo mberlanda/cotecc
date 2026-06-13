@@ -16,9 +16,9 @@ describe('AuthScreen', () => {
   });
 
   it('pushes to /home as guest with the entered name', () => {
-    const {getByPlaceholderText, getAllByText} = render(<AuthScreen />);
+    const {getByPlaceholderText, getByRole} = render(<AuthScreen />);
     fireEvent.changeText(getByPlaceholderText('Player name'), 'Mauro');
-    fireEvent.press(getAllByText('Play as guest').slice(-1)[0]);
+    fireEvent.press(getByRole('button', {name: 'Play as guest'}));
 
     expect(mockPush).toHaveBeenCalledWith({
       pathname: '/home',
@@ -27,8 +27,8 @@ describe('AuthScreen', () => {
   });
 
   it('does not navigate when the guest name is empty', () => {
-    const {getAllByText} = render(<AuthScreen />);
-    fireEvent.press(getAllByText('Play as guest').slice(-1)[0]);
+    const {getByRole} = render(<AuthScreen />);
+    fireEvent.press(getByRole('button', {name: 'Play as guest'}));
     expect(mockPush).not.toHaveBeenCalled();
   });
 });

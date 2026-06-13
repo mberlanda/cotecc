@@ -37,12 +37,18 @@ is only needed for API Routes, which are out of scope.
 | --- | --- | --- |
 | Expo SDK | 49 | **56** (`latest`) |
 | React Native | 0.72.6 | 0.85 (via `expo install`) |
-| React / react-dom | 18.2 | 19.x |
-| Node | 18 | **22 LTS** |
-| ESLint | 8 | 10 (flat config) |
+| React / react-dom | 18.2 | 19.2.3 |
+| Node | 18 | **22.13+ LTS** |
+| ESLint | 8 | 8.57 (legacy `.eslintrc`, `eslint-config-expo`) |
 
 Exact transitive versions are resolved by `npx expo install --fix`, not pinned
 by hand.
+
+> **Implementation note (deviations from this design):** SDK 56 pins eslint
+> **8.57**, so ESLint stayed on the legacy `.eslintrc` with `extends: 'expo'`
+> rather than migrating to a flat `eslint.config.js` (which would need eslint 9).
+> `jest-setup.js` was **removed** (RNTL v13 auto-extends matchers) rather than
+> kept. React Native resolved to **0.85**, not 0.86.
 
 ## Sequencing — one branch, four staged commits
 

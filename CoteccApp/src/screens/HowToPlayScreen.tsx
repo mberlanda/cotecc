@@ -4,14 +4,20 @@ import {ScrollView, StyleSheet, Text, View} from 'react-native';
 import {useLocalSearchParams, useRouter} from 'expo-router';
 
 import PrimaryButton from '../components/PrimaryButton';
-import {translate} from '../i18n';
+import {Language, translate} from '../i18n';
 import {SessionRouteParams} from '../routes';
 import {theme} from '../theme';
+import {firstParam} from '../utils/searchParams';
 
 const HowToPlayScreen = () => {
   const router = useRouter();
-  const {language, name, sessionType} =
-    useLocalSearchParams() as unknown as SessionRouteParams;
+  const params = useLocalSearchParams();
+  const name = firstParam(params.name, 'Player');
+  const language = firstParam(params.language, 'en') as Language;
+  const sessionType = firstParam(
+    params.sessionType,
+    'guest',
+  ) as SessionRouteParams['sessionType'];
   const t = (key: Parameters<typeof translate>[1]) => translate(language, key);
   const rules = [t('rule1'), t('rule2'), t('rule3'), t('rule4')];
 
@@ -39,10 +45,15 @@ const HowToPlayScreen = () => {
       <PrimaryButton
         title={t('home')}
         onPress={() =>
-          router.push({
-            pathname: '/home',
-            params: {name, sessionType, language},
-          })
+          // Return to the existing Home screen rather than pushing a new one
+          // (avoids stacking duplicate Home routes); fall back to navigate when
+          // there is no history (e.g. a direct deep link / web refresh).
+          router.canGoBack()
+            ? router.back()
+            : router.navigate({
+                pathname: '/home',
+                params: {name, sessionType, language},
+              })
         }
       />
     </ScrollView>

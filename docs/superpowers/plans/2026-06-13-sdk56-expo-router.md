@@ -6,25 +6,36 @@
 
 **Architecture:** One branch (`feat/sdk56-expo-router`), four logical commit groups: (1) dependencies & tooling, (2) CNG adoption, (3) Expo Router migration, (4) web/Docker/CI/docs. Screens use Expo Router hooks (`useRouter`, `useLocalSearchParams`); thin `app/*` route files re-export the screen components kept in `src/screens/`. Native `android/`/`ios/` dirs are deleted and regenerated on demand via `expo prebuild`.
 
-**Tech Stack:** Expo SDK 56, React Native 0.85, React 19, Expo Router, jest-expo, @testing-library/react-native v13, ESLint flat config, Node 22.
+**Tech Stack:** Expo SDK 56, React Native 0.85, React 19, Expo Router, jest-expo, @testing-library/react-native v13, ESLint 8.57 (legacy `.eslintrc` via eslint-config-expo), Node 22.13+.
 
 **Working directory for all commands:** `CoteccApp/` unless stated otherwise.
 
 **Reference:** Expo SDK 56 docs — https://docs.expo.dev/versions/v56.0.0
+
+> **Implementation deviations (discovered during execution):**
+> - **ESLint stayed on the legacy `.eslintrc`** (`extends: 'expo'`), not a flat
+>   `eslint.config.js` — SDK 56 pins eslint 8.57 where flat config is opt-in.
+>   Task 5 below reflects the original flat-config plan; the shipped change only
+>   swaps `@react-native` → `expo` in `.eslintrc.js`.
+> - **`jest-setup.js` was deleted** (RNTL v13 auto-extends matchers), not kept.
+> - **`tsconfig.json` needed `types: ["jest","node","react"]`** for global Jest
+>   types under `expo/tsconfig.base`.
+> - React Native resolved to **0.85**, not 0.86.
 
 ---
 
 ## File map
 
 **Created**
-- `CoteccApp/eslint.config.js` — flat ESLint config (replaces `.eslintrc.js`)
 - `CoteccApp/app/_layout.tsx` — root Stack navigator + splash lifecycle
+- `CoteccApp/src/utils/searchParams.ts` — defensive URL-param coercion helpers (+ test)
 - `CoteccApp/app/index.tsx`, `home.tsx`, `how-to-play.tsx`, `game.tsx` — route files (re-export screens)
 - `CoteccApp/src/screens/AuthScreen.test.tsx`, `HomeScreen.test.tsx`, `HowToPlayScreen.test.tsx` — new routing tests
 
 **Modified**
 - `CoteccApp/.nvmrc`, `CoteccApp/package.json`, `.github/workflows/app-build.yml`, `CoteccApp/Dockerfile` — Node 22 + entry + Docker COPY
-- `CoteccApp/babel.config.js`, `CoteccApp/metro.config.js`, `CoteccApp/jest.config.js`, `CoteccApp/jest-setup.js`, `CoteccApp/tsconfig.json`
+- `CoteccApp/babel.config.js`, `CoteccApp/metro.config.js`, `CoteccApp/jest.config.js`, `CoteccApp/tsconfig.json`
+- `CoteccApp/.eslintrc.js` — `extends: '@react-native'` → `'expo'` (legacy config kept; see deviations note)
 - `CoteccApp/app.json` — corrected Expo config (scheme, plugins, web output, drop unused perms)
 - `CoteccApp/.gitignore` — add `android/`, `ios/`, `.expo/`
 - `CoteccApp/src/screens/{AuthScreen,HomeScreen,HowToPlayScreen,GameScreen}.tsx` — hook-based navigation
@@ -37,6 +48,7 @@
 
 **Deleted**
 - `CoteccApp/src/App.tsx`, `CoteccApp/index.js`, `CoteccApp/index.web.js`
+- `CoteccApp/jest-setup.js` (RNTL v13 auto-extends matchers; no setup file needed)
 - `CoteccApp/__mocks__/react-native.js` (stale manual mock; jest-expo replaces it)
 - `CoteccApp/android/`, `CoteccApp/ios/` (from git; regenerated via prebuild)
 

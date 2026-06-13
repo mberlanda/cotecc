@@ -9,12 +9,18 @@ import PrimaryButton from '../components/PrimaryButton';
 import {Language, languageOptions, translate} from '../i18n';
 import {SessionRouteParams} from '../routes';
 import {theme} from '../theme';
+import {firstParam} from '../utils/searchParams';
 
 const HomeScreen = () => {
   const router = useRouter();
-  const params = useLocalSearchParams() as unknown as SessionRouteParams;
+  const params = useLocalSearchParams();
+  const name = firstParam(params.name, 'Player');
+  const sessionType = firstParam(
+    params.sessionType,
+    'guest',
+  ) as SessionRouteParams['sessionType'];
   const [language, setLanguage] = useState<Language>(
-    (params.language as Language) ?? 'en',
+    firstParam(params.language, 'en') as Language,
   );
   const [gameSpeed, setGameSpeed] = useState(500);
   const [playerCount, setPlayerCount] = useState(4);
@@ -47,10 +53,10 @@ const HomeScreen = () => {
       params: {
         gameSpeed,
         playerCount,
-        name: params.name,
+        name,
         showDebug: String(showDebug),
         maxLifeCount,
-        sessionType: params.sessionType,
+        sessionType,
         language,
       },
     });
@@ -59,7 +65,7 @@ const HomeScreen = () => {
   const openHowToPlay = () => {
     router.push({
       pathname: '/how-to-play',
-      params: {name: params.name, sessionType: params.sessionType, language},
+      params: {name, sessionType, language},
     });
   };
 
@@ -76,7 +82,7 @@ const HomeScreen = () => {
         />
         <View style={styles.heroCopy}>
           <Text style={styles.kicker}>{t('welcome')}</Text>
-          <Text style={styles.title}>{params.name}</Text>
+          <Text style={styles.title}>{name}</Text>
           <Text style={styles.subtitle}>{t('versusComputer')}</Text>
         </View>
       </View>
