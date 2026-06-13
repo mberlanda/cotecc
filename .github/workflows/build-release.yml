@@ -1,0 +1,109 @@
+name: Build & Release
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-release-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  verify-android:
+    name: Verify Android (APK)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: npm
+          cache-dependency-path: CoteccApp/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Install JS deps
+        working-directory: CoteccApp
+        run: npm ci
+        env:
+          HUSKY: '0'
+      - name: Prebuild android
+        working-directory: CoteccApp
+        run: npx expo prebuild --platform android --no-install
+      - name: Assemble release APK (debug-signed, installable)
+        working-directory: CoteccApp/android
+        run: ./gradlew assembleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cotecc-android-apk
+          path: CoteccApp/android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 14
+
+  verify-ios:
+    name: Verify iOS (simulator)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: npm
+          cache-dependency-path: CoteccApp/package-lock.json
+      - name: Install JS deps
+        working-directory: CoteccApp
+        run: npm ci
+        env:
+          HUSKY: '0'
+      - name: Prebuild ios
+        working-directory: CoteccApp
+        run: npx expo prebuild --platform ios --no-install
+      - name: Cache Pods
+        uses: actions/cache@v4
+        with:
+          path: CoteccApp/ios/Pods
+          key: pods-${{ hashFiles('CoteccApp/package-lock.json') }}
+          restore-keys: pods-
+      - name: Pod install
+        working-directory: CoteccApp/ios
+        run: pod install
+      - name: Build for simulator (no signing)
+        working-directory: CoteccApp/ios
+        run: |
+          WS=$(ls -d *.xcworkspace)
+          SCHEME=$(basename "$WS" .xcworkspace)
+          echo "Building workspace=$WS scheme=$SCHEME"
+          xcodebuild -workspace "$WS" -scheme "$SCHEME" \
+            -configuration Release -sdk iphonesimulator \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+
+  verify-web:
+    name: Verify Web (export)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: npm
+          cache-dependency-path: CoteccApp/package-lock.json
+      - name: Install JS deps
+        working-directory: CoteccApp
+        run: npm ci
+        env:
+          HUSKY: '0'
+      - name: Export web bundle
+        working-directory: CoteccApp
+        run: npx expo export --platform web --output-dir dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cotecc-web-bundle
+          path: CoteccApp/dist
+          retention-days: 14
