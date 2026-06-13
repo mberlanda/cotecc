@@ -1,3 +1,7 @@
+// Intentionally using the legacy .eslintrc format (not flat eslint.config.js).
+// Expo SDK 56 pins eslint 8.57, where flat config is opt-in only; eslint-config-expo
+// ships and validates the legacy `extends: 'expo'` config against that version.
+// Revisit (migrate to eslint.config.js) when Expo's SDK moves the toolchain to eslint 9.
 module.exports = {
   root: true,
   extends: 'expo',
