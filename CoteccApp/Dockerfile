@@ -8,7 +8,8 @@ ENV CI=true \
 COPY package.json package-lock.json ./
 RUN npm ci
 
-COPY app.json babel.config.js index.js index.web.js metro.config.js tsconfig.json ./
+COPY app.json babel.config.js metro.config.js tsconfig.json ./
+COPY app ./app
 COPY src ./src
 
 RUN npx expo export --platform web --output-dir dist
