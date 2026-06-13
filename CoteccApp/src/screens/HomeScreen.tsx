@@ -88,8 +88,16 @@ const HomeScreen = () => {
       </View>
 
       <View style={styles.actions}>
-        <PrimaryButton title={t('newGameComputer')} onPress={startGame} />
-        <PrimaryButton title={t('howToPlay')} onPress={openHowToPlay} />
+        <PrimaryButton
+          title={t('newGameComputer')}
+          onPress={startGame}
+          testID="new-game-button"
+        />
+        <PrimaryButton
+          title={t('howToPlay')}
+          onPress={openHowToPlay}
+          testID="how-to-play-button"
+        />
       </View>
 
       <View style={styles.setupPanel}>

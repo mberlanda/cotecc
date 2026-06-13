@@ -154,11 +154,12 @@ const GameScreen: React.FC = () => {
           />
         </View>
       )}
-      <View style={styles.tricksPanel}>
+      <View style={styles.tricksPanel} testID="taken-tricks-panel">
         <Text style={styles.sectionTitle}>{t('takenTricks')}</Text>
         {localGameState.players.map(player => (
           <View
             key={player.ID}
+            testID={`trick-row-${player.ID}`}
             style={[
               styles.trickRow,
               player.lifeCount === 0 ? styles.eliminatedPlayer : null,

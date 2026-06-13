@@ -30,7 +30,8 @@
     },
     "web": {
       "bundler": "metro",
-      "output": "single"
+      "output": "single",
+      "favicon": "./src/assets/asso-coppe-mark.png"
     },
     "extra": {
       "eas": {

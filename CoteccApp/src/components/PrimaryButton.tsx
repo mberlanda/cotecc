@@ -6,15 +6,18 @@ import {theme} from '../theme';
 const PrimaryButton = ({
   title,
   onPress,
+  testID,
 }: {
   title: string;
   onPress: () => void;
+  testID?: string;
 }) => {
   return (
     <TouchableOpacity
       accessibilityLabel={title}
       accessibilityRole="button"
       onPress={onPress}
+      testID={testID}
       style={styles.button}>
       <Text style={styles.buttonText}>{title}</Text>
     </TouchableOpacity>

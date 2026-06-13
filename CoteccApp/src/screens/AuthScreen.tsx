@@ -53,7 +53,6 @@ const AuthScreen = () => {
             style={styles.logoCard}
           />
         </View>
-        <Text style={styles.title}>Cotecc</Text>
       </View>
 
       <View style={styles.languagePanel}>
@@ -77,8 +76,13 @@ const AuthScreen = () => {
           value={guestName}
           placeholder={t('playerName')}
           placeholderTextColor={theme.colors.inkMuted}
+          testID="guest-name-input"
         />
-        <PrimaryButton title={t('playAsGuest')} onPress={continueAsGuest} />
+        <PrimaryButton
+          title={t('playAsGuest')}
+          onPress={continueAsGuest}
+          testID="play-as-guest-button"
+        />
       </View>
 
     </ScrollView>
@@ -102,7 +106,7 @@ const styles = StyleSheet.create({
   },
   banner: {
     width: '100%',
-    height: 138,
+    height: 200,
     borderRadius: theme.radii.md,
     overflow: 'hidden',
     backgroundColor: theme.colors.primaryDark,
@@ -121,11 +125,6 @@ const styles = StyleSheet.create({
   logoCard: {
     width: 56,
     height: 56,
-  },
-  title: {
-    color: theme.colors.ink,
-    fontSize: 38,
-    fontWeight: '900',
   },
   languagePanel: {
     width: '100%',
