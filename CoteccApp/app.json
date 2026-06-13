@@ -6,7 +6,6 @@
     "scheme": "coteccapp",
     "orientation": "portrait",
     "icon": "./src/assets/icon.png",
-    "newArchEnabled": true,
     "plugins": [
       "expo-router",
       [
