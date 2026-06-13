@@ -1,7 +1,7 @@
 import React from 'react';
 
 import {describe, expect, it} from '@jest/globals';
-import renderer from 'react-test-renderer';
+import {render} from '@testing-library/react-native';
 
 import TableComponent from './TableComponent';
 import {newPlayerHand} from '../__tests__/playerHandTestFixture';
@@ -60,8 +60,7 @@ const makeTableProps = (playerCount: number) => {
 
 describe('TableComponent', () => {
   it('renders without exception when no move', () => {
-    const tree = renderer
-      .create(<TableComponent {...tableProps} moves={[]} />)
+    const tree = render(<TableComponent {...tableProps} moves={[]} />)
       .toJSON();
     expect(tree).toMatchSnapshot();
   });
@@ -71,8 +70,7 @@ describe('TableComponent', () => {
       {playerID: 1, card: {suit: Suit.Ori, rank: 3, points: 0}},
       {playerID: 2, card: {suit: Suit.Ori, rank: 8, points: 3}},
     ];
-    const tree = renderer
-      .create(<TableComponent {...tableProps} moves={moves} />)
+    const tree = render(<TableComponent {...tableProps} moves={moves} />)
       .toJSON();
     expect(tree).toMatchSnapshot();
   });
@@ -80,8 +78,7 @@ describe('TableComponent', () => {
   it.each([2, 3, 4, 5, 6])(
     'renders the table layout for %i players',
     playerCount => {
-      const tree = renderer
-        .create(<TableComponent {...makeTableProps(playerCount)} moves={[]} />)
+      const tree = render(<TableComponent {...makeTableProps(playerCount)} moves={[]} />)
         .toJSON();
 
       expect(tree).toBeTruthy();

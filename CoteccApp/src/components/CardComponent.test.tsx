@@ -1,7 +1,7 @@
 import React from 'react';
 
 import {describe, expect, it} from '@jest/globals';
-import renderer from 'react-test-renderer';
+import {render} from '@testing-library/react-native';
 
 import CardComponent from './CardComponent';
 import {Move} from '../types';
@@ -12,8 +12,7 @@ const mockOnCardSelect = (_move: Move): void => {};
 
 describe('CardComponent', () => {
   it('should render correctly with given props', () => {
-    const tree = renderer
-      .create(
+    const tree = render(
         <CardComponent
           card={mockCardOne}
           playerID={0}

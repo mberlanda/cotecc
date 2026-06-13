@@ -1,7 +1,7 @@
 import React from 'react';
 
 import {beforeEach, describe, expect, it} from '@jest/globals';
-import renderer from 'react-test-renderer';
+import {render} from '@testing-library/react-native';
 
 import {StateDebugComponent} from './StateDebug';
 import {GameState, Player} from '../types';
@@ -22,8 +22,7 @@ describe('StateDebug', () => {
   });
 
   it('renders turn data in the initial state', () => {
-    const tree = renderer
-      .create(<StateDebugComponent state={gameState} />)
+    const tree = render(<StateDebugComponent state={gameState} />)
       .toJSON();
     expect(tree).toMatchSnapshot();
   });
@@ -44,8 +43,7 @@ describe('StateDebug', () => {
       currentPlayerID: 0,
       winnerID: 0,
     });
-    const tree = renderer
-      .create(<StateDebugComponent state={gameState} />)
+    const tree = render(<StateDebugComponent state={gameState} />)
       .toJSON();
     expect(tree).toMatchSnapshot();
   });

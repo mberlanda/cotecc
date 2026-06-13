@@ -1,6 +1,6 @@
 module.exports = {
   root: true,
-  extends: '@react-native',
+  extends: 'expo',
   plugins: ['import'],
   // rules from https://manurana.medium.com/organizing-imports-in-react-and-react-native-faf982a3a3b5
   rules: {
@@ -36,5 +36,13 @@ module.exports = {
       },
     ],
   },
-  ignorePatterns: ['**/node_modules/**', '**/coverage/**'],
+  ignorePatterns: [
+    '**/node_modules/**',
+    '**/coverage/**',
+    '**/dist/**',
+    '/android/**',
+    '/ios/**',
+    '/.expo/**',
+    '/vendor/**',
+  ],
 };
