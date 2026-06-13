@@ -54,8 +54,16 @@ not built.
   from conventional commits (already used in this repo), maintains a release PR,
   and on merge creates the tag + GitHub release + changelog, and bumps
   `expo.version` in `app.json`.
-- **Triggers, iteration 1:** pull_request + push-to-main + manual
-  (`workflow_dispatch`). The release step runs on `main` only.
+- **Triggers, iteration 1:** `verify-web` and the existing unit tests run on
+  every PR, push-to-main, and manual. The **native** jobs (`verify-android`,
+  `verify-ios`) run on push-to-main and `workflow_dispatch` always, and on a PR
+  only when it carries the **`build-native`** label — the cold Android build is
+  ~30 min and iOS consumes paid macOS minutes (decision validated against the
+  first live run). The release jobs run on `main` only.
+- **iOS toolchain:** Expo SDK 56's prebuilt frameworks require **Swift 6.2
+  (Xcode 26)**; GitHub's `macos-latest` default can be older (Xcode 16.4 /
+  Swift 6.1 was observed). The iOS job selects the newest stable Xcode via
+  `maxim-lobanov/setup-xcode@v1` (`latest-stable`).
 
 ## Phase 1 — Architecture (implemented)
 
@@ -73,7 +81,8 @@ New workflow `.github/workflows/build-release.yml` with five jobs. Existing
   CocoaPods via `actions/cache` on `CoteccApp/ios/Pods` keyed by `Podfile.lock`.
 
 ### Job: `verify-android` (ubuntu-latest)
-Triggers: pull_request, push to main, workflow_dispatch.
+Triggers: push to main, workflow_dispatch, and PRs labeled `build-native`
+(`if: github.event_name != 'pull_request' || contains(labels, 'build-native')`).
 Steps:
 1. checkout
 2. setup Node 22 (cache npm, `cache-dependency-path: CoteccApp/package-lock.json`)
@@ -86,9 +95,12 @@ Steps:
    artifact `cotecc-android-apk` (retention 14 days).
 
 ### Job: `verify-ios` (macos-latest)
-Triggers: pull_request, push to main, workflow_dispatch.
+Triggers: push to main, workflow_dispatch, and PRs labeled `build-native` (same
+`if` as verify-android).
 Steps:
 1. checkout
+1b. select newest stable Xcode (`maxim-lobanov/setup-xcode@v1`,
+   `xcode-version: latest-stable`) — required for Swift 6.2 (see decisions)
 2. setup Node 22
 3. `cd CoteccApp && npm ci`
 4. `npx expo prebuild --platform ios --no-install`
@@ -221,9 +233,13 @@ the APK can be attached by re-running `attach-artifacts` once builds are green.
 
 ## Risks
 
-- **macOS runner cost/time:** `verify-ios` on `macos-latest` is the slowest and
-  most expensive Phase-1 job; if CI minutes become a concern, it can be moved to
-  manual/main-only.
+- **Native build cost/time:** the cold Android build is ~30 min and iOS uses
+  paid macOS minutes (both observed live). Mitigated by label-gating native jobs
+  off PRs (run on main/manual/`build-native` label only) and Gradle/Pods caching.
+- **macOS Xcode lag:** SDK 56 iOS needs Swift 6.2 (Xcode 26). The job selects the
+  newest stable Xcode, but if GitHub's macOS image hasn't yet shipped a Swift-6.2
+  Xcode, local iOS builds will fail until it does — EAS (Phase 2) is the fallback
+  for iOS in that window.
 - **prebuild drift:** `expo prebuild` must produce a buildable project from
   `app.json` alone; any future config-plugin requirement must be captured in
   `app.json` (verified once in BC).

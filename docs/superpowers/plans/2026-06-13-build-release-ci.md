@@ -98,6 +98,7 @@ name: Build & Release
 on:
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, labeled]
   push:
     branches: [main]
   workflow_dispatch:
@@ -113,6 +114,11 @@ jobs:
   verify-android:
     name: Verify Android (APK)
     runs-on: ubuntu-latest
+    # Native builds are slow/expensive: always on main + manual; on PRs only when
+    # the 'build-native' label is present.
+    if: >-
+      github.event_name != 'pull_request' ||
+      contains(github.event.pull_request.labels.*.name, 'build-native')
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -145,8 +151,19 @@ jobs:
   verify-ios:
     name: Verify iOS (simulator)
     runs-on: macos-latest
+    # Native builds are slow/expensive: always on main + manual; on PRs only when
+    # the 'build-native' label is present.
+    if: >-
+      github.event_name != 'pull_request' ||
+      contains(github.event.pull_request.labels.*.name, 'build-native')
     steps:
       - uses: actions/checkout@v4
+      - name: Select newest stable Xcode
+        # Expo SDK 56's prebuilt frameworks require Swift 6.2 (Xcode 26); the
+        # runner default can be older, so pick the newest stable Xcode installed.
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
       - uses: actions/setup-node@v4
         with:
           node-version: '22.x'
