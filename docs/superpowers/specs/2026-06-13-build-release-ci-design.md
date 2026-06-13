@@ -44,8 +44,12 @@ not built.
 - **iOS in Phase 1:** compile-verification only (simulator build, no signing).
   An installable `.ipa` requires signing, deferred to Phase 2 — so iOS produces
   no release artifact in Phase 1.
-- **Android APK in Phase 1:** `assembleDebug` → debug-signed `app-debug.apk`,
-  which installs on devices without secrets. Real signing is Phase 2.
+- **Android APK in Phase 1:** `assembleRelease`. The Expo-generated
+  `android/app/build.gradle` release buildType reuses `signingConfigs.debug`
+  (verified), so the release APK is **debug-signed (installable, no secrets) and
+  bundles the JS (Hermes)** — unlike `assembleDebug`, which needs a Metro dev
+  server and cannot run standalone. The artifact is labeled debug-signed; real
+  store signing is Phase 2.
 - **Versioning:** `release-please` (Google's action) drives semantic versioning
   from conventional commits (already used in this repo), maintains a release PR,
   and on merge creates the tag + GitHub release + changelog, and bumps
@@ -55,8 +59,18 @@ not built.
 
 ## Phase 1 — Architecture (implemented)
 
-New workflow `.github/workflows/build-release.yml` with four jobs. Existing
+New workflow `.github/workflows/build-release.yml` with five jobs. Existing
 `app-build.yml` is unchanged.
+
+**Cross-cutting workflow settings:**
+- **Permissions:** workflow default `permissions: contents: read`; the `release`
+  job alone elevates to `contents: write` + `pull-requests: write`.
+- **Concurrency:** `concurrency: { group: build-release-${{ github.ref }},
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }} }` — superseded
+  PR runs are cancelled (saves macOS minutes); main/tag runs are never cancelled.
+- **Caching:** npm via `actions/setup-node` cache; Gradle via
+  `gradle/actions/setup-gradle` (or `actions/cache` on `~/.gradle/caches`);
+  CocoaPods via `actions/cache` on `CoteccApp/ios/Pods` keyed by `Podfile.lock`.
 
 ### Job: `verify-android` (ubuntu-latest)
 Triggers: pull_request, push to main, workflow_dispatch.
@@ -66,8 +80,9 @@ Steps:
 3. setup JDK 17 (Temurin)
 4. `cd CoteccApp && npm ci`
 5. `npx expo prebuild --platform android --no-install` (regenerates `android/`)
-6. `cd android && ./gradlew assembleDebug --no-daemon`
-7. upload `CoteccApp/android/app/build/outputs/apk/debug/app-debug.apk` as
+6. `cd android && ./gradlew assembleRelease --no-daemon` (release buildType is
+   debug-signed per the generated build.gradle → installable, JS bundled)
+7. upload `CoteccApp/android/app/build/outputs/apk/release/app-release.apk` as
    artifact `cotecc-android-apk` (retention 14 days).
 
 ### Job: `verify-ios` (macos-latest)
@@ -78,7 +93,11 @@ Steps:
 3. `cd CoteccApp && npm ci`
 4. `npx expo prebuild --platform ios --no-install`
 5. `cd ios && pod install`
-6. `xcodebuild -workspace CoteccApp.xcworkspace -scheme CoteccApp -configuration Release -sdk iphonesimulator -derivedDataPath build CODE_SIGNING_ALLOWED=NO build`
+6. discover the generated names (prebuild derives them from `expo.name`,
+   currently "Cotecc" → `ios/Cotecc.xcworkspace`, scheme `Cotecc`; discovered
+   dynamically so a future rename doesn't break CI):
+   `WS=$(ls -d ios/*.xcworkspace); SCHEME=$(basename "$WS" .xcworkspace)`
+   then `xcodebuild -workspace "$WS" -scheme "$SCHEME" -configuration Release -sdk iphonesimulator -derivedDataPath build CODE_SIGNING_ALLOWED=NO build`
 7. no artifact (verification only).
 
 ### Job: `verify-web` (ubuntu-latest)
@@ -88,25 +107,35 @@ Steps:
 2. `npx expo export --platform web --output-dir dist`
 3. upload `CoteccApp/dist` as artifact `cotecc-web-bundle`.
 
-### Job: `release` (ubuntu-latest, push-to-main only)
-`needs: [verify-android, verify-web]`. Permissions: `contents: write`,
-`pull-requests: write`.
+### Job: `release-please` (ubuntu-latest, push-to-main only)
+No `needs` — runs unconditionally on `main` so the release PR is maintained even
+if a native build is red. Permissions: `contents: write`, `pull-requests:
+write`. Step: `googleapis/release-please-action@v4` configured via
+`release-please-config.json` + `.release-please-manifest.json`; outputs
+`release_created` and `tag_name`.
+
+### Job: `attach-artifacts` (ubuntu-latest, push-to-main only)
+`needs: [release-please, verify-android, verify-web]`; runs only when
+`needs.release-please.outputs.release_created == 'true'`. Permissions:
+`contents: write`.
 Steps:
-1. `googleapis/release-please-action@v4` configured via
-   `release-please-config.json` + `.release-please-manifest.json`. Outputs
-   `release_created` and `tag_name`.
-2. If `release_created == 'true'`:
-   - `actions/download-artifact` for `cotecc-android-apk` and
-     `cotecc-web-bundle`.
-   - zip the web bundle: `zip -r cotecc-web-${tag}.zip dist`.
-   - `gh release upload "$tag_name" app-debug.apk cotecc-web-*.zip`.
+1. `actions/download-artifact` for `cotecc-android-apk` and `cotecc-web-bundle`.
+2. zip the web bundle: `zip -r "cotecc-web-${tag}.zip" dist`.
+3. `gh release upload "$tag_name" app-release.apk "cotecc-web-${tag}.zip" --clobber`.
+
+If a verify job was red, the release/tag/changelog are still created (decoupled);
+the APK can be attached by re-running `attach-artifacts` once builds are green.
 
 ### release-please configuration
-- `release-please-config.json` (repo root): single package rooted at `.`,
-  `release-type: node`, `package-name: cotecc`, and `extra-files` updating
-  `CoteccApp/app.json` (json path `$.expo.version`) and bumping
-  `CoteccApp/package.json`.
-- `.release-please-manifest.json`: `{ ".": "1.0.0" }` (current app version).
+- `release-please-config.json` (repo root): single package keyed `"."` with
+  **`release-type: simple`** (the repo root is not a node package, so no
+  `package.json` is assumed at root), `package-name: cotecc`,
+  `include-component-in-tag: false` (tag = `vX.Y.Z`, which Phase 2's `v*`
+  trigger relies on), and `extra-files` to bump the version in
+  `CoteccApp/app.json` (json path `$.expo.version`) and `CoteccApp/package.json`
+  (json path `$.version`).
+- `.release-please-manifest.json`: `{ ".": "1.0.0" }` (matches the current
+  `CoteccApp/app.json` `expo.version`).
 - Conventional commits map: `feat:` → minor, `fix:` → patch, `feat!:`/`BREAKING
   CHANGE` → major, others (`chore`/`docs`/`test`/`build`) → no release.
 
