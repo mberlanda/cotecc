@@ -62,3 +62,44 @@ ensure_java() {
     return 1
   fi
 }
+
+# _sdk_install_if_missing <pkg> <dir-under-ANDROID_HOME>
+# Installs an sdkmanager package only if its directory is absent (idempotent).
+_sdk_install_if_missing() {
+  local pkg="$1" dir="$2"
+  if [ -d "$ANDROID_HOME/$dir" ]; then
+    return 0
+  fi
+  echo "Installing $pkg ..."
+  yes | sdkmanager --sdk_root="$ANDROID_HOME" "$pkg" >/dev/null
+}
+
+# ensure_android_sdk: set ANDROID_HOME, install required packages, accept licenses.
+# Versions default to documented values but, if a generated android/build.gradle
+# is present, are overridden by what Gradle actually requires (drift-proof).
+ensure_android_sdk() {
+  : "${ANDROID_HOME:=$HOME/Library/Android/sdk}"
+  export ANDROID_HOME
+  mkdir -p "$ANDROID_HOME"
+
+  if ! command -v sdkmanager >/dev/null 2>&1; then
+    echo "ERROR: sdkmanager not found. Install the command-line tools:" >&2
+    echo "  brew install --cask android-commandlinetools" >&2
+    echo "See doc/DEVELOPMENT.md." >&2
+    return 1
+  fi
+
+  local build_tools="35.0.0" platform="35" ndk="27.1.12297006" gradle_file="$1"
+  if [ -n "${gradle_file:-}" ] && [ -f "$gradle_file" ]; then
+    build_tools="$(gradle_ext_value buildToolsVersion "$gradle_file")"; build_tools="${build_tools:-35.0.0}"
+    platform="$(gradle_ext_value compileSdkVersion "$gradle_file")"; platform="${platform:-35}"
+    ndk="$(gradle_ext_value ndkVersion "$gradle_file")"; ndk="${ndk:-27.1.12297006}"
+  fi
+
+  _sdk_install_if_missing "platform-tools"            "platform-tools"
+  _sdk_install_if_missing "build-tools;$build_tools"  "build-tools/$build_tools"
+  _sdk_install_if_missing "platforms;android-$platform" "platforms/android-$platform"
+  _sdk_install_if_missing "ndk;$ndk"                  "ndk/$ndk"
+
+  yes | sdkmanager --sdk_root="$ANDROID_HOME" --licenses >/dev/null 2>&1 || true
+}
