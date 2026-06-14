@@ -64,10 +64,14 @@ ensure_java() {
 }
 
 # _sdk_install_if_missing <pkg> <dir-under-ANDROID_HOME>
-# Installs an sdkmanager package only if its directory is absent (idempotent).
+# Installs an sdkmanager package only if it is not already fully installed
+# (idempotent). Completion is detected via the `source.properties` marker that
+# sdkmanager writes to every installed package — a bare directory can be a
+# partial/interrupted install (e.g. a download aborted on low disk) and must be
+# retried, not skipped.
 _sdk_install_if_missing() {
   local pkg="$1" dir="$2"
-  if [ -d "$ANDROID_HOME/$dir" ]; then
+  if [ -f "$ANDROID_HOME/$dir/source.properties" ]; then
     return 0
   fi
   echo "Installing $pkg ..."

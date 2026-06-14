@@ -28,4 +28,27 @@ check "missing key -> empty"       ""              "$(gradle_ext_value nopeVersi
 check "java major from 17.0.11" "17" "$(printf 'openjdk version "17.0.11" 2024-04-16\n' | java_major_version)"
 check "java major from 1.8.0"   "8"  "$(printf 'java version "1.8.0_392"\n' | java_major_version)"
 
+# _sdk_install_if_missing skips fully-installed packages (source.properties present)
+# but retries partial installs (directory exists but marker is missing). A stub
+# sdkmanager records whether an install was attempted. The stub does not read
+# stdin, so the `{ yes || true; }` writer simply gets SIGPIPE — no hang.
+SDK_HOME="$(mktemp -d)"
+export ANDROID_HOME="$SDK_HOME"
+sdkmanager() { : > "$ANDROID_HOME/.install_attempted"; }
+attempted() { [ -e "$ANDROID_HOME/.install_attempted" ] && echo yes || echo no; }
+
+mkdir -p "$SDK_HOME/platform-tools"
+printf 'Pkg.Revision=35.0.0\n' > "$SDK_HOME/platform-tools/source.properties"
+rm -f "$SDK_HOME/.install_attempted"
+_sdk_install_if_missing "platform-tools" "platform-tools" >/dev/null
+check "skip fully-installed package" "no" "$(attempted)"
+
+mkdir -p "$SDK_HOME/ndk/27.1.12297006/.installer"   # partial: no source.properties
+rm -f "$SDK_HOME/.install_attempted"
+_sdk_install_if_missing "ndk;27.1.12297006" "ndk/27.1.12297006" >/dev/null
+check "retry partial install" "yes" "$(attempted)"
+
+unset -f sdkmanager
+rm -rf "$SDK_HOME"
+
 exit "$fail"
