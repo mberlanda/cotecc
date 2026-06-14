@@ -89,7 +89,7 @@ ensure_android_sdk() {
     return 1
   fi
 
-  local build_tools="35.0.0" platform="35" ndk="27.1.12297006" gradle_file="$1"
+  local build_tools="35.0.0" platform="35" ndk="27.1.12297006" gradle_file="${1:-}"
   if [ -n "${gradle_file:-}" ] && [ -f "$gradle_file" ]; then
     build_tools="$(gradle_ext_value buildToolsVersion "$gradle_file")"; build_tools="${build_tools:-35.0.0}"
     platform="$(gradle_ext_value compileSdkVersion "$gradle_file")"; platform="${platform:-35}"
