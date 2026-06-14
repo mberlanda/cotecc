@@ -13,9 +13,9 @@ jobs:
         working-directory: CoteccApp
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     - name: Use Node 22.x
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version: '22.x'
         cache: 'npm'
@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     - name: Build web image
       run: docker compose build cotecc-web
     - name: Start web service
