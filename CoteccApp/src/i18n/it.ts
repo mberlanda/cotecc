@@ -48,8 +48,9 @@ const it = {
   versusComputer: 'Contro computer',
   waitingForLead: 'In attesa della prima carta',
   welcome: 'Benvenuto',
-  winsGame: 'vince la partita!',
-  noWinner: 'Partita finita - nessun vincitore',
+  gameOver: 'Partita finita',
+  you: '(Tu)',
+  yourPosition: 'La tua posizione:',
   yourHand: 'Le tue carte',
 } as const;
 

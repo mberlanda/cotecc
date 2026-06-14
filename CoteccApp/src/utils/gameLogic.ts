@@ -1,8 +1,9 @@
+import {aiMoveToPlay} from './aiPlayerLogic';
 import {cardIsGreater} from './cardsLogic';
 import {validateMove} from './movesLogic';
 import {nextHandPlayerID} from './playerHandLogic';
 import {updateLivesCount} from './playerLogic';
-import {computeRoundOutcome, newRound} from './roundLogic';
+import {computeRoundOutcome, newRound, nextRound} from './roundLogic';
 import {roundIsOver} from './roundLogic';
 import {endTurn, resetTurnState} from './turnLogic';
 import {
@@ -26,6 +27,7 @@ export const newGame = (
     currentRound: newRound(1, initialPlayerID, players),
     pastRounds: [],
     maxLifeCount: maxLifeCount,
+    eliminationOrder: [],
   };
 };
 
@@ -121,7 +123,12 @@ export const endRound = (gameState: GameState): void => {
   const roundOutcome = computeRoundOutcome(gameState.currentRound);
   gameState.currentRound.result = roundOutcome;
   updateLivesCount(gameState.players, roundOutcome, gameState.maxLifeCount);
-  checkForElimination(gameState.players);
+  const eliminated = checkForElimination(gameState.players);
+  eliminated.forEach(player => {
+    if (!gameState.eliminationOrder.includes(player.ID)) {
+      gameState.eliminationOrder.push(player.ID);
+    }
+  });
   gameState.pastRounds.push({...gameState.currentRound});
 };
 
@@ -153,7 +160,64 @@ export const isGameOver = (players: Player[]): boolean => {
   return players.filter(p => p.lifeCount > 0).length <= 1;
 };
 
+// The human player is out as soon as they run out of lives, even if AI players
+// are still in the game — at that point the game is over for them.
+export const isHumanEliminated = (players: Player[]): boolean => {
+  const human = players.find(p => p.isHuman);
+  return human !== undefined && human.lifeCount === 0;
+};
+
 export const getGameWinner = (players: Player[]): Player | undefined => {
   const activePlayers = players.filter(p => p.lifeCount > 0);
   return activePlayers.length === 1 ? activePlayers[0] : undefined;
+};
+
+// Final ranking for the podium: survivors first (most lives wins), then the
+// eliminated players from last-eliminated to first-eliminated.
+export const getFinalStandings = (gameState: GameState): Player[] => {
+  const {players, eliminationOrder} = gameState;
+  const survivors = players
+    .filter(p => p.lifeCount > 0)
+    .sort((a, b) => b.lifeCount - a.lifeCount);
+  const eliminated = [...eliminationOrder]
+    .reverse()
+    .map(id => players.find(p => p.ID === id))
+    .filter((p): p is Player => p !== undefined);
+
+  const ranked = [...survivors, ...eliminated];
+  // Safety net: append any player not captured above (should not happen).
+  const seen = new Set(ranked.map(p => p.ID));
+  players.forEach(p => {
+    if (!seen.has(p.ID)) {
+      ranked.push(p);
+    }
+  });
+  return ranked;
+};
+
+// Fast-forward the rest of the game with AI moves until a winner emerges. Used
+// when the human is knocked out but we still want the final standings/podium.
+export const simulateGameToEnd = (gameState: GameState): void => {
+  // Bound the loop so a pathological state can never hang the UI.
+  const maxIterations = 10000;
+  let iterations = 0;
+  while (!isGameOver(gameState.players) && iterations++ < maxIterations) {
+    const round = gameState.currentRound;
+    if (roundIsOver(round)) {
+      nextRound(gameState);
+      continue;
+    }
+    const currentPlayerID = round.currentTurn.currentPlayerID;
+    const hand = round.players.find(p => p.playerID === currentPlayerID);
+    if (!hand) {
+      break;
+    }
+    const move = aiMoveToPlay(
+      hand,
+      round.currentTurn,
+      round.pastTurns,
+      round.players.length,
+    );
+    playCard(gameState, move.playerID, move.card);
+  }
 };
