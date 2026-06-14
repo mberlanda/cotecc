@@ -10,6 +10,7 @@ APP_DIR="$SCRIPT_DIR/../CoteccApp"
 source "$SCRIPT_DIR/lib/android-env.sh"
 
 ensure_java
+ensure_node
 
 cd "$APP_DIR"
 npm ci --silent

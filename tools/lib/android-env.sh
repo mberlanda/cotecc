@@ -111,6 +111,48 @@ ensure_android_sdk() {
   yes | sdkmanager --sdk_root="$ANDROID_HOME" --licenses >/dev/null 2>&1 || true
 }
 
+# Minimum Node version. Matches the project's declared requirement
+# (CoteccApp/package.json `engines.node` >= 22.13.0, root .nvmrc 22). Node 18
+# also breaks the release JS bundle, which uses Array.prototype.toReversed
+# (added in Node 20).
+NODE_MIN_VERSION="22.13.0"
+
+# _node_version_ok <vstring>: true if a node version (e.g. "v22.15.0" or
+# "20.19.4") is >= NODE_MIN_VERSION.
+_node_version_ok() {
+  local v="${1#v}"
+  [ -n "$v" ] || return 1
+  [ "$(printf '%s\n%s\n' "$NODE_MIN_VERSION" "$v" | sort -V | head -1)" = "$NODE_MIN_VERSION" ]
+}
+
+# ensure_node: guarantee `node` on PATH is >= NODE_MIN_VERSION. Uses the active
+# node if new enough; otherwise activates the highest compatible version via nvm
+# (honoring .nvmrc first). Exits non-zero with guidance if none is available.
+ensure_node() {
+  if command -v node >/dev/null 2>&1 && _node_version_ok "$(node -v 2>/dev/null)"; then
+    return 0
+  fi
+  local nvm_sh="${NVM_DIR:-$HOME/.nvm}/nvm.sh"
+  if [ -s "$nvm_sh" ]; then
+    # shellcheck source=/dev/null
+    . "$nvm_sh" >/dev/null 2>&1 || true
+    [ -f .nvmrc ] && nvm use >/dev/null 2>&1 || true
+    if ! _node_version_ok "$(node -v 2>/dev/null)"; then
+      local v best=""
+      for v in $(nvm ls --no-colors 2>/dev/null | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | sort -V); do
+        _node_version_ok "$v" && best="$v"
+      done
+      [ -n "$best" ] && nvm use "$best" >/dev/null 2>&1 || true
+    fi
+  fi
+  if command -v node >/dev/null 2>&1 && _node_version_ok "$(node -v 2>/dev/null)"; then
+    return 0
+  fi
+  echo "ERROR: Node >= $NODE_MIN_VERSION required (found $(node -v 2>/dev/null || echo none))." >&2
+  echo "  Install/activate a compatible version, e.g.: nvm install 22 && nvm use 22" >&2
+  return 1
+}
+
 # _abi_for_host_arch <uname-m>: map a host machine architecture to the matching
 # Android ABI (what an emulator/device on that host typically uses).
 _abi_for_host_arch() {

@@ -60,4 +60,12 @@ check "host unknown -> arm64-v8a" "arm64-v8a" "$(_abi_for_host_arch sparc)"
 # default_android_abi honors an explicit override.
 check "abi override honored" "x86,x86_64" "$(REACT_NATIVE_ARCHITECTURES='x86,x86_64' default_android_abi)"
 
+# _node_version_ok compares against NODE_MIN_VERSION (22.13.0).
+check "node 18 too old"      "no"  "$(_node_version_ok v18.18.2 && echo yes || echo no)"
+check "node 20.19.4 too old" "no"  "$(_node_version_ok v20.19.4 && echo yes || echo no)"
+check "node 22.12 too old"   "no"  "$(_node_version_ok v22.12.0 && echo yes || echo no)"
+check "node 22.13.0 ok"      "yes" "$(_node_version_ok v22.13.0 && echo yes || echo no)"
+check "node 24.15 ok"        "yes" "$(_node_version_ok 24.15.0 && echo yes || echo no)"
+check "node empty -> no"     "no"  "$(_node_version_ok "" && echo yes || echo no)"
+
 exit "$fail"
