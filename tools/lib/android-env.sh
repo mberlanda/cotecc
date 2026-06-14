@@ -71,7 +71,10 @@ _sdk_install_if_missing() {
     return 0
   fi
   echo "Installing $pkg ..."
-  yes | sdkmanager --sdk_root="$ANDROID_HOME" "$pkg" >/dev/null
+  # `yes` is killed by SIGPIPE once sdkmanager stops reading; `|| true` keeps that
+  # from tripping `set -o pipefail`, while sdkmanager's own exit status still
+  # propagates as the rightmost command in the pipeline.
+  { yes || true; } | sdkmanager --sdk_root="$ANDROID_HOME" "$pkg" >/dev/null
 }
 
 # ensure_android_sdk: set ANDROID_HOME, install required packages, accept licenses.
