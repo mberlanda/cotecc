@@ -110,3 +110,34 @@ ensure_android_sdk() {
 
   yes | sdkmanager --sdk_root="$ANDROID_HOME" --licenses >/dev/null 2>&1 || true
 }
+
+# _abi_for_host_arch <uname-m>: map a host machine architecture to the matching
+# Android ABI (what an emulator/device on that host typically uses).
+_abi_for_host_arch() {
+  case "$1" in
+    arm64|aarch64) printf 'arm64-v8a' ;;
+    x86_64|amd64)  printf 'x86_64' ;;
+    *)             printf 'arm64-v8a' ;;
+  esac
+}
+
+# default_android_abi: choose which ABI(s) to build for, best signal first:
+#   1. explicit REACT_NATIVE_ARCHITECTURES override
+#   2. a connected device/emulator's own ABI (build exactly what will run it)
+#   3. the host architecture (arm64 -> arm64-v8a, x86_64 -> x86_64)
+# Local builds target one ABI to save time/disk; CI builds all of them.
+default_android_abi() {
+  if [ -n "${REACT_NATIVE_ARCHITECTURES:-}" ]; then
+    printf '%s' "$REACT_NATIVE_ARCHITECTURES"
+    return 0
+  fi
+  local adb="${ANDROID_HOME:-$HOME/Library/Android/sdk}/platform-tools/adb" abi=""
+  if [ -x "$adb" ]; then
+    abi="$("$adb" shell getprop ro.product.cpu.abi 2>/dev/null | tr -d '\r\n')"
+  fi
+  if [ -n "$abi" ]; then
+    printf '%s' "$abi"
+  else
+    _abi_for_host_arch "$(uname -m)"
+  fi
+}

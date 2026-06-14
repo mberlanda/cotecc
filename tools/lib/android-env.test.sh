@@ -51,4 +51,13 @@ check "retry partial install" "yes" "$(attempted)"
 unset -f sdkmanager
 rm -rf "$SDK_HOME"
 
+# _abi_for_host_arch maps host machine arch to an Android ABI.
+check "host arm64 -> arm64-v8a"  "arm64-v8a" "$(_abi_for_host_arch arm64)"
+check "host aarch64 -> arm64-v8a" "arm64-v8a" "$(_abi_for_host_arch aarch64)"
+check "host x86_64 -> x86_64"    "x86_64"    "$(_abi_for_host_arch x86_64)"
+check "host unknown -> arm64-v8a" "arm64-v8a" "$(_abi_for_host_arch sparc)"
+
+# default_android_abi honors an explicit override.
+check "abi override honored" "x86,x86_64" "$(REACT_NATIVE_ARCHITECTURES='x86,x86_64' default_android_abi)"
+
 exit "$fail"
