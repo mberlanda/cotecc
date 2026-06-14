@@ -48,8 +48,9 @@ const en = {
   versusComputer: 'Versus computer',
   waitingForLead: 'Waiting for the lead card',
   welcome: 'Welcome',
-  winsGame: 'wins the game!',
-  noWinner: 'Game Over - No winner',
+  gameOver: 'Game Over',
+  you: '(You)',
+  yourPosition: 'Your position:',
   yourHand: 'Your hand',
 } as const;
 

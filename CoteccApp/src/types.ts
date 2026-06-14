@@ -62,6 +62,9 @@ export interface GameState {
   currentRound: Round;
   pastRounds: Round[];
   readonly maxLifeCount: number;
+  // Player IDs in the order they were permanently eliminated (earliest first).
+  // Drives the final standings / podium.
+  eliminationOrder: PlayerID[];
 }
 
 export const newSuitMap = <T>(createDefaultValue: () => T): Record<Suit, T> => {

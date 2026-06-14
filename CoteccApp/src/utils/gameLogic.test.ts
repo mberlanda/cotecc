@@ -5,12 +5,15 @@ import {Suit} from './constants';
 import {
   checkForElimination,
   endRound,
+  getFinalStandings,
   getGameWinner,
   isGameOver,
+  isHumanEliminated,
   makeMove,
   newGame,
   nextMove,
   playCard,
+  simulateGameToEnd,
 } from './gameLogic';
 import {newTurn} from './turnLogic';
 import {Card, GameState, Player} from '../types';
@@ -219,6 +222,73 @@ describe('gameLogic', () => {
         {ID: 1, name: 'b', lifeCount: 0, isHuman: false},
       ];
       expect(isGameOver(testPlayers)).toBe(true);
+    });
+  });
+
+  describe('isHumanEliminated', () => {
+    it('returns true when the human player has no lives, even if AI players remain active', () => {
+      const testPlayers: Player[] = [
+        {ID: 0, name: 'a', lifeCount: 0, isHuman: true},
+        {ID: 1, name: 'b', lifeCount: 3, isHuman: false},
+        {ID: 2, name: 'c', lifeCount: 2, isHuman: false},
+      ];
+      expect(isHumanEliminated(testPlayers)).toBe(true);
+    });
+
+    it('returns false when the human player still has lives', () => {
+      const testPlayers: Player[] = [
+        {ID: 0, name: 'a', lifeCount: 1, isHuman: true},
+        {ID: 1, name: 'b', lifeCount: 0, isHuman: false},
+      ];
+      expect(isHumanEliminated(testPlayers)).toBe(false);
+    });
+
+    it('returns false when there is no human player', () => {
+      const testPlayers: Player[] = [
+        {ID: 0, name: 'a', lifeCount: 0, isHuman: false},
+        {ID: 1, name: 'b', lifeCount: 3, isHuman: false},
+      ];
+      expect(isHumanEliminated(testPlayers)).toBe(false);
+    });
+  });
+
+  describe('getFinalStandings', () => {
+    it('ranks the survivor first, then eliminated players in reverse elimination order', () => {
+      gameState.players = [
+        {ID: 0, name: 'a', lifeCount: 0, isHuman: true},
+        {ID: 1, name: 'b', lifeCount: 0, isHuman: false},
+        {ID: 2, name: 'c', lifeCount: 2, isHuman: false},
+      ];
+      // 'a' was eliminated first, then 'b'; 'c' is the last one standing.
+      gameState.eliminationOrder = [0, 1];
+
+      expect(getFinalStandings(gameState).map(p => p.ID)).toEqual([2, 1, 0]);
+    });
+
+    it('orders multiple survivors by remaining lives, highest first', () => {
+      gameState.players = [
+        {ID: 0, name: 'a', lifeCount: 1, isHuman: true},
+        {ID: 1, name: 'b', lifeCount: 3, isHuman: false},
+      ];
+      gameState.eliminationOrder = [];
+
+      expect(getFinalStandings(gameState).map(p => p.ID)).toEqual([1, 0]);
+    });
+  });
+
+  describe('simulateGameToEnd', () => {
+    it('plays out the remaining game until a single player has lives', () => {
+      gameState.players.forEach(p => (p.lifeCount = 1));
+
+      simulateGameToEnd(gameState);
+
+      expect(isGameOver(gameState.players)).toBe(true);
+      expect(gameState.players.filter(p => p.lifeCount > 0).length).toBe(1);
+      // Everyone but the survivor is recorded in elimination order.
+      expect(gameState.eliminationOrder.length).toBe(
+        gameState.players.length - 1,
+      );
+      expect(getFinalStandings(gameState)[0].lifeCount).toBeGreaterThan(0);
     });
   });
 

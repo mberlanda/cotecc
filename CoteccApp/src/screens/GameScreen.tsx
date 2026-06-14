@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {ScrollView, StyleSheet, Text, View} from 'react-native';
 
 import {useLocalSearchParams} from 'expo-router';
@@ -6,6 +6,7 @@ import {useLocalSearchParams} from 'expo-router';
 import DealCardsButton from '../components/DealCardsButton';
 import PastTurn from '../components/PastTurn';
 import PlayerHandComponent from '../components/PlayerHandComponent';
+import Podium from '../components/Podium';
 import {StateDebugComponent} from '../components/StateDebug';
 import StickyHeader from '../components/StickyHeader';
 import TableComponent from '../components/TableComponent';
@@ -13,7 +14,15 @@ import {Language, translate} from '../i18n';
 import {theme} from '../theme';
 import {GameState, Move} from '../types';
 import {aiMoveToPlay} from '../utils/aiPlayerLogic';
-import {getGameWinner, isGameOver, newGame, playCard} from '../utils/gameLogic';
+import {GAME_OVER_SIM_DELAY_MS, ROUND_END_DELAY_MS} from '../utils/constants';
+import {
+  getFinalStandings,
+  isGameOver,
+  isHumanEliminated,
+  newGame,
+  playCard,
+  simulateGameToEnd,
+} from '../utils/gameLogic';
 import {generatePlayers} from '../utils/playerLogic';
 import {nextRound} from '../utils/roundLogic';
 import {boolParam, firstParam, numberParam} from '../utils/searchParams';
@@ -35,6 +44,11 @@ const GameScreen: React.FC = () => {
   const [localGameState, setLocalGameState] = useState<GameState>(() => {
     return newGame(initialPlayers, initialPlayers[0].ID, maxLifeCount);
   });
+  // When a round ends we keep the final trick on screen for a moment before
+  // revealing the deal view for the next round (see ROUND_END_DELAY_MS). We
+  // track the round whose delay has elapsed rather than a bare boolean, so the
+  // deal view resets automatically once the next round is dealt.
+  const [dealReadyRoundId, setDealReadyRoundId] = useState<number | null>(null);
 
   const handleCardSelect = (move: Move) => {
     if (
@@ -78,8 +92,26 @@ const GameScreen: React.FC = () => {
     }
   });
 
-  const gameOver = isGameOver(localGameState.players);
-  const winner = gameOver ? getGameWinner(localGameState.players) : undefined;
+  const humanEliminated = isHumanEliminated(localGameState.players);
+  const gameOver = isGameOver(localGameState.players) || humanEliminated;
+  // The human is out but AI players are still in: fast-forward to the finish so
+  // we can show the final podium instead of leaving the player watching.
+  const simulationPending =
+    humanEliminated && !isGameOver(localGameState.players);
+  const simulatedRef = useRef(false);
+
+  useEffect(() => {
+    if (!simulationPending || simulatedRef.current) {
+      return;
+    }
+    simulatedRef.current = true;
+    const timer = setTimeout(() => {
+      simulateGameToEnd(localGameState);
+      setLocalGameState({...localGameState});
+    }, GAME_OVER_SIM_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [simulationPending, localGameState]);
+
   const currentPlayer = localGameState.players.find(
     player =>
       player.ID === localGameState.currentRound.currentTurn.currentPlayerID,
@@ -90,6 +122,23 @@ const GameScreen: React.FC = () => {
   const humanHand = localGameState.currentRound.players.find(
     player => player.isHuman,
   );
+
+  const roundId = localGameState.currentRound.ID;
+
+  // Delay the deal view after a round ends so the last trick stays visible.
+  useEffect(() => {
+    if (!roundReadyForDeal || gameOver) {
+      return;
+    }
+    const timer = setTimeout(
+      () => setDealReadyRoundId(roundId),
+      ROUND_END_DELAY_MS,
+    );
+    return () => clearTimeout(timer);
+  }, [roundReadyForDeal, gameOver, roundId]);
+
+  const dealViewReady =
+    roundReadyForDeal && !gameOver && dealReadyRoundId === roundId;
 
   const doDealCards = () => {
     nextRound(localGameState);
@@ -118,12 +167,19 @@ const GameScreen: React.FC = () => {
         </Text>
       </View>
       {gameOver ? (
-        <View style={styles.gameSummaryContainer}>
-          <Text style={styles.gameOverText}>
-            {winner ? `${winner.name} ${t('winsGame')}` : t('noWinner')}
-          </Text>
-        </View>
-      ) : roundReadyForDeal ? (
+        simulationPending ? (
+          <View style={styles.gameSummaryContainer}>
+            <Text style={styles.gameOverText}>{t('gameOver')}</Text>
+          </View>
+        ) : (
+          <Podium
+            standings={getFinalStandings(localGameState)}
+            title={t('gameOver')}
+            youLabel={t('you')}
+            positionLabel={t('yourPosition')}
+          />
+        )
+      ) : roundReadyForDeal && dealViewReady ? (
         <View style={styles.gameSummaryContainer}>
           <Text style={styles.roundTitle}>{t('roundComplete')}</Text>
           <DealCardsButton doDealCards={doDealCards} title={t('dealCards')} />
