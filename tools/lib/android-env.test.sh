@@ -24,4 +24,8 @@ check "buildToolsVersion (quoted)" "35.0.0"        "$(gradle_ext_value buildTool
 check "compileSdkVersion (int)"    "35"            "$(gradle_ext_value compileSdkVersion "$FIXTURE")"
 check "missing key -> empty"       ""              "$(gradle_ext_value nopeVersion "$FIXTURE")"
 
+# java_major_version parses `java -version` style output (handles 1.8 and 17).
+check "java major from 17.0.11" "17" "$(printf 'openjdk version "17.0.11" 2024-04-16\n' | java_major_version)"
+check "java major from 1.8.0"   "8"  "$(printf 'java version "1.8.0_392"\n' | java_major_version)"
+
 exit "$fail"
