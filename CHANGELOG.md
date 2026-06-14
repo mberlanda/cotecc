@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.1](https://github.com/mberlanda/cotecc/compare/v1.2.0...v1.2.1) (2026-06-14)
+
+
+### Features
+
+* **game:** round-end delay + game-over podium with final standings ([#48](https://github.com/mberlanda/cotecc/issues/48)) ([2cc7786](https://github.com/mberlanda/cotecc/commit/2cc7786f8e280bf2d7216ac3613c7333aaf9b9ce))
+* **tools:** reproducible local Android builds ([#46](https://github.com/mberlanda/cotecc/issues/46)) ([b490834](https://github.com/mberlanda/cotecc/commit/b4908343771ef1b4af69a62c26b8ea714e347bc6))
+
 ## [1.2.0](https://github.com/mberlanda/cotecc/compare/v1.1.0...v1.2.0) (2026-06-14)
 
 
