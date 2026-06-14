@@ -6,7 +6,6 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
 
@@ -17,15 +16,10 @@ import PrimaryButton from '../components/PrimaryButton';
 import {Language, languageOptions, translate} from '../i18n';
 import {theme} from '../theme';
 
-type AccountMode = 'login' | 'register' | 'password';
-
 const AuthScreen = () => {
   const router = useRouter();
   const [language, setLanguage] = useState<Language>('en');
-  const [mode, setMode] = useState<AccountMode>('login');
   const [guestName, setGuestName] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
   const t = (key: Parameters<typeof translate>[1]) => translate(language, key);
 
   const continueAsGuest = () => {
@@ -38,32 +32,6 @@ const AuthScreen = () => {
     router.push({
       pathname: '/home',
       params: {name: displayName, sessionType: 'guest', language},
-    });
-  };
-
-  const continueWithAccount = () => {
-    const displayName = username.trim();
-    const typedPassword = password.trim();
-    if (!displayName) {
-      Alert.alert(t('emailRequired'), t('emailRequiredMessage'));
-      return;
-    }
-
-    if (!typedPassword) {
-      Alert.alert(t('passwordRequired'), t('passwordRequiredMessage'));
-      return;
-    }
-
-    if (mode === 'password') {
-      Alert.alert(t('passwordChanged'), t('passwordChangedMessage'));
-      setMode('login');
-      setPassword('');
-      return;
-    }
-
-    router.push({
-      pathname: '/home',
-      params: {name: displayName, sessionType: mode, language},
     });
   };
 
@@ -113,51 +81,6 @@ const AuthScreen = () => {
         <PrimaryButton title={t('playAsGuest')} onPress={continueAsGuest} />
       </View>
 
-      <View style={styles.panel}>
-        <View style={styles.panelHeader}>
-          <Text style={styles.panelTitle}>{t('account')}</Text>
-          <Text style={styles.panelHint}>{t('accountHint')}</Text>
-        </View>
-        <View style={styles.segmentedControl}>
-          {(['login', 'register', 'password'] as AccountMode[]).map(item => (
-            <TouchableOpacity
-              key={item}
-              onPress={() => setMode(item)}
-              style={[
-                styles.segment,
-                mode === item ? styles.segmentActive : null,
-              ]}>
-              <Text
-                style={[
-                  styles.segmentText,
-                  mode === item ? styles.segmentTextActive : null,
-                ]}>
-                {item === 'password' ? t('changePassword') : t(item)}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        <TextInput
-          style={styles.input}
-          onChangeText={setUsername}
-          value={username}
-          placeholder={t('username')}
-          placeholderTextColor={theme.colors.inkMuted}
-          autoCapitalize="none"
-        />
-        <TextInput
-          style={styles.input}
-          onChangeText={setPassword}
-          value={password}
-          placeholder={t('password')}
-          placeholderTextColor={theme.colors.inkMuted}
-          secureTextEntry
-        />
-        <PrimaryButton
-          title={mode === 'password' ? t('changePassword') : t('continue')}
-          onPress={continueWithAccount}
-        />
-      </View>
     </ScrollView>
   );
 };
@@ -233,32 +156,6 @@ const styles = StyleSheet.create({
     color: theme.colors.inkMuted,
     fontSize: 13,
     fontWeight: '700',
-  },
-  segmentedControl: {
-    flexDirection: 'row',
-    gap: theme.spacing.xs,
-    padding: theme.spacing.xs,
-    borderRadius: theme.radii.md,
-    backgroundColor: theme.colors.surfaceMuted,
-  },
-  segment: {
-    flex: 1,
-    minHeight: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: theme.radii.sm,
-    paddingHorizontal: theme.spacing.xs,
-  },
-  segmentActive: {
-    backgroundColor: theme.colors.primary,
-  },
-  segmentText: {
-    color: theme.colors.ink,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  segmentTextActive: {
-    color: theme.colors.white,
   },
   input: {
     minHeight: 48,
