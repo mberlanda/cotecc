@@ -25,17 +25,17 @@ jobs:
       github.event_name != 'pull_request' ||
       contains(github.event.pull_request.labels.*.name, 'build-native')
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: '22.x'
           cache: npm
           cache-dependency-path: CoteccApp/package-lock.json
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
       - name: Install JS deps
         working-directory: CoteccApp
         run: npm ci
@@ -47,7 +47,7 @@ jobs:
       - name: Assemble release APK (debug-signed, installable)
         working-directory: CoteccApp/android
         run: ./gradlew assembleRelease --no-daemon
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: cotecc-android-apk
           path: CoteccApp/android/app/build/outputs/apk/release/app-release.apk
@@ -62,14 +62,14 @@ jobs:
       github.event_name != 'pull_request' ||
       contains(github.event.pull_request.labels.*.name, 'build-native')
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Select newest stable Xcode
         # Expo SDK 56's prebuilt frameworks require Swift 6.2 (Xcode 26); the
         # runner default can be older, so pick the newest stable Xcode installed.
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: latest-stable
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: '22.x'
           cache: npm
@@ -83,7 +83,7 @@ jobs:
         working-directory: CoteccApp
         run: npx expo prebuild --platform ios --no-install
       - name: Cache Pods
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: CoteccApp/ios/Pods
           key: pods-${{ hashFiles('CoteccApp/package-lock.json') }}
@@ -105,8 +105,8 @@ jobs:
     name: Verify Web (export)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: '22.x'
           cache: npm
@@ -119,7 +119,7 @@ jobs:
       - name: Export web bundle
         working-directory: CoteccApp
         run: npx expo export --platform web --output-dir dist
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: cotecc-web-bundle
           path: CoteccApp/dist
@@ -136,7 +136,7 @@ jobs:
       release_created: ${{ steps.rp.outputs.release_created }}
       tag_name: ${{ steps.rp.outputs.tag_name }}
     steps:
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@v5
         id: rp
         with:
           config-file: release-please-config.json
@@ -150,11 +150,11 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: cotecc-android-apk
           path: apk
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: cotecc-web-bundle
           path: web
