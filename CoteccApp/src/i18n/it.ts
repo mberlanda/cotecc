@@ -17,6 +17,7 @@ const it = {
   home: 'Home',
   howToPlay: 'Come si gioca',
   language: 'Lingua',
+  life: 'vita',
   lives: 'Vite',
   login: 'Login',
   multiplayer: 'Multiplayer',

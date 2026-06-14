@@ -17,6 +17,7 @@ const es = {
   home: 'Inicio',
   howToPlay: 'Cómo jugar',
   language: 'Idioma',
+  life: 'vida',
   lives: 'Vidas',
   login: 'Login',
   multiplayer: 'Multijugador',

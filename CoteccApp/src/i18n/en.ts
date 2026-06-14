@@ -17,6 +17,7 @@ const en = {
   home: 'Home',
   howToPlay: 'How to play',
   language: 'Language',
+  life: 'life',
   lives: 'Lives',
   login: 'Login',
   multiplayer: 'Multiplayer',
