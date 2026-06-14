@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.2.0](https://github.com/mberlanda/cotecc/compare/v1.1.0...v1.2.0) (2026-06-14)
+
+
+### Features
+
+* add local build scripts for web, android, and iOS ([#44](https://github.com/mberlanda/cotecc/issues/44)) ([4e68989](https://github.com/mberlanda/cotecc/commit/4e68989bb7553685729b7a31189c4024d5c413fa))
+* add singular 'life' translation key to per-locale files ([fd895e4](https://github.com/mberlanda/cotecc/commit/fd895e4727522bd662a0be0bf63d9075b3d41fdf))
+* hide account panel, allow guest-only entry ([040450a](https://github.com/mberlanda/cotecc/commit/040450a27f1469f7106ba9707aa5d9a4ff59cbd2))
+* hide account panel, guest-only entry ([5040462](https://github.com/mberlanda/cotecc/commit/504046215a6b0957180ac83740e2da5be0352a76))
+* hide account panel, guest-only entry ([5040462](https://github.com/mberlanda/cotecc/commit/504046215a6b0957180ac83740e2da5be0352a76))
+* show life count alongside points in taken tricks ([a5e0fb0](https://github.com/mberlanda/cotecc/commit/a5e0fb063df39fa987719d894844bf889cf7f61a))
+* show life count alongside points in taken tricks ([a5e0fb0](https://github.com/mberlanda/cotecc/commit/a5e0fb063df39fa987719d894844bf889cf7f61a))
+* show life count alongside points in taken tricks ([e6451dc](https://github.com/mberlanda/cotecc/commit/e6451dcf5e3651d1b36d18061df3e13c7b12b962))
+
+
+### Bug Fixes
+
+* add testIDs, favicon, and fix auth screen banner ([51796ec](https://github.com/mberlanda/cotecc/commit/51796ec7f56e714c88852767ad858ae2e103e2ae))
+* **ci:** set GH_REPO so gh cli works in attach-artifacts ([55b7fd9](https://github.com/mberlanda/cotecc/commit/55b7fd9625cdf18f2db2084b1aea0011e6120930))
+* **ci:** set GH_REPO so gh cli works in attach-artifacts ([55b7fd9](https://github.com/mberlanda/cotecc/commit/55b7fd9625cdf18f2db2084b1aea0011e6120930))
+* **ci:** set GH_REPO so gh cli works without a git checkout ([04139fa](https://github.com/mberlanda/cotecc/commit/04139fac6e0fbed84393096ad3ea8cb98e43e581))
+* testIDs for E2E, favicon, auth banner height ([65fd6b8](https://github.com/mberlanda/cotecc/commit/65fd6b8168f761b8dcd9b7367a46c9d4bdbc9857))
+* testIDs for E2E, favicon, auth banner height ([65fd6b8](https://github.com/mberlanda/cotecc/commit/65fd6b8168f761b8dcd9b7367a46c9d4bdbc9857))
+* use singular 'life' when lifeCount is 1 ([df32b36](https://github.com/mberlanda/cotecc/commit/df32b3680441ca1b25f46db9e9fee5742e2fb8da))
+
 ## [1.1.0](https://github.com/mberlanda/cotecc/compare/v1.0.0...v1.1.0) (2026-06-13)
 
 
