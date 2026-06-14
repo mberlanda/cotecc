@@ -49,6 +49,13 @@ https://reactnative.dev/docs/environment-setup?os=macos&platform=android&guide=n
   (versions read from the generated `android/build.gradle`), and accept licenses
   automatically.
 
+  To save time and disk, local builds compile native code for a single ABI,
+  inferred automatically: a connected device/emulator's ABI if one is attached,
+  otherwise the host architecture (`arm64-v8a` on Apple Silicon, `x86_64` on
+  Intel). Override with `REACT_NATIVE_ARCHITECTURES`, e.g.
+  `REACT_NATIVE_ARCHITECTURES="armeabi-v7a,arm64-v8a,x86,x86_64" tools/build-android-release.sh`
+  to match CI's all-ABI build.
+
 - xcode
 
 ```
