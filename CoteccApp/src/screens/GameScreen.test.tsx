@@ -58,10 +58,29 @@ jest.mock('expo-router', () => ({
 }));
 
 describe('GameScreen', () => {
-  it('shows each player total points when the round is complete', () => {
+  it('shows each player total points and lives when the round is complete', () => {
     const {getByText} = render(<GameScreen />);
 
-    expect(getByText('Mauro - 18 pts')).toBeTruthy();
-    expect(getByText('Bruno - 6 pts')).toBeTruthy();
+    expect(getByText('Mauro — 18 pts · 4 lives')).toBeTruthy();
+    expect(getByText('Bruno — 6 pts · 4 lives')).toBeTruthy();
+  });
+
+  it('uses singular "life" when a player has exactly 1 life remaining', () => {
+    const singleLifeState: GameState = {
+      ...mockCompletedRoundState,
+      players: [
+        {ID: 0, name: 'Mauro', lifeCount: 1, isHuman: true},
+        {ID: 1, name: 'Bruno', lifeCount: 4, isHuman: false},
+      ],
+    };
+    const {newGame} = jest.requireMock('../utils/gameLogic') as {
+      newGame: jest.MockedFunction<() => GameState>;
+    };
+    newGame.mockImplementationOnce(() => singleLifeState);
+
+    const {getByText} = render(<GameScreen />);
+
+    expect(getByText('Mauro — 18 pts · 1 life')).toBeTruthy();
+    expect(getByText('Bruno — 6 pts · 4 lives')).toBeTruthy();
   });
 });

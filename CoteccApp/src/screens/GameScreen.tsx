@@ -164,8 +164,13 @@ const GameScreen: React.FC = () => {
               player.lifeCount === 0 ? styles.eliminatedPlayer : null,
             ]}>
             <Text style={styles.trickName}>
-              {player.name} -{' '}
-              {localGameState.currentRound.scoresMap[player.ID] || 0} pts
+              {player.name} —{' '}
+              {localGameState.currentRound.scoresMap[player.ID] || 0} pts ·{' '}
+              {player.lifeCount}{' '}
+              {(player.lifeCount === 1
+                ? t('life')
+                : t('lives')
+              ).toLowerCase()}
             </Text>
             <PastTurn
               turns={localGameState.currentRound.pastTurns.filter(
