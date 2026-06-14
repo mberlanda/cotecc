@@ -1,6 +1,6 @@
 # Cross-platform Build & Release CI — Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Add a GitHub Actions pipeline that verification-builds web/Android/iOS on local runners and, on merge to `main`, cuts a semantic-version release with the installable Android APK attached — plus a deferred (designed-not-built) Phase 2 (EAS cloud builds + signing) and Phase 3 (store submission).
 
@@ -28,7 +28,11 @@
 
 ---
 
-# PHASE 1 — EXECUTE NOW
+> **STATUS (2026-06-14):** Phase 1 COMPLETE — merged in PR #35; v1.1.0 released with APK + web bundle attached. Requires repo setting "Allow GitHub Actions to create and approve pull requests" to be enabled. Node.js 20 actions deprecation warning logged (actions/checkout@v4, setup-node@v4, upload-artifact@v4, release-please-action@v4 will require Node 24 by 2026-09-16 — upgrade action versions when available). Phases 2 and 3 are designed but not executed.
+
+---
+
+# PHASE 1 — ✅ COMPLETE (merged PR #35, v1.1.0 released 2026-06-13)
 
 ### Task 1: release-please configuration
 
@@ -36,7 +40,7 @@
 - Create: `release-please-config.json`
 - Create: `.release-please-manifest.json`
 
-- [ ] **Step 1: Create `release-please-config.json`**
+- [x] **Step 1: Create `release-please-config.json`**
 
 ```json
 {
@@ -56,7 +60,7 @@
 }
 ```
 
-- [ ] **Step 2: Create `.release-please-manifest.json`**
+- [x] **Step 2: Create `.release-please-manifest.json`**
 
 Seed at the current `CoteccApp/app.json` `expo.version` (`1.0.0`). On the first
 release, `release-please` aligns both extra-files to the next version (so
@@ -69,12 +73,12 @@ it unifies versioning).
 }
 ```
 
-- [ ] **Step 3: Validate the JSON parses**
+- [x] **Step 3: Validate the JSON parses**
 
 Run: `node -e "JSON.parse(require('fs').readFileSync('release-please-config.json','utf8')); JSON.parse(require('fs').readFileSync('.release-please-manifest.json','utf8')); console.log('json ok')"`
 Expected: `json ok`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add release-please-config.json .release-please-manifest.json
@@ -88,7 +92,7 @@ git commit -m "ci: add release-please configuration"
 **Files:**
 - Create: `.github/workflows/build-release.yml`
 
-- [ ] **Step 1: Create the workflow with the three verify jobs + cross-cutting settings**
+- [x] **Step 1: Create the workflow with the three verify jobs + cross-cutting settings**
 
 Create `.github/workflows/build-release.yml`:
 
@@ -221,7 +225,7 @@ jobs:
           retention-days: 14
 ```
 
-- [ ] **Step 2: Local pre-flight — confirm the Android APK builds and the path is correct**
+- [x] **Step 2: Local pre-flight — confirm the Android APK builds and the path is correct**
 
 (Only if a local Android SDK + JDK 17 are available; otherwise rely on CI in Task 4.)
 
@@ -235,12 +239,12 @@ ls -la app/build/outputs/apk/release/app-release.apk
 ```
 Expected: `app-release.apk` exists at that path.
 
-- [ ] **Step 3: Lint the workflow YAML if `actionlint` is available**
+- [x] **Step 3: Lint the workflow YAML if `actionlint` is available**
 
 Run: `command -v actionlint >/dev/null && actionlint .github/workflows/build-release.yml || echo "actionlint not installed — skipping (CI will validate)"`
 Expected: no errors, or the skip message.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add .github/workflows/build-release.yml
@@ -254,7 +258,7 @@ git commit -m "ci: add verification builds for web, android, ios"
 **Files:**
 - Modify: `.github/workflows/build-release.yml` (append two jobs)
 
-- [ ] **Step 1: Append the `release-please` and `attach-artifacts` jobs**
+- [x] **Step 1: Append the `release-please` and `attach-artifacts` jobs**
 
 Append to `.github/workflows/build-release.yml` (under `jobs:`, same indentation as the verify jobs):
 
@@ -304,12 +308,12 @@ Append to `.github/workflows/build-release.yml` (under `jobs:`, same indentation
             --clobber
 ```
 
-- [ ] **Step 2: Validate YAML parses**
+- [x] **Step 2: Validate YAML parses**
 
 Run: `python3 -c "import sys" 2>/dev/null; node -e "const y=require('fs').readFileSync('.github/workflows/build-release.yml','utf8'); if(!y.includes('attach-artifacts')||!y.includes('release-please')) {throw new Error('jobs missing')}; console.log('workflow contains all 5 jobs')"`
 Expected: `workflow contains all 5 jobs`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add .github/workflows/build-release.yml
@@ -322,31 +326,31 @@ git commit -m "ci: add release-please and release-artifact attachment"
 
 **Files:** none (verification only)
 
-- [ ] **Step 1: Push the branch and open a PR**
+- [x] **Step 1: Push the branch and open a PR**
 
 ```bash
 git push -u origin feat/build-release-ci
 gh pr create --base main --title "ci: cross-platform build & release pipeline (sub-project D, phase 1)" --body "Adds local-runner verification builds (web/android/ios) and a release-please-driven release with the Android APK attached on merge. Phases 2-3 (EAS + store) are designed in docs/superpowers but not implemented."
 ```
 
-- [ ] **Step 2: Confirm the verify jobs run and pass on the PR**
+- [x] **Step 2: Confirm the verify jobs run and pass on the PR**
 
 Run: `gh pr checks --watch` (or `gh run list --branch feat/build-release-ci`)
 Expected: `Verify Android (APK)`, `Verify iOS (simulator)`, `Verify Web (export)` all pass. `release-please`/`attach-artifacts` are skipped on the PR (push-to-main only).
 
-- [ ] **Step 3: Confirm artifacts uploaded**
+- [x] **Step 3: Confirm artifacts uploaded**
 
 Run: `gh run view <run-id> --json jobs` then check the run's Artifacts in the Actions UI.
 Expected: `cotecc-android-apk` and `cotecc-web-bundle` artifacts present.
 
-- [ ] **Step 4: Merge the PR; confirm release-please opens a release PR**
+- [x] **Step 4: Merge the PR; confirm release-please opens a release PR**
 
 After merge to `main`, the `release-please` job runs and opens a PR titled like
 `chore(main): release 1.1.0`.
 Run: `gh pr list --search "release"`
 Expected: a release PR exists.
 
-- [ ] **Step 5: Merge the release PR; confirm the release + APK**
+- [x] **Step 5: Merge the release PR; confirm the release + APK**
 
 Run: `gh release list` then `gh release view v<version>`
 Expected: a release `v<version>` exists with `CHANGELOG`, and `app-release.apk` +
