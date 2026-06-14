@@ -12,9 +12,25 @@ https://reactnative.dev/docs/environment-setup?os=macos&platform=android&guide=n
 - node >= 22. It can be installed using `nvm` https://github.com/nvm-sh/nvm (see [`.nvmrc`](../.nvmrc))
 - ruby >= 2.7 (CocoaPods, iOS). It can be installed using `rbenv` https://github.com/rbenv/rbenv
 - watchman for watching changes in filesystem and improve performances `brew install watchman`
-- openjdk (recommended `zulu17` compatible with both arm and amd architecture). It can be installed via `sdkman` https://sdkman.io/install or via brew
+- **Java 17 (Temurin)** — install via [sdkman](https://sdkman.io/install) (recommended) or via `brew install --cask temurin`:
+  ```bash
+  curl -s "https://get.sdkman.io" | zsh   # install sdkman
+  source "$HOME/.sdkman/bin/sdkman-init.sh"
+  sdk install java 17.0.11-tem
+  sdk default java 17.0.11-tem
+  ```
 
-- android studio
+- **Android SDK** (no full Android Studio required) — install the command-line tools via Homebrew, then fetch the required SDK packages:
+  ```bash
+  brew install --cask android-commandlinetools
+  export ANDROID_HOME="$HOME/Library/Android/sdk"
+  sdkmanager "platform-tools" "build-tools;35.0.0" "platforms;android-35"
+  sdkmanager --licenses
+  ```
+  Add `export ANDROID_HOME="$HOME/Library/Android/sdk"` to your `~/.zshrc` (or `~/.bashrc`) so it persists across sessions.
+
+  Alternatively, install the full [Android Studio](https://developer.android.com/studio) which bundles the SDK automatically.
+
 - xcode
 
 ```
