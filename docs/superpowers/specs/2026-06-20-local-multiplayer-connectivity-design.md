@@ -1,13 +1,13 @@
-# Local Multiplayer Connectivity — Design (v2: overview & decision record)
+# Local Multiplayer Connectivity — Design (v3: overview & decision record)
 
-**Date:** 2026-06-20 · **Revision:** v2 (supersedes v1)
+**Date:** 2026-06-20 · **Revision:** v3 (supersedes v1, v2)
 **Status:** Design — decision record + index to per-phase specs
-**Companion docs:**
+**Companion docs (current, v3):**
 - Foundations (Phase 0 contracts): `2026-06-20-local-multiplayer-foundations-design.md`
 - Phase 1A LAN MVP: `2026-06-20-local-multiplayer-phase1a-lan-mvp-design.md`
 - Phase 1B robustness: `2026-06-20-local-multiplayer-phase1b-robustness-design.md`
-- Review consolidation & v2 plan: `…connectivity-design.consolidation-and-v2-plan.md`
-- Reviews: `…connectivity-design.review-comments.01..12-*.md`
+- **Review history & archives:** see `…connectivity-design.REFERENCE.md` (points to
+  the latest review and the per-revision zip archives under `archive/`).
 
 > **What changed from v1.** v1 was a broad options catalogue. A 12-agent review
 > (109 comments) found it overstated how network-ready the engine is and never
@@ -15,6 +15,13 @@
 > record, **corrects the factual errors**, commits to a security/trust posture and
 > a phase split, and moves all implementable detail into the per-phase specs above.
 > The v1→v2 corrections and the comment IDs each section resolves are listed in §10.
+>
+> **v2→v3:** a focused 8-reviewer round-2 verified v2 closed all 109 round-1
+> comments (0 not-addressed, all 4 blockers resolved) but surfaced 1 new blocker +
+> a few high/major gaps. v3 folds those fixes into the sub-specs — chiefly:
+> `dealSeed` is host-internal/off-the-wire, `seatToken` is out of the join URL, a
+> CI harness makes the host-served bundle testable, and a game-over/rematch flow is
+> defined. See §10 and each sub-spec's v3 changelog.
 
 ## 1. Purpose & constraints
 
@@ -210,3 +217,24 @@ heartbeat/timeout constants (1B), device-lab inventory (1B).
   split (PROD-002, QA-001), futures + triggers (PROD-007), decisions D1–D6.
 - **Deep contracts moved to** Foundations/1A/1B (clusters A–K) — each sub-spec
   carries its own comment-ID traceability footer.
+
+### v2→v3 change log (round-2 fixes)
+- `dealSeed` host-internal, never on the wire, added to the redaction prohibition
+  list (RC2-ARCH-002 / RC2-SEC-002 / RC2-API-002 / RC2-GAME-003) — Foundations §3.2/§4.2.
+- `seatToken` removed from the join URL; resume token issued post-join over the
+  channel (RC2-SEC-001) — 1A §3.3.
+- CI harness (headless Node host) so the host-served bundle is Playwright-testable
+  (RC2-QA-001, the new blocker) — 1A §4.1.
+- Game-over / rematch flow; browser guests never stranded (RC2-UX-002) — 1A §3.7.
+- Build-time embed guard tied to `prebuild`; in-binary update channel for 1A;
+  `expo-dev-client` dependency (RC2-EXPO-001/002/003) — 1A §1.3.
+- Sequence reconciliation (`clientSeq` order vs `clientMessageId` dedup) (RC2-API-001,
+  API-004); canonical card order (RC2-GAME-001); `legalActions`/phase mapping
+  (RC2-GAME-002); client-only-`SeatView` enforced in CI (RC2-ARCH-001) — Foundations.
+- QR/token TTL + refresh; AI-takeover timeout default/range/indicator; token
+  expiry-at-match-end; rotation pinned; falsifiable device lab; testable a11y;
+  iOS Local Network / no-internet inference (RC2-QA-002/003, RC2-UX-001/003,
+  RC2-SEC-003, SEC-003, UX-011, RC2-NET-001/002/003) — 1A §3.3 / 1B §1–§5.
+
+Round-2 verdicts and the full v2.1 fix list: see the archived round-2 review index
+(`…REFERENCE.md`).
