@@ -1,0 +1,169 @@
+# Local Multiplayer — Phase 1A: LAN MVP
+
+**Date:** 2026-06-20 · **Phase:** 1A · **Parent:** `…connectivity-design.md` (v2)
+**Depends on:** Foundations (Phase 0). **Resolves:** E (native host & packaging),
+F (permissions/cleartext), K-core (host/guest journey, join route, lobby),
+J-1A (acceptance & QA subset).
+
+**Goal (per D4 — Android-first alpha):** an **Android** device hosts a table;
+**browser (laptop/phone) and native app guests** join over the LAN and play one
+full match **offline, zero-infra**. iOS hosting is validated on dev-client only;
+public iOS host is gated on signed distribution (later). The headline mechanism:
+the host embeds an HTTP+WebSocket server and **serves the web bundle itself**.
+
+---
+
+## 1. Native host runtime & packaging (cluster E) — highest delivery risk
+
+The embedded HTTP+WS host is a **native-runtime + packaging concern**, not a module
+choice. The repo is CNG (no committed `ios/`/`android/`; `app.json` has only
+expo-router + splash).
+
+### 1.1 Mandatory spike (gates the rest of 1A) *(ARCH-006, EXPO-001, WS-004)*
+Prove on **real Android and iOS dev-client builds**:
+1. Bind one HTTP server to a LAN-reachable interface on a random high port; serve
+   `/healthz`, the exported web bundle at `/`, static assets, and a `/ws` upgrade.
+2. A browser on another device loads `http://<host-ip>:<port>` and opens a
+   same-origin `ws://` back; a native app guest connects to `ws://<host-ip>:<port>/ws`.
+3. Choose the server approach: a maintained SDK 56 / RN 0.85-compatible socket
+   library **or** a local Expo Module, **plus** any config plugin. Record exact
+   versions, maintenance/license status. *(BUILD-004)*
+4. `expo prebuild --clean` regenerates all native changes from `app.json`/config
+   plugins (no hand-edited `ios/`/`android/`). *(BUILD-002)*
+
+### 1.2 Static-serving contract *(FE-006, BUILD-007, WS-004)*
+Embedded server must mirror the production web deploy, **offline**: serve
+`index.html`, hashed JS/CSS/image assets with correct MIME types, **SPA fallback**
+for `/join` and `/game` route refreshes, no CDN/runtime internet dependency, and a
+cache/version strategy invalidated on app upgrade. Serve an **allowlist** of
+exported assets only (no dir listing/debug) (SEC-008).
+
+### 1.3 Web-bundle embedding pipeline *(BUILD-001, EXPO-004)*
+`npm ci` → `npx expo export --platform web --output-dir dist-embedded` → copy into
+a native asset/resource path via config plugin/build script → generate an asset
+**manifest + hash** → verify the packaged APK/IPA contains it and the hash matches
+the exported artifact. Decide web-bundle update channel: **EAS Update vs binary
+release** (with `runtimeVersion` policy, e.g. `fingerprint`). *(EAS, EXPO-007)*
+Per **D6**, ship the **full app bundle**; track APK/IPA size **before/after**
+against a budget and only then consider a slim join-client export. *(BUILD-008)*
+
+### 1.4 Host lifecycle *(EXPO-002, NET-012)*
+Phase 1A hosting is **foreground-only**: use `expo-keep-awake`, warn the host to
+keep the app open/unlocked, handle `AppState` transitions (background/lock →
+pause/host-loss path), and treat process death as host loss (D5: match ends).
+
+### 1.5 Build/CI & dev workflow *(BUILD-005, BUILD-006, QA-007)*
+Path-triggered/mandatory `build-native` checks for native/config/plugin changes;
+`expo export` before native builds; packaged-asset existence + hash check.
+Dev loop: `npm run android` / `npm run ios` (dev client); Expo Go remains valid
+only for non-networking screens. `eas.json` development/preview profiles added.
+
+### 1.6 Acceptance (E)
+Spike (§1.1) green on both platforms; `expo prebuild --clean` reproducible;
+embedded bundle served + hash-verified; foreground lifecycle handled; native CI
+gate active.
+
+---
+
+## 2. Permissions & cleartext (cluster F)
+
+The same-origin `http`/`ws` trick solves the **browser**; **native app clients**
+still need transport policy. *(NET-003, EXPO-003, BUILD-003)*
+- **Android:** `INTERNET`; **cleartext network-security-config** scoped to LAN/
+  hotspot endpoints; `NEARBY_WIFI_DEVICES` (API 33+) / location (older) for hotspot;
+  `CHANGE_WIFI_STATE` for `LocalOnlyHotspot`.
+- **iOS:** `NSLocalNetworkUsageDescription` (+ `NSBonjourServices` when mDNS lands
+  in 1B); ATS/local-network handling for native cleartext clients.
+- **Camera (in-app QR):** `expo-camera` + `NSCameraUsageDescription` + Android
+  camera permission; manual entry is the no-camera fallback. *(EXPO-006)*
+- All represented in `app.json`/config plugins; `expo prebuild --clean` is the test.
+- **Permission UX matrix** *(UX-004)*: per permission — trigger point, pre-prompt
+  copy, OS purpose string, denial message, retry/Settings path, fallback.
+
+---
+
+## 3. User experience (cluster K, core)
+
+### 3.1 Role model *(UX-008)*
+**Host** = table owner / referee / dealer (also occupies a seat). **Guests** = seat
+owners. Control matrix: start game, lock/open seats, add bot seats, kick,
+(1B) pause/AI/reconnect — host-only; play a card — seat owner only.
+
+### 3.2 Host & guest journeys *(UX-001, PROD-004)*
+- **Host:** Home → "Host LAN table" → table settings (name, seat count 2–6,
+  language) → **Lobby** showing a **QR + visible SSID/IP/port + short token** →
+  start when ready. Cancel/back tears down the server.
+- **Guest (browser):** scan QR → loads `http://<host-ip>:<port>/join?room=<token>`
+  **from the host** → enter display name/language → connecting → lobby → game.
+  A dedicated `/join` route prevents falling into the local-only Home setup.
+  *(UX-010)*
+- **Guest (native app):** scan in-app (expo-camera) or enter full URL/token →
+  same lobby → game.
+
+### 3.3 Pairing descriptor *(UX-002, FE-001, UX-003🚫)*
+- Join URL contract: `http://<host-ip>:<port>/join?room=<roomToken>&seat=<seatToken?>`
+  (query params, parsed via `useLocalSearchParams`; host serves SPA fallback for
+  `/join`/`/game`). *(FE-001)*
+- The manual fallback shows the **full** `http://<ip>:<port>` + token — **no**
+  bare short-code lookup (zero-infra has no resolver). *(UX-003, NET-010)*
+- QR carries the join URL; an **optional second** Wi-Fi QR (Android
+  `LocalOnlyHotspot` ephemeral creds) for the no-router two-step join. QR has an
+  expiry/refresh; SSID/IP/port shown as text for manual entry.
+
+### 3.4 Lobby & seating contract *(UX-009)*
+Table name; 2–6 seats; joined players; open/locked seats; bot seats; ready
+indicators; start-button rules (host-only, min seats); late-join policy =
+allowed until `GameStarted`, then **rejoin only** (via seat token). Duplicate-name
+handling.
+
+### 3.5 Command-state UX (move submission) *(UX-012)*
+Per-state UI: `idle | myTurn | submitting | accepted | rejected(reason) | resyncing
+| disconnected | retryDisabled`, driven by `MoveAccepted`/`MoveRejected{code}` from
+Foundations. Out-of-turn/stale taps are disabled, not silently dropped.
+
+### 3.6 Minimal reconnect (1A scope) *(WS-002, ARCH-009)*
+Even in 1A, the client persists its `seatToken` and last `stateVersion`; on a
+transient drop it reconnects and the host replies with a fresh `SeatSnapshot` or
+`SeatExpired`. Full pause/AI/heartbeat policy is **1B**. Host loss in 1A → terminal
+"Host disconnected — this game cannot continue" with return-home/start-new. *(UX-007)*
+
+---
+
+## 4. Phase 1A acceptance criteria (cluster J, 1A) *(QA-001🚫, PROD-001/002/003/005)*
+
+Given/When/Then, all **offline (no internet)**:
+
+1. **No internet:** with the host on an isolated LAN/hotspot, a full match starts
+   and completes; no request leaves the LAN.
+2. **Platform matrix (alpha):** Android host; guests = Android app, iOS app, laptop
+   browser (Chrome + Safari), phone browser; **≥1 mixed 4-player** match. iOS host
+   passes on **dev-client** only (not a GA gate).
+3. **Pairing:** browser guest joins by scanning the QR within a target time; manual
+   full-URL/token join succeeds; camera-denied falls back to manual.
+4. **Seats:** 2–6 seats; bots fill empty seats; late join blocked after start,
+   rejoin via token works.
+5. **Rules over the wire:** legal moves apply; illegal/out-of-turn moves get the
+   correct `MoveRejected{code}` and clear UI.
+6. **Privacy:** no client receives another seat's cards in any payload (Foundations
+   §4 oracle holds end-to-end).
+7. **Host loss:** terminal state with actionable recovery copy.
+8. **Regression:** existing single-device offline play unchanged (QA-009).
+
+### 4.1 QA subset (1A) *(QA-002, QA-003, QA-007)*
+- **Automation:** Jest for session/loopback, redaction, card rehydration, illegal-
+  command rejection, reconnect-token handling; **Playwright** for `/join`, lobby,
+  manual join, joined-game render against the **host-served** bundle.
+- **Release gates:** lint, tsc, Jest coverage, web export, Playwright, **Android
+  prebuild/build**; iOS prebuild/build informational in alpha.
+- Full device/network lab, failure taxonomy, and broader matrix are **1B**.
+
+## 5. Phase 1A exit criteria
+§1.6 (native host) + all §4 acceptance criteria pass on the alpha matrix, with the
+1A QA subset automated and the native CI gate enforced.
+
+## 6. Traceability
+Resolves: ARCH-006, ARCH-009(reconnect-minimal); EXPO-001..007; BUILD-001..008;
+WS-004; FE-001, FE-005(load-vs-WS split, with 1B), FE-006; NET-003, NET-012(host
+lifecycle); UX-001, UX-002, UX-003🚫, UX-004, UX-007(1A host-loss), UX-008, UX-009,
+UX-010, UX-012; PROD-001, PROD-002(1A half), PROD-003(1A criteria), PROD-005;
+QA-001🚫(1A), QA-002(subset), QA-003(subset), QA-007.
