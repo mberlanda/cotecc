@@ -1,7 +1,13 @@
 # Local Multiplayer — Phase 1A: LAN MVP
 
-**Date:** 2026-06-20 · **Revision:** v3 · **Phase:** 1A · **Parent:** `…connectivity-design.md` (v3)
+**Date:** 2026-06-20 · **Revision:** v3.1 · **Phase:** 1A · **Parent:** `…connectivity-design.md` (v3.1)
 
+> **v3.1 changes (round-3 fixes):** `web.output` switched to `"static"` for hashed
+> assets/manifest (RC3-EXPO-001); socket-lib risk + custom-Expo-Module fallback in
+> the spike (RC3-EXPO-002); minimal address-selection pulled into 1A (RC3-ARCH-001);
+> Node-harness fidelity contract + criterion→test-layer map (RC3-QA-001/002);
+> manual-entry rescan path (RC3-UX-003).
+>
 > **v3 changes (round-2 fixes):** CI harness for the host-served bundle added so
 > Playwright gates run headless (RC2-QA-001, blocker); `seatToken` removed from the
 > join URL and issued post-join (RC2-SEC-001); game-over/rematch + browser-guest
@@ -36,6 +42,12 @@ Prove on **real Android and iOS dev-client builds**:
 3. Choose the server approach: a maintained SDK 56 / RN 0.85-compatible socket
    library **or** a local Expo Module, **plus** any config plugin. Record exact
    versions, maintenance/license status. *(BUILD-004)*
+   - **Risk + fallback** *(RC3-EXPO-002)*: maintained RN HTTP+WS-server libraries on
+     SDK 56 / RN 0.85 are scarce; the likely outcome is a **custom Expo Module**
+     wrapping platform sockets (`Network.framework` / `NanoHTTPD`-style). The spike
+     MUST end with one of two recorded decisions: (a) a named, building library, or
+     (b) commit to a custom Expo Module — which **expands 1A scope** and is the
+     fallback. Do not start §3/§4 work until this is decided.
 4. `expo prebuild --clean` regenerates all native changes from `app.json`/config
    plugins (no hand-edited `ios/`/`android/`). *(BUILD-002)*
 
@@ -67,6 +79,13 @@ against a budget and only then consider a slim join-client export. *(BUILD-008)*
   participant (host and native guests, iOS and Android) runs a dev/preview build,
   not Expo Go, once the server/native module lands. `eas.json` gains development +
   preview profiles with a `runtimeVersion: { policy: "fingerprint" }`.
+- **`web.output` must be `"static"`** *(RC3-EXPO-001)*: `app.json` currently sets
+  `web.output: "single"`, which emits a single bundle **without hashed asset
+  filenames or a manifest** — incompatible with the hashed-asset/manifest serving
+  and hash-guard assumptions in §1.2/§1.3. Phase 1A switches `web.output` to
+  `"static"` (multi-file, hashed, manifested) so the embed pipeline, MIME/SPA
+  serving, and the hash guard are well-defined. Verify the static export still
+  loads the same SPA routes.
 
 ### 1.4 Host lifecycle *(EXPO-002, NET-012)*
 Phase 1A hosting is **foreground-only**: use `expo-keep-awake`, warn the host to
@@ -137,8 +156,17 @@ owners. Control matrix: start game, lock/open seats, add bot seats, kick,
 - **Token/QR lifetime** *(RC2-QA-002, RC2-UX-001)*: the room token has a TTL
   (default **15 min**) and is auto-refreshed while the lobby is open; the QR shows a
   visible expiry/refresh indicator. An expired token returns `Error{code:
-  ROOM_TOKEN_EXPIRED}` with a "rescan" action. SSID/IP/port shown as text for
-  manual entry.
+  ROOM_TOKEN_EXPIRED}`. A QR-scan guest gets a "rescan" action; a **manual-entry
+  guest** gets a "re-enter the address/token shown on the host" action (no camera
+  needed) *(RC3-UX-003)*. SSID/IP/port shown as text for manual entry.
+- **Address selection (minimal, in 1A)** *(RC3-ARCH-001)*: 1A acceptance criterion
+  3 (browser scans QR) depends on the host encoding a **reachable** address. The
+  host must therefore pick the correct interface even with **Wi-Fi + hotspot both
+  active** (a common case), prefer the active serving interface, and — if multiple
+  candidates exist — show alternates for manual entry. The full
+  Wi-Fi/hotspot/VPN/IPv6 algorithm lives in 1B §1.4; 1A ships the minimal
+  single-correct-candidate selection so the spike/lab can't pass on a one-interface
+  bench while masking this.
 
 ### 3.4 Lobby & seating contract *(UX-009)*
 Table name; 2–6 seats; joined players; open/locked seats; bot seats; ready
@@ -201,6 +229,20 @@ Given/When/Then, all **offline (no internet)**:
   --platform web` → start the Node harness → Playwright drives a browser against it.
   On-device runs (real Android host) are a **supplementary** lab gate (§/1B lab),
   not the CI path. Without this harness the Playwright gate is not runnable in CI.
+  - **Harness fidelity contract** *(RC3-QA-001)*: the harness and the native host
+    share the **same** protocol module, session state machine, asset allowlist, and
+    schema/size caps (the harness re-skins only the socket/file I/O). A shared
+    conformance test suite runs against both targets so harness↔native divergence
+    fails CI rather than hiding behind a green Playwright run.
+- **Criterion → test-layer map** *(RC3-QA-002)*: each §4 acceptance criterion is
+  explicitly assigned a layer so "CI green" maps to "acceptance covered":
+
+  | §4 criterion | Layer |
+  |---|---|
+  | 1 no-internet, 5 move rules, 6 privacy/no-leak, 4 seats/rejoin | Jest (engine/session/redaction) + Playwright on harness |
+  | 3 pairing (QR/manual/camera-denied), 7 host-loss, game-over/rematch | Playwright on harness |
+  | 2 platform matrix, hotspot, real host-loss | Physical lab (1B §4) |
+  | 8 offline regression | existing Jest + screenshot smoke |
 - **Release gates:** lint, tsc, Jest coverage, web export, Playwright, **Android
   prebuild/build**; iOS prebuild/build informational in alpha.
 - Full device/network lab, failure taxonomy, and broader matrix are **1B**.
@@ -218,3 +260,6 @@ QA-001🚫(1A), QA-002(subset), QA-003(subset), QA-007.
 **Round-2:** RC2-QA-001🚫 (CI harness), RC2-SEC-001 (token out of URL), RC2-UX-002
 (game-over/rematch), RC2-EXPO-001/002/003 (embed guard, update channel, dev-client),
 RC2-QA-002 & RC2-UX-001 (QR/token TTL).
+**Round-3:** RC3-EXPO-001 (web.output static), RC3-EXPO-002 (socket-lib risk),
+RC3-ARCH-001 (address selection in 1A), RC3-QA-001/002 (harness fidelity, criterion
+map), RC3-UX-003 (manual rescan).

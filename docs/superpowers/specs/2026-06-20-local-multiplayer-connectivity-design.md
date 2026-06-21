@@ -1,6 +1,6 @@
-# Local Multiplayer Connectivity — Design (v3: overview & decision record)
+# Local Multiplayer Connectivity — Design (v3.1: overview & decision record)
 
-**Date:** 2026-06-20 · **Revision:** v3 (supersedes v1, v2)
+**Date:** 2026-06-20 · **Revision:** v3.1 (supersedes v1, v2, v3)
 **Status:** Design — decision record + index to per-phase specs
 **Companion docs (current, v3):**
 - Foundations (Phase 0 contracts): `2026-06-20-local-multiplayer-foundations-design.md`
@@ -238,3 +238,15 @@ heartbeat/timeout constants (1B), device-lab inventory (1B).
 
 Round-2 verdicts and the full v2.1 fix list: see the archived round-2 review index
 (`…REFERENCE.md`).
+
+### v3→v3.1 change log (round-3 fixes)
+Round 3 (8 reviewers) confirmed **all round-2 issues resolved and no new blockers**,
+and found precise MAJOR clarifications, all folded in: both card-removal paths
+converted (RC3-GAME-001); `roundLosers`/CAPOT `Set` named in codec (RC3-GAME-002);
+`SeatSummary.graceUntil` + `gameOver`-keeps-connection-open for rematch
+(RC3-UX-001/002); `web.output: "static"` (RC3-EXPO-001); socket-lib risk + custom
+Expo Module fallback (RC3-EXPO-002); minimal address-selection in 1A (RC3-ARCH-001);
+Node-harness fidelity contract + criterion→test-layer map (RC3-QA-001/002);
+manual-entry rescan path (RC3-UX-003). After v3.1 the exit criteria are met (all
+blockers/highs/majors resolved). Round-3 review files are archived in
+`local-multiplayer-rev3.zip`.

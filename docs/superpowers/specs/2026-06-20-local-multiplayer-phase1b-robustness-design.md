@@ -1,6 +1,6 @@
 # Local Multiplayer — Phase 1B: Robustness & fallbacks
 
-**Date:** 2026-06-20 · **Revision:** v3 · **Phase:** 1B · **Parent:** `…connectivity-design.md` (v3)
+**Date:** 2026-06-20 · **Revision:** v3.1 · **Phase:** 1B · **Parent:** `…connectivity-design.md` (v3.1)
 **Depends on:** Phase 1A. **Resolves:** G (network diagnostics/caveats),
 I-R1 (reconnect + pause/AI), H (security hardening), K-errors (failure/reconnect/
 host-loss UX), J-1B (full QA/lab/automation/gates).
@@ -107,7 +107,9 @@ Duplicate-token/duplicate-connection rejected. *(SEC-003)*
 - **Timeout default/range/indicator** *(RC2-UX-003)*: default **30 s**, host-settable
   range **10–120 s** (or "never → pause-only"); the chosen value is shown in the
   lobby and a live countdown is visible to all seats while a player is in `grace`,
-  so no one faces an unpredictable wait.
+  so no one faces an unpredictable wait. The countdown is driven by the
+  server-authoritative `SeatSummary.graceUntil` (Foundations §4.1) — clients render
+  it, they don't compute the deadline locally. *(RC3-UX-001)*
 - **Seat-token expiry / anti-squatting** *(RC2-SEC-003)*: a `disconnected` seat's
   resume token stays valid for a bounded **reclaim window** (default = AI timeout +
   a grace margin, host-configurable); after it elapses the host may free the seat

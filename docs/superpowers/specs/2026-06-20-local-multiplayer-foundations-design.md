@@ -1,7 +1,12 @@
 # Local Multiplayer — Foundations (Phase 0 contracts)
 
-**Date:** 2026-06-20 · **Revision:** v3 · **Phase:** 0 (no networking) · **Parent:** `…connectivity-design.md` (v3)
+**Date:** 2026-06-20 · **Revision:** v3.1 · **Phase:** 0 (no networking) · **Parent:** `…connectivity-design.md` (v3.1)
 
+> **v3.1 changes (round-3 fixes):** both card-removal paths (`cards` + `cardsBySuit`)
+> converted atomically (RC3-GAME-001); `roundLosers` `Set`/CAPOT named in the codec
+> (RC3-GAME-002); `SeatSummary.graceUntil` timestamp added for the countdown
+> (RC3-UX-001); `gameOver` keeps the connection open for rematch (RC3-UX-002).
+>
 > **v3 changes (round-2 fixes):** `dealSeed` is host-internal and prohibited on the
 > wire (RC2-ARCH-002 / RC2-SEC-002 / RC2-API-002 / RC2-GAME-003); sequence
 > reconciliation rule added (RC2-API-001 / API-004); canonical card ordering pinned
@@ -48,7 +53,11 @@ and `cardsBySuit`; `RoundResult.roundLosers` is a `Set` (→ `JSON.stringify` gi
 
 ### 1.3 Value-based card identity *(GAME-005, API-006)*
 - `makeMove` matches by reference (`c === playedCard`); a wire/rehydrated card
-  breaks this. Fix at the source: match by value `(suit, rank)`.
+  breaks this. Fix at the source: match by value `(suit, rank)`. **Both removal
+  paths must be converted atomically** *(RC3-GAME-001)*: `hand.cards` **and**
+  `hand.cardsBySuit[suit]` (today both use `findIndex(c => c === …)`); if only one
+  is converted, `cardsBySuit` desyncs from `cards` after a round-trip and later
+  removals corrupt silently.
 - Define `CardRef = { suit: Suit; rank: number }`. **Points are host-derived**;
   client-sent points are ignored.
 - A **snapshot hydrator** rebuilds `cardsBySuit` from canonical `cards` so a JSON
@@ -61,7 +70,10 @@ and `cardsBySuit`; `RoundResult.roundLosers` is a `Set` (→ `JSON.stringify` gi
 
 ### 1.4 Wire codec *(WS-003, API-005)*
 - Define `WireGameState`/`WireRoundResult`: `Set` → array, numeric map keys
-  normalised, no shared object identity assumed.
+  normalised, no shared object identity assumed. **Name the concrete offenders**
+  *(RC3-GAME-002)*: `RoundResult.roundLosers` is a `Set<PlayerID>` (`JSON.stringify`
+  of a `Set` yields `{}`) — encode as a sorted array in **both** the `CAPOT` and
+  `MAX_SCORE` branches; `scoresMap`'s numeric keys must survive the round-trip.
 - `encode(state): Wire*` / `decode(Wire*): state` with **round-trip property
   tests** (decode∘encode == canonicalised state) added before any transport.
 
@@ -172,9 +184,15 @@ interface Envelope<T extends MsgType, P> {
   *(API-003)*
 
 ### 3.3 Session lifecycle state machine *(API-002)*
-`discovered → joining → seated → lobby → in_game → disconnected/reconnecting →
-left`. Reconnect: client sends `JoinRequest` with `seatToken` + last `stateVersion`;
-host replies `SeatSnapshot` (latest) or `SeatExpired`. *(WS-002)*
+`discovered → joining → seated → lobby → in_game → gameOver → (lobby | left)`, with
+`disconnected/reconnecting` reachable from `in_game`/`gameOver`. Reconnect: client
+sends `JoinRequest` with `seatToken` + last `stateVersion`; host replies
+`SeatSnapshot` (latest) or `SeatExpired`. *(WS-002)*
+- **`gameOver` keeps the connection open** *(RC3-UX-002)*: the WS/heartbeat stay
+  live through `gameOver` so clients can receive `Rematch`. On rematch the host
+  reissues seat tokens and the session transitions `gameOver → lobby → in_game` on
+  the **same** connection; `End table` transitions clients to `left`. A client that
+  dropped during `gameOver` rejoins with its `seatToken` exactly as in-game.
 
 ### 3.4 Transport capability interfaces *(ARCH-010, WS-007, API-007)*
 Replace the thin `send/broadcast` seam with capability-typed endpoints so
@@ -212,6 +230,9 @@ interface SeatSummary {
   cardCount: number;            // public count only — never the cards
   lives: number; roundScore: number;
   controller: Controller; connection: SeatConnection;
+  graceUntil?: number;          // epoch ms the host will AI-take-over this seat;
+                                // server-authoritative, drives the live countdown
+                                // (RC3-UX-001). Absent unless connection==='grace'.
 }
 interface SeatView {
   localSeatId: SeatId;
@@ -275,3 +296,4 @@ API-002, API-003, API-004, API-005, API-006, API-007, API-008; SEC-002, SEC-003
 QA-005, QA-009.
 **Round-2:** RC2-ARCH-001, RC2-ARCH-002; RC2-API-001, RC2-API-002, RC2-API-003,
 RC2-API-004; RC2-SEC-002; RC2-GAME-001, RC2-GAME-002.
+**Round-3:** RC3-GAME-001, RC3-GAME-002, RC3-UX-001, RC3-UX-002.
