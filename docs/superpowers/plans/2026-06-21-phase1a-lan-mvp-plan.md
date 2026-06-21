@@ -56,10 +56,17 @@ git add docs/superpowers/plans/decisions/2026-06-21-native-server-spike.md
 git commit -m "docs(net): record native HTTP+WS server spike decision (Phase 1A T1, ARCH-006)"
 ```
 
-> **GATE:** Do not proceed to Task 2 until this file is committed. If option (b) was
-> chosen, a human/strong agent must first expand Tasks 2–4 with the native-module steps;
-> the weak-model worker resumes at the Node-harness/web tasks (Tasks 5–9), which are
-> platform-independent.
+> **GATE — explicit resume rules (no ambiguity):**
+> - The decision file MUST be committed before ANY further work.
+> - **Once it is committed**, a weak-model worker MAY immediately start **Tasks 5, 6, 9,
+>   10** (Node-harness / static-serving / Playwright / CI) — these run against the
+>   exported web bundle and are platform-independent, so they are NOT blocked on the
+>   native runtime.
+> - **Tasks 2, 3, 4, 7, 8, 11** depend on the chosen option. If option (a) (library),
+>   proceed normally. If option (b) (custom Expo Module), a human/strong agent must first
+>   expand Tasks 3 & 4 with the native-module bundling steps; the weak worker does not
+>   start 3/4 until that expansion exists.
+> - Tasks may run in either order within those groups, but **Task 11 (exit gate) is last.**
 
 ---
 
@@ -130,13 +137,78 @@ missing/stale.
 > per the recorded decision. The export + hash-manifest + verify steps below are
 > identical regardless.
 
-- [ ] **Step 1: Write `embed-web-bundle.js`** — runs `expo export --platform web
-  --output-dir dist-embedded`, then writes `dist-embedded/embed-manifest.json`
-  containing `{ generatedAt, files: [{path, sha256}], bundleHash }` (a SHA-256 over the
-  sorted per-file hashes). Use Node `crypto` + `fs` only (no new deps).
-- [ ] **Step 2: Write `verify-embedded-bundle.js`** — re-exports to a temp dir, recomputes
-  `bundleHash`, and **exits non-zero** if `dist-embedded/embed-manifest.json` is missing
-  or its `bundleHash` differs. Print the mismatching files.
+- [ ] **Step 1: Write `embed-web-bundle.js`** (concrete — load-bearing details: recursive
+  walk, exclude the manifest itself, `generatedAt` is OUTSIDE the hash, hex sha256, sort
+  by path, `bundleHash = sha256(join of "<path>:<filehash>")`):
+
+```js
+// CoteccApp/scripts/embed-web-bundle.js
+const {execSync} = require('child_process');
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+
+const DIST = path.join(__dirname, '..', 'dist-embedded');
+const MANIFEST = path.join(DIST, 'embed-manifest.json');
+
+const walk = dir => fs.readdirSync(dir, {withFileTypes: true}).flatMap(e => {
+  const p = path.join(dir, e.name);
+  return e.isDirectory() ? walk(p) : [p];
+});
+const sha256 = buf => crypto.createHash('sha256').update(buf).digest('hex');
+
+const buildManifest = () => {
+  const files = walk(DIST)
+    .filter(p => p !== MANIFEST) // never hash the manifest itself
+    .map(p => ({path: path.relative(DIST, p).split(path.sep).join('/'), sha256: sha256(fs.readFileSync(p))}))
+    .sort((a, b) => a.path.localeCompare(b.path));
+  // bundleHash is OVER the files only — generatedAt is excluded so re-runs are stable.
+  const bundleHash = sha256(files.map(f => `${f.path}:${f.sha256}`).join('\n'));
+  return {files, bundleHash};
+};
+
+execSync('npx expo export --platform web --output-dir dist-embedded', {stdio: 'inherit', cwd: path.join(__dirname, '..')});
+const {files, bundleHash} = buildManifest();
+fs.writeFileSync(MANIFEST, JSON.stringify({generatedAt: new Date().toISOString(), bundleHash, files}, null, 2));
+console.log(`embed-manifest.json written: ${files.length} files, bundleHash ${bundleHash}`);
+```
+
+- [ ] **Step 2: Write `verify-embedded-bundle.js`** — recompute over the EXISTING
+  `dist-embedded` (no re-export needed; CI runs `embed:web` first) and exit non-zero on
+  missing/stale:
+
+```js
+// CoteccApp/scripts/verify-embedded-bundle.js
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+const DIST = path.join(__dirname, '..', 'dist-embedded');
+const MANIFEST = path.join(DIST, 'embed-manifest.json');
+
+if (!fs.existsSync(MANIFEST)) {
+  console.error('FAIL: dist-embedded/embed-manifest.json missing — run npm run embed:web');
+  process.exit(1);
+}
+const walk = dir => fs.readdirSync(dir, {withFileTypes: true}).flatMap(e => {
+  const p = path.join(dir, e.name);
+  return e.isDirectory() ? walk(p) : [p];
+});
+const sha256 = buf => crypto.createHash('sha256').update(buf).digest('hex');
+const recorded = JSON.parse(fs.readFileSync(MANIFEST, 'utf8'));
+const files = walk(DIST)
+  .filter(p => p !== MANIFEST)
+  .map(p => ({path: path.relative(DIST, p).split(path.sep).join('/'), sha256: sha256(fs.readFileSync(p))}))
+  .sort((a, b) => a.path.localeCompare(b.path));
+const bundleHash = sha256(files.map(f => `${f.path}:${f.sha256}`).join('\n'));
+if (bundleHash !== recorded.bundleHash) {
+  const recMap = new Map(recorded.files.map(f => [f.path, f.sha256]));
+  files.filter(f => recMap.get(f.path) !== f.sha256).forEach(f => console.error(`  changed/new: ${f.path}`));
+  recorded.files.filter(f => !files.find(x => x.path === f.path)).forEach(f => console.error(`  removed: ${f.path}`));
+  console.error(`FAIL: bundle hash mismatch (recorded ${recorded.bundleHash}, actual ${bundleHash})`);
+  process.exit(1);
+}
+console.log('OK: embedded bundle matches manifest');
+```
 - [ ] **Step 3: Add scripts** to `package.json`:
 ```json
 "embed:web": "node scripts/embed-web-bundle.js",
@@ -147,11 +219,17 @@ missing/stale.
 Run:
 ```bash
 cd CoteccApp && npm run embed:web && npm run embed:verify && echo "EMBED GUARD OK"
-# tamper test:
-echo " " >> dist-embedded/index.html && (npm run embed:verify && echo "BUG: guard passed on tampered bundle") || echo "GUARD CORRECTLY FAILED ON STALE BUNDLE"
+# tamper case A — HTML:
+echo " " >> dist-embedded/index.html && (npm run embed:verify && echo "BUG: passed on tampered HTML") || echo "GUARD OK: HTML tamper caught"
+npm run embed:web
+# tamper case B — a hashed JS asset (proves the hash covers the whole tree, not just HTML):
+JS=$(find dist-embedded -name '*.js' | head -1); echo "//x" >> "$JS" && (npm run embed:verify && echo "BUG: passed on tampered JS") || echo "GUARD OK: JS tamper caught"
+npm run embed:web
+# tamper case C — missing manifest:
+rm dist-embedded/embed-manifest.json && (npm run embed:verify && echo "BUG: passed with no manifest") || echo "GUARD OK: missing manifest caught"
 npm run embed:web   # restore
 ```
-Expected: `EMBED GUARD OK`, then `GUARD CORRECTLY FAILED ON STALE BUNDLE`.
+Expected: `EMBED GUARD OK`, then three `GUARD OK:` lines.
 
 - [ ] **Step 5: Commit**
 
@@ -224,6 +302,15 @@ Node + Phase 0 modules).
   via allowlist, `/ws` upgrade → wrap each socket as a `ClientConnection`, decode frames
   with `decodeEnvelope` (Phase 0 T10), drive a `GameSession` (Phase 0 T12); enforce body/
   message size caps and a per-peer connection cap.
+  > **Prerequisite (resolves review finding):** Phase 0's `GameSession` exposes only
+  > `viewFor`/`submitMove` — it has **no join / seat-assignment / connection→seat binding**.
+  > Before Step 4, add those to `GameSession` (do this here, in Task 5): `join(connId,
+  > {displayName}) → {seatId, seatToken}` (assigns/locks a seat, returns the resume token),
+  > `bind(connId, seatId, seatToken)` (validates the token, maps the connection to the
+  > seat; rejects bad token with `BAD_SEAT_TOKEN`), and `seatForConn(connId)`. `nodeHost`
+  > routes each decoded `PlayMove` through `seatForConn(connId)` so the seat is derived
+  > from the bound connection, never from the payload (SEC-002). Add Jest tests for
+  > join/bind/duplicate-token in `harness/nodeHost.test.ts` (or extend `net/session.test.ts`).
 - [ ] **Step 5: Run tests** (`npm test -- nodeHost`) → PASS.
 - [ ] **Step 6: Commit**
 
@@ -275,10 +362,16 @@ inside `SeatAssigned`. **Weak-model executable** (expo-router + UI).
   `http://<ip>:<port>/join?room=<roomToken>`; `parseJoinUrl` round-trips; **assert the
   `seatToken` is never present in the URL** (RC2-SEC-001); room token TTL default
   **15 min**, expired → `ROOM_TOKEN_EXPIRED`. Tests first, then implement.
-- [ ] **Step 2 (address selection, TDD):** `pickReachableAddress(interfaces)` prefers the
-  active serving interface when **Wi-Fi + hotspot are both active**, returns one primary
-  + `alternates[]` for manual entry. Cover the dual-interface case so a one-interface
-  bench can't mask it (RC3-ARCH-001). Full Wi-Fi/VPN/IPv6 algorithm is 1B §1.4.
+- [ ] **Step 2 (address selection, TDD — minimal, pinned algorithm):**
+  `pickReachableAddress(interfaces, opts?)` where `interfaces` has the shape of Node
+  `os.networkInterfaces()` (`Record<name, {address, family, internal}[]>`). Minimal rule
+  (full Wi-Fi/VPN/IPv6 algorithm deferred to 1B §1.4): (1) drop `internal` and non-`IPv4`
+  entries; (2) if `opts.boundInterface` is given, the primary is that interface's IPv4;
+  (3) else if any interface name matches `/ap|hotspot|swlan|tether/i`, prefer it (a
+  hotspot is the active serving net); (4) else primary = the first remaining IPv4;
+  (5) return `{primary, alternates: <all other candidate IPv4s>}`. Test the
+  **Wi-Fi + hotspot both active** case explicitly so a one-interface bench can't mask it
+  (RC3-ARCH-001).
 - [ ] **Step 3 (`/join` route):** `JoinScreen` reads `?room=` (via existing
   `src/utils/searchParams.ts`), collects display name/language, shows connecting →
   lobby; a dedicated route so a guest never falls into the local-only Home setup
@@ -305,10 +398,13 @@ executable** (UI + session wiring; reuses the existing `Podium`).
 - Modify: `CoteccApp/src/screens/HomeScreen.tsx` ("Host LAN table" entry → table settings)
 - Create: `CoteccApp/src/net/hostController.ts` (lobby state: open/lock seats, bots, kick, start) + test
 
-- [ ] **Step 1 (host controller, TDD):** table name; 2–6 seats; open/locked seats; bot
-  seats fill empty seats; ready indicators; start rule (host-only, min seats); late-join
-  = allowed until `GameStarted`, then **rejoin only** via seat token; duplicate-name
-  handling. Control matrix (start/lock/add-bot/kick = host-only; play card = seat owner).
+- [ ] **Step 1 (host controller, TDD — pinned decisions):** table name; seat count
+  **2–6** (min to start = **2**); open/locked seats; bot seats fill empty seats; ready
+  indicators; start rule = **host-only AND ≥2 seats occupied (human or bot)**; late-join
+  = allowed until `GameStarted`, then **rejoin only** via seat token. **Duplicate-name
+  policy (pinned): auto-suffix** — a second "Ann" becomes "Ann (2)" (deterministic,
+  never rejects a join for a name clash; seat identity is the `seatId`, not the name).
+  Control matrix (start/lock/add-bot/kick = host-only; play card = seat owner only).
 - [ ] **Step 2 (command-state UX, TDD):** a `MoveSubmitState` machine
   `idle|myTurn|submitting|accepted|rejected(reason)|resyncing|disconnected|retryDisabled`
   driven by `MoveAccepted`/`MoveRejected{code}`; out-of-turn/stale taps **disabled**, not
@@ -382,10 +478,11 @@ Implements 1A §4.1, §1.5 (QA-007, BUILD-005/006, RC3-QA-002). Wire the guardra
   maps to "acceptance covered": criteria 1/4/5/6 = Jest + Playwright-on-harness; 3/7 +
   game-over/rematch = Playwright-on-harness; 2 + hotspot + real host-loss = physical lab
   (1B §4); 8 = existing Jest + screenshot smoke.
-- [ ] **Step 4: Verify CI config parses**
+- [ ] **Step 4: Verify CI config parses (deterministic)**
 
-Run: `git add -A && git status` and confirm the workflow YAML is valid (e.g. `npx
-yaml-lint .github/workflows/*.yml` or push to a draft PR and watch the run).
+Run: `cd CoteccApp && npx --yes yaml-lint ../.github/workflows/*.yml && echo "YAML OK"`
+Expected: exit 0, `YAML OK`. (Watching the actual job run on a draft PR is a human check
+deferred to Task 11, not this step.)
 
 - [ ] **Step 5: Commit**
 

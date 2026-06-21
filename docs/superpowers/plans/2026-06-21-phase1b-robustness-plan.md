@@ -123,39 +123,69 @@ verified in the lab.
   (`timeout|refused|abnormal-close(1006)|permission-denied|ok`) → host-side "guest seen"
   → permission status → gateway/captive check. It runs **both at connect time and on any
   mid-session disconnect** (`grace`/`disconnected`) (RC2-NET-001).
-- [ ] **Step 2 (TDD):** `failureTaxonomy` maps each signal to {message, primary/secondary
-  action, measurable timeout/retry budget, test id} — populate all 9 rows from 1B §1.2.
+- [ ] **Step 2 (TDD):** `failureTaxonomy` maps each signal to `{message, primary,
+  secondary, budget, testId}`. Populate **exactly these 9 rows** (inlined from 1B §1.2 so
+  this plan is self-contained):
+
+  | signal (key) | message | primary / secondary | budget |
+  |---|---|---|---|
+  | `PAGE_LOAD_FAIL` | "Can't reach the table" | Rescan / switch to host hotspot | 5 s |
+  | `WS_TIMEOUT` | "Connected to Wi-Fi but not the table" | Try host hotspot / manual IP | 5 s, 2 retries |
+  | `WS_REFUSED` | "Host isn't ready" | Retry / rescan | 3 s |
+  | `WS_ABNORMAL_1006` | "Lost connection to the host" | Auto-reconnect / leave | N×heartbeat (§2.2) |
+  | `STALE_QR` | "This code expired" | Rescan new code | n/a |
+  | `SEAT_TAKEN_OR_FULL` | "That seat's taken" / "Table is full" | Pick another / spectate | n/a |
+  | `GAME_ALREADY_STARTED` | "Game already started" | Wait for rematch / leave | n/a |
+  | `IOS_LOCAL_NET_DENIED` | "Allow local network to find tables" | Open Settings / use QR | n/a |
+  | `WRONG_SUBNET_IP` | "That address isn't reachable" | Re-enter / rescan | 5 s |
+
+  The test asserts every key maps to a non-empty message, a primary action, and a budget
+  (or explicit `null`), and that each has a unique `testId`.
 - [ ] **Step 3:** Run `npm test -- diagnostics failureTaxonomy` → PASS.
 - [ ] **Step 4: Commit** `feat(net): diagnostic ladder + failure taxonomy (Phase 1B T5, NET-004)`.
 
 ---
 
-## Task 6: 🚧 LAB GATE — hotspot/isolation fallback + address selection + mDNS
+## Task 6: Address selection + hotspot/isolation fallback + mDNS
 
-Implements 1B §1.3, §1.4, §1.5 (NET-001/002/014, EXPO-005, RC2-NET-002/003, NET-009).
-**Physical-device work; a human/strong agent owns this.** Code the fallbacks where
-possible, but acceptance is lab evidence.
+Split into a **pure, weak-model-executable Part A** and a **🚧 LAB GATE Part B** so the
+codeable work is not blocked behind the device work.
+
+### Task 6 Part A — Full address-selection algorithm (pure, NOT gated)
+
+Implements 1B §1.4 (NET-014). Upgrades the minimal 1A `pickReachableAddress` to full
+ranking. **Pure logic, fully TDD-able in Jest.**
+
+**Files:** Modify `CoteccApp/src/net/addressSelect.ts` + `addressSelect.test.ts`.
+
+- [ ] **A1 (TDD):** extend `pickReachableAddress` with full ranking: prefer the bound
+  serving interface; then hotspot/AP interfaces; then private-LAN IPv4 (`10/8`,
+  `172.16/12`, `192.168/16`) over link-local (`169.254/16`); de-prioritise VPN/`utun`/`tun`
+  interfaces; include IPv6 only as `alternates` (IPv4 primary by default). Cover: Wi-Fi+
+  hotspot, Wi-Fi+VPN, link-local-only, dual-stack. Run `npm test -- addressSelect` → PASS.
+- [ ] **A2: Commit** `feat(net): full address-selection ranking (Phase 1B T6A, NET-014)`.
+
+### Task 6 Part B — 🚧 LAB GATE: hotspot lifecycle + mDNS
+
+Implements 1B §1.3, §1.5 (NET-001/002, EXPO-005, RC2-NET-002/003, NET-009).
+**Physical-device work; a human/strong agent owns this** (a weak-model worker stops here).
 
 **Files:**
-- Modify: `CoteccApp/src/net/addressSelect.ts` (full Wi-Fi/hotspot/VPN/multi-interface +
-  IPv4/dual-stack algorithm; 1A shipped the minimal version)
 - Create: `CoteccApp/src/net/hotspot.ts` (Android `LocalOnlyHotspot` lifecycle)
 - Create: `CoteccApp/src/net/mdns.ts` (best-effort advertise/browse; opaque room id only)
 
-- [ ] **Step 1 (code, TDD where pure):** full address-selection algorithm + tests for the
-  pure ranking logic.
-- [ ] **Step 2 (LAB):** Android `LocalOnlyHotspot` (ephemeral creds → Wi-Fi QR, guided
+- [ ] **B1 (LAB):** Android `LocalOnlyHotspot` (ephemeral creds → Wi-Fi QR, guided
   two-step join, handle unsupported-device/failure/stopped); anticipate the iOS
   "no internet — stay connected?" dialog with "Keep trying / Use without internet" copy
   (RC2-NET-002). iOS Personal Hotspot manual.
-- [ ] **Step 3 (LAB):** mDNS best-effort across multicast-disabled APs, guest VLANs, iOS
+- [ ] **B2 (LAB):** mDNS best-effort across multicast-disabled APs, guest VLANs, iOS
   denied permission + `NSBonjourServices`, Android OEM behaviour, duplicate service names;
   advertise only opaque room id + protocol version + capabilities (SEC-009). QR/manual
   stays canonical.
-- [ ] **Step 4 (LAB):** iOS Local Network silent-failure inference (advertise/browse
+- [ ] **B3 (LAB):** iOS Local Network silent-failure inference (advertise/browse
   started + zero results + no system prompt → infer denial → Settings deep-link)
   (RC2-NET-003).
-- [ ] **Step 5: Commit code + record lab evidence** in
+- [ ] **B4: Commit code + record lab evidence** in
   `docs/superpowers/plans/decisions/2026-06-21-hotspot-mdns-lab.md`.
 
 ---

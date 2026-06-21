@@ -188,11 +188,13 @@ unchanged (random). When a seed is given, the deal is reproducible.
 
 - [ ] **Step 1: Write the failing test (append to `roundLogic.test.ts`)**
 
-```ts
-// append to CoteccApp/src/utils/roundLogic.test.ts
-import {newRound} from './roundLogic';
-import {Player} from '../types';
+> **Imports — do NOT add duplicate import statements.** `roundLogic.test.ts` already
+> imports `newRound` (from `./roundLogic`). Add only the ONE new symbol: extend the
+> existing `'../types'` import line to include `Player` (today it imports `RoundOutcome`),
+> i.e. `import {Player, RoundOutcome} from '../types';`. Then append the describe block below.
 
+```ts
+// append the describe block to CoteccApp/src/utils/roundLogic.test.ts
 describe('newRound seeded deal', () => {
   const players: Player[] = [
     {ID: 1, name: 'A', isHuman: true, lifeCount: 3},
@@ -319,12 +321,15 @@ change suit-following evaluation.
 
 - [ ] **Step 1: Write the failing test (append to `cardsLogic.test.ts`)**
 
-```ts
-// append to CoteccApp/src/utils/cardsLogic.test.ts
-import {cardsEqual, canonicalCardOrder, sortCanonical} from './cardsLogic';
-import {Suit} from './constants';
-import {Card} from '../types';
+> **Imports — do NOT add duplicate import statements.** `cardsLogic.test.ts` already
+> imports `Suit` (from `./constants`) and has an existing `import { … } from './cardsLogic';`
+> block. MERGE the new symbols into those existing lines (eslint `import/no-duplicates`
+> forbids a second import from the same module): add `cardsEqual, canonicalCardOrder,
+> sortCanonical` to the existing `./cardsLogic` import; add `import {Card} from '../types';`
+> only if `Card` is not already imported. Then append the describe block below.
 
+```ts
+// append the describe block to CoteccApp/src/utils/cardsLogic.test.ts
 describe('card identity & ordering', () => {
   const c = (suit: Suit, rank: number, points = 0): Card => ({suit, rank, points});
 
@@ -429,13 +434,15 @@ value matching, and use the **hand's own card** (host-derived points) thereafter
 
 - [ ] **Step 1: Write the failing test (append to `gameLogic.test.ts`)**
 
-```ts
-// append to CoteccApp/src/utils/gameLogic.test.ts
-import {makeMove} from './gameLogic';
-import {newTurn} from './turnLogic';
-import {Suit} from './constants';
-import {Card, PlayerHand} from '../types';
+> **Imports — do NOT add duplicate import statements.** `gameLogic.test.ts` already
+> imports `newTurn` (`./turnLogic`), `Suit` (`./constants`), and `Card, GameState, Player`
+> (`../types`), plus a `import { … } from './gameLogic';` block. The only genuinely new
+> symbols are `makeMove` (add it to the existing `./gameLogic` import) and `PlayerHand`
+> (add it to the existing `../types` import: `import {Card, GameState, Player, PlayerHand} from '../types';`).
+> Do not re-import `newTurn`/`Suit`/`Card`. Then append the describe block below.
 
+```ts
+// append the describe block to CoteccApp/src/utils/gameLogic.test.ts
 describe('makeMove value-based removal', () => {
   const buildHand = (): PlayerHand => {
     const cards: Card[] = [
@@ -747,6 +754,32 @@ describe('hydrate', () => {
     const flat = Object.values(fixed.cardsBySuit).flat();
     expect(flat.length).toBe(fixed.cards.length);
     expect(fixed.cardsBySuit[Suit.Ori].map(c => c.rank)).toEqual([9]);
+  });
+
+  // Property test (Foundations §1.3, RC2-GAME-001): a non-canonical wire round-trip
+  // must NOT change suit-following evaluation. For every possible lead suit, the set of
+  // legal (in-suit-else-any) cards is identical before and after shuffle→encode→hydrate.
+  it('preserves suit-following (legalActions) across a shuffled round-trip', () => {
+    const all: Card[] = [
+      card(Suit.Ori, 9), card(Suit.Ori, 2), card(Suit.Coppe, 3),
+      card(Suit.Spade, 11), card(Suit.Spade, 5), card(Suit.Bastoni, 7),
+    ];
+    const legalFor = (cards: Card[], lead: Suit | null): string[] => {
+      const inSuit = lead ? cards.filter(c => c.suit === lead) : [];
+      const playable = inSuit.length > 0 ? inSuit : cards;
+      return playable.map(c => `${c.suit}-${c.rank}`).sort();
+    };
+    // shuffle deterministically (reverse) then JSON round-trip + hydrate
+    const shuffled = [...all].reverse();
+    const rehydrated = hydrateHand({
+      isHuman: true,
+      playerID: 1,
+      cards: JSON.parse(JSON.stringify(shuffled)),
+      cardsBySuit: rebuildCardsBySuit([]), // empty -> proves hydrate rebuilds it
+    }).cards;
+    for (const lead of [null, Suit.Ori, Suit.Spade, Suit.Coppe, Suit.Bastoni]) {
+      expect(legalFor(rehydrated, lead)).toEqual(legalFor(all, lead));
+    }
   });
 });
 ```
@@ -1061,6 +1094,21 @@ const mkSeats = (players: Player[]): Seat[] =>
     isHostSeat: i === 0,
   }));
 
+// Walk any parsed JSON value and collect every {suit, rank} pair as "suit-rank".
+// Structural (not substring): immune to key ordering / whitespace.
+const collectCardRefs = (node: unknown, acc: Set<string> = new Set()): Set<string> => {
+  if (Array.isArray(node)) {
+    node.forEach(n => collectCardRefs(n, acc));
+  } else if (node && typeof node === 'object') {
+    const o = node as Record<string, unknown>;
+    if (typeof o.suit === 'string' && typeof o.rank === 'number') {
+      acc.add(`${o.suit}-${o.rank}`);
+    }
+    Object.values(o).forEach(v => collectCardRefs(v, acc));
+  }
+  return acc;
+};
+
 describe('projectStateForSeat — redaction oracle', () => {
   it.each([2, 3, 4, 5, 6])(
     'for a %i-seat game, a seat view contains only the local hand',
@@ -1071,7 +1119,6 @@ describe('projectStateForSeat — redaction oracle', () => {
 
       for (const seat of seats) {
         const view = projectStateForSeat(state, seats, seat.seatId);
-        const serialized = JSON.stringify(view);
 
         // The local hand is present.
         const localHand = state.currentRound.players.find(
@@ -1079,17 +1126,18 @@ describe('projectStateForSeat — redaction oracle', () => {
         )!;
         expect(view.localHand.length).toBe(localHand.cards.length);
 
-        // No OTHER seat's specific cards appear anywhere in the payload.
-        for (const other of state.currentRound.players) {
-          if (other.playerID === seat.playerId) continue;
-          for (const c of other.cards) {
-            // a card unique to `other` (not also in local hand)
-            const alsoLocal = localHand.cards.some(
-              lc => lc.suit === c.suit && lc.rank === c.rank,
-            );
-            if (alsoLocal) continue;
-            expect(serialized).not.toContain(`"suit":"${c.suit}","rank":${c.rank}`);
-          }
+        // STRUCTURAL oracle (not a substring match): parse the serialized payload,
+        // collect EVERY {suit,rank} pair anywhere in the tree, and assert each is
+        // allowed = local hand ∪ public trick cards. Robust to key ordering/spacing.
+        const allowed = new Set(
+          [
+            ...localHand.cards,
+            ...view.currentTrick.map(t => t.card),
+          ].map(c => `${c.suit}-${c.rank}`),
+        );
+        const found = collectCardRefs(JSON.parse(JSON.stringify(view)));
+        for (const ref of found) {
+          expect(allowed.has(ref)).toBe(true); // any foreign card here is a leak
         }
       }
     },
@@ -1118,8 +1166,41 @@ describe('projectStateForSeat — redaction oracle', () => {
     expect(myTurn.phase).toBe('playing');
     expect(myTurn.legalActions.length).toBeGreaterThan(0);
   });
+
+  it('fuzz: after random legal moves, no view leaks a foreign card (mid-trick)', () => {
+    const players = mkPlayers(4);
+    const state = newGame(players, 1, 3);
+    const seats = mkSeats(players);
+    // Apply a few legal moves so currentTrick is non-empty (the interesting case).
+    for (let i = 0; i < 3; i++) {
+      const cur = state.currentRound.currentTurn.currentPlayerID;
+      const v = projectStateForSeat(state, seats, `s${cur}`);
+      if (v.legalActions.length === 0) break;
+      applyMove(state, cur, v.legalActions[0]);
+    }
+    for (const seat of seats) {
+      const v = projectStateForSeat(state, seats, seat.seatId);
+      const localHand = state.currentRound.players.find(
+        h => h.playerID === seat.playerId,
+      )!;
+      const allowed = new Set(
+        [...localHand.cards, ...v.currentTrick.map(t => t.card)].map(
+          c => `${c.suit}-${c.rank}`,
+        ),
+      );
+      for (const ref of collectCardRefs(JSON.parse(JSON.stringify(v)))) {
+        expect(allowed.has(ref)).toBe(true);
+      }
+    }
+  });
 });
 ```
+
+> Add `import {applyMove} from '../engine/applyMove';` to this test file (it is used by
+> the fuzz case). The **same `collectCardRefs` oracle MUST also be applied to the encoded
+> `StateDelta` and `LobbyUpdated` payloads** — see T11 Step 1 (a redaction assertion is
+> added there so every outbound message type, not just the projection, is covered, per
+> Foundations §4.2/§4.3).
 
 - [ ] **Step 2: Run test to verify it fails**
 
@@ -1631,7 +1712,26 @@ export interface ClientConnection {
   onClose(cb: () => void): void;
   status: 'open' | 'closed';
 }
+
+// Backpressure contract (WS-008): a concrete HostEndpoint MUST bound its per-peer queue,
+// coalesce obsolete state updates (prefer the latest snapshot over queued deltas), and
+// drop peers exceeding the queue/bufferedAmount threshold. The interface stays
+// transport-agnostic; the WebSocket and SSE+POST adapters enforce it (Phase 1A T5).
+export interface BackpressureLimits {
+  maxQueuedPerPeer: number;
+  maxBufferedBytes: number;
+}
 ```
+
+> **SSE+POST parity (WS-007/API-007).** Foundations §3.4 requires an SSE+POST transport
+> that uses the **same `Envelope` and sequencing** as WebSocket. It is the SAME protocol,
+> so Phase 0 only fixes the **contract** here (these interfaces + the shared `Envelope`/
+> `serverSeq`/`clientSeq` rules in T10/T12). The concrete HTTP wiring —
+> `GET /session/:id/events?afterSeq=` (SSE, `Last-Event-ID` resume) + `POST
+> /session/:id/commands` (idempotent `clientMessageId`) — is implemented in **Phase 1A
+> Task 5** alongside the WebSocket adapter, because both need the embedded HTTP server
+> that does not exist until 1A. This split is intentional; both adapters share this
+> `transport.ts` contract so the fallback is never a second protocol.
 
 - [ ] **Step 4: Write `session.ts`**
 
@@ -1778,24 +1878,35 @@ Implements Foundations §2.3, §5 exit criterion (RC2-ARCH-001). A lint rule tha
 the build if a client component imports engine `GameState`/internal engine types. This
 is the automated boundary — not a convention.
 
+> **Scope decision (resolves review finding):** the rule forbids only **`GameState`**
+> (the full-state leak the spec cares about). `PlayerHand`/`Round` are legitimately used
+> as display-prop types by existing components (`TableComponent`, `PlayerHandComponent`,
+> `GameScreen`) and are NOT forbidden — forbidding them would require refactoring
+> unrelated UI and is out of Phase 0 scope. The **current `GameState` violators are
+> exactly two** (verified): `src/screens/GameScreen.tsx` and `src/components/StateDebug.tsx`.
+> Both get a tracked `eslint-disable` + `TODO(phase0-seatview)`; removing those two
+> disables is the definition of done for the §2.2 GameScreen/SeatView refactor.
+
 **Files:**
-- Modify: `CoteccApp/.eslintrc.js` (or `eslint.config.js` — whichever exists; see Step 1)
-- Test: `CoteccApp/src/screens/__lintfixture__/badImport.tsx` (NEW, a fixture that must lint-fail) + manual verification
+- Modify: `CoteccApp/.eslintrc.js` (confirmed format; see Step 1)
+- Modify: `CoteccApp/src/screens/GameScreen.tsx`, `CoteccApp/src/components/StateDebug.tsx` (tracked disables)
+- Create (permanent regression test): `CoteccApp/src/net/lintGuard.test.ts` + `CoteccApp/src/net/__lintfixtures__/badClientImport.txt`
 
 - [ ] **Step 1: Inspect the existing ESLint config**
 
-Run: `ls CoteccApp/.eslintrc* CoteccApp/eslint.config.* 2>/dev/null; cat CoteccApp/.eslintrc.js 2>/dev/null || cat CoteccApp/.eslintrc.json 2>/dev/null`
-Expected: shows the current config (extends `eslint-config-expo`). Note the filename
-and format — apply Step 2 to that file.
+Run: `ls CoteccApp/.eslintrc* CoteccApp/eslint.config.* 2>/dev/null && cat CoteccApp/.eslintrc.js`
+Expected: a legacy `.eslintrc.js` extending `expo`, with eslint 8.57 and
+`eslint-plugin-import`. Note whether an `@src` path alias is configured (if so, include
+it in the `patterns` group below). Apply Step 2 to `.eslintrc.js`.
 
-- [ ] **Step 2: Add a `no-restricted-imports` override for client folders**
+- [ ] **Step 2: Add a depth/alias-robust `no-restricted-imports` override**
 
-Add (or merge) an `overrides` entry that targets client UI folders (`src/screens`,
-`src/components`) and forbids importing `GameState` and engine internals. Example for
-`.eslintrc.js`:
+Merge into `module.exports` (use the `patterns` form so it matches `../types`,
+`../../types`, deeper relative paths, AND any `@src/types` alias — not just two literal
+specifiers):
 
 ```js
-// merge into module.exports
+// merge into module.exports of CoteccApp/.eslintrc.js
 overrides: [
   {
     files: ['src/screens/**/*.{ts,tsx}', 'src/components/**/*.{ts,tsx}'],
@@ -1804,21 +1915,13 @@ overrides: [
       'no-restricted-imports': [
         'error',
         {
-          paths: [
-            {
-              name: '../types',
-              importNames: ['GameState', 'Round', 'PlayerHand'],
-              message:
-                'Client UI must consume SeatView (src/net/seatView), never engine GameState. (Foundations RC2-ARCH-001)',
-            },
-            {
-              name: '../../types',
-              importNames: ['GameState', 'Round', 'PlayerHand'],
-              message:
-                'Client UI must consume SeatView (src/net/seatView), never engine GameState. (Foundations RC2-ARCH-001)',
-            },
-          ],
           patterns: [
+            {
+              group: ['**/types', '@src/types'],
+              importNames: ['GameState'],
+              message:
+                'Client UI must consume SeatView (src/net/seatView), never engine GameState. (Foundations RC2-ARCH-001)',
+            },
             {
               group: ['**/utils/gameLogic', '**/utils/roundLogic', '**/engine/*'],
               message:
@@ -1832,41 +1935,63 @@ overrides: [
 ],
 ```
 
-> Note: today `GameScreen` DOES import `GameState`. Refactoring `GameScreen` to consume
-> a `SeatView`/loopback session is the larger §2.2 work. For Phase 0, scope this task to:
-> (a) land the rule, (b) add `// eslint-disable-next-line no-restricted-imports` with a
-> `TODO(phase0-seatview)` comment at the existing `GameScreen` import so CI is green now,
-> and (c) prove the rule fires on a new violation (Step 3). The disable comment is the
-> single tracked exception; removing it is the definition of done for the §2.2 refactor.
+> The `patterns[].importNames` form requires eslint ≥ 8.x (present). It matches the
+> imported NAME across every path spelling, closing the relative-depth/alias bypass.
 
-- [ ] **Step 3: Prove the rule fires (fixture)**
+- [ ] **Step 3: Add the two tracked disables (the only current `GameState` violators)**
 
-Create `CoteccApp/src/screens/__lintfixture__/badImport.tsx`:
+In `src/screens/GameScreen.tsx` and `src/components/StateDebug.tsx`, on the line that
+imports `GameState` from `../types`, add directly above it:
 
-```tsx
-// Fixture: this import MUST be flagged by no-restricted-imports.
+```ts
+// eslint-disable-next-line no-restricted-imports -- TODO(phase0-seatview): refactor to SeatView (Foundations §2.2, RC2-ARCH-001)
+```
+
+- [ ] **Step 4: Add a PERMANENT regression test that the guard still fires**
+
+The guard itself must be regression-protected (a future config edit must not silently
+disable it). Create a fixture as a non-linted `.txt` (so it never breaks `npm run lint`)
+and a Jest test that runs ESLint programmatically against it.
+
+Create `CoteccApp/src/net/__lintfixtures__/badClientImport.txt`:
+```ts
 import {GameState} from '../../types';
 export const leak = (s: GameState) => s.players.length;
 ```
 
-Run: `cd CoteccApp && npx eslint src/screens/__lintfixture__/badImport.tsx`
-Expected: FAIL with the "Client UI must consume SeatView" message. This proves the
-guardrail works.
+Create `CoteccApp/src/net/lintGuard.test.ts`:
+```ts
+import {ESLint} from 'eslint';
+import * as path from 'path';
+import * as fs from 'fs';
 
-- [ ] **Step 4: Delete the fixture and confirm a clean lint**
-
-```bash
-rm CoteccApp/src/screens/__lintfixture__/badImport.tsx
-rmdir CoteccApp/src/screens/__lintfixture__ 2>/dev/null || true
-cd CoteccApp && npm run lint
+// Verifies the client-only-SeatView guard actually flags a GameState import in a
+// client folder. Lints the fixture AS IF it lived at src/screens/_guardcheck.tsx.
+it('flags a client-component GameState import (RC2-ARCH-001 guard is live)', async () => {
+  const code = fs.readFileSync(
+    path.join(__dirname, '__lintfixtures__', 'badClientImport.txt'),
+    'utf8',
+  );
+  const eslint = new ESLint({cwd: path.join(__dirname, '..', '..')});
+  const results = await eslint.lintText(code, {
+    filePath: path.join('src', 'screens', '_guardcheck.tsx'),
+  });
+  const messages = results[0].messages.map(m => m.ruleId);
+  expect(messages).toContain('no-restricted-imports');
+});
 ```
-Expected: PASS (clean, with the one tracked `eslint-disable` in `GameScreen`).
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: Run the guard test + full lint**
+
+Run: `cd CoteccApp && npm test -- lintGuard && npm run lint`
+Expected: `lintGuard` PASSES (guard fires on the fixture); `npm run lint` PASSES clean
+(the two tracked disables are the only exceptions; no other violators remain).
+
+- [ ] **Step 6: Commit**
 
 ```bash
-git add CoteccApp/.eslintrc.js CoteccApp/src/screens/GameScreen.tsx
-git commit -m "feat(net): client-only-SeatView import guard in CI (Phase 0 T13, RC2-ARCH-001)"
+git add CoteccApp/.eslintrc.js CoteccApp/src/screens/GameScreen.tsx CoteccApp/src/components/StateDebug.tsx CoteccApp/src/net/lintGuard.test.ts CoteccApp/src/net/__lintfixtures__/badClientImport.txt
+git commit -m "feat(net): client-only-SeatView guard + permanent regression test (Phase 0 T13, RC2-ARCH-001)"
 ```
 
 ---
@@ -1907,51 +2032,62 @@ Expected: FAIL — fixtures module not found.
 
 - [ ] **Step 3: Write the fixtures**
 
+> **Build frames from the REAL producers (resolves review finding).** Hand-written JSON
+> snapshots are tautological — they only change when the fixture file changes, so a change
+> to the actual `Envelope`/payload types or to `makeEnvelope`/`encodeRoundResult` would
+> NOT break the snapshot. Generate frames via the real producers so a producer change
+> breaks the change-detector. `sentAt` is non-deterministic, so normalise it before
+> snapshotting.
+
 ```ts
 // CoteccApp/src/net/__fixtures__/frames.ts
-// Canonical wire frames, one per representative message type. Frozen on purpose:
-// changing the protocol must require updating these (and the snapshot), making
-// accidental wire changes visible in review.
+// Canonical wire frames produced by the REAL encoders, so any change to a producer
+// (envelope shape, payload encoder) breaks the change-detector snapshot in T14.
+import {makeEnvelope} from '../protocol';
+import {encodeRoundResult} from '../codec';
+import {RoundOutcome} from '../../types';
+
+// Stable sentAt so the snapshot is deterministic.
+const FIXED = {sentAt: '2026-06-21T00:00:00.000Z'};
+
 export const GOLDEN_FRAMES: Record<string, string> = {
-  PlayMove: JSON.stringify({
-    protocolVersion: 1,
-    sessionId: 'sess-1',
-    seatId: 's1',
-    type: 'PlayMove',
-    clientMessageId: 'm-1',
-    sentAt: '2026-06-21T00:00:00.000Z',
-    payload: {cardRef: {suit: 'ori', rank: 7}, clientSeq: 1},
-  }),
-  MoveRejected: JSON.stringify({
-    protocolVersion: 1,
-    sessionId: 'sess-1',
-    type: 'MoveRejected',
-    serverSeq: 4,
-    sentAt: '2026-06-21T00:00:00.000Z',
-    payload: {code: 'NOT_YOUR_TURN', message: 'Not your turn'},
-  }),
-  LobbyUpdated: JSON.stringify({
-    protocolVersion: 1,
-    sessionId: 'sess-1',
-    type: 'LobbyUpdated',
-    serverSeq: 1,
-    sentAt: '2026-06-21T00:00:00.000Z',
-    payload: {
-      tableName: 'Kitchen table',
-      hostSeatId: 's1',
-      canStart: false,
-      seats: [
-        {seatId: 's1', displayName: 'A', cardCount: 0, lives: 3, roundScore: 0, controller: 'local', connection: 'connected'},
-      ],
-    },
-  }),
-  Error: JSON.stringify({
-    protocolVersion: 1,
-    sessionId: 'sess-1',
-    type: 'Error',
-    sentAt: '2026-06-21T00:00:00.000Z',
-    payload: {code: 'STALE_STATE', message: 'Resync required'},
-  }),
+  PlayMove: JSON.stringify(
+    makeEnvelope(
+      'PlayMove',
+      'sess-1',
+      {cardRef: {suit: 'ori', rank: 7}, clientSeq: 1},
+      {seatId: 's1', clientMessageId: 'm-1', ...FIXED},
+    ),
+  ),
+  MoveRejected: JSON.stringify(
+    makeEnvelope(
+      'MoveRejected',
+      'sess-1',
+      {code: 'NOT_YOUR_TURN', message: 'Not your turn'},
+      {serverSeq: 4, ...FIXED},
+    ),
+  ),
+  RoundComplete: JSON.stringify(
+    makeEnvelope(
+      'RoundComplete',
+      'sess-1',
+      // real codec output, proving the Set→array encoding is part of the frame
+      encodeRoundResult({
+        outcome: RoundOutcome.CAPOT,
+        roundLosers: new Set([2, 3]),
+        winnerID: 1,
+      }),
+      {serverSeq: 8, ...FIXED},
+    ),
+  ),
+  Error: JSON.stringify(
+    makeEnvelope(
+      'Error',
+      'sess-1',
+      {code: 'STALE_STATE', message: 'Resync required'},
+      {...FIXED},
+    ),
+  ),
 };
 ```
 
@@ -1970,26 +2106,42 @@ git commit -m "feat(net): golden wire-frame fixtures + change-detector (Phase 0 
 ## Task 15: Phase 0 exit-gate verification
 
 Implements Foundations §5. Run every guardrail; this is the single "Phase 0 is done"
-check. No code — it verifies the gates pass.
+check. One small config change (per-directory coverage), then verify the gates pass.
 
-**Files:** none (verification only).
+**Files:** Modify: `CoteccApp/jest.config.js` (per-directory coverage threshold).
 
-- [ ] **Step 1: Full test suite + coverage**
+- [ ] **Step 1: Add a per-directory coverage floor for the new modules**
+
+The existing `coverageThreshold.global` floor cannot catch thinly-tested NEW code (a
+large well-tested engine keeps the global average up). Add explicit per-directory floors
+so `src/net/**` and `src/engine/**` must themselves be covered. Merge into
+`coverageThreshold` in `CoteccApp/jest.config.js`:
+
+```js
+coverageThreshold: {
+  global: {statements: 88, branches: 77, functions: 85, lines: 88},
+  './src/net/': {statements: 90, branches: 80, functions: 90, lines: 90},
+  './src/engine/': {statements: 90, branches: 80, functions: 90, lines: 90},
+},
+```
+
+- [ ] **Step 2: Full test suite + coverage**
 
 Run: `cd CoteccApp && npm test`
-Expected: PASS — all suites green; coverage ≥ stmts 88 / branch 77 / fn 85 / lines 88.
+Expected: PASS — all suites green; global floor met AND `src/net/`, `src/engine/`
+per-directory floors met. If a new module is under-covered, this now fails (intended).
 
-- [ ] **Step 2: Type check**
+- [ ] **Step 3: Type check**
 
 Run: `cd CoteccApp && npx tsc --noEmit`
 Expected: no errors.
 
-- [ ] **Step 3: Lint (boundary guard active)**
+- [ ] **Step 4: Lint (boundary guard active)**
 
 Run: `cd CoteccApp && npm run lint`
 Expected: PASS — the client-only-`SeatView` rule is enforced.
 
-- [ ] **Step 4: Targeted guardrail confirmation**
+- [ ] **Step 5: Targeted guardrail confirmation**
 
 Run each and confirm PASS:
 ```bash
@@ -2002,16 +2154,16 @@ npm test -- protocol               # golden frames change-detector (gate)
 ```
 Expected: all PASS.
 
-- [ ] **Step 5: Confirm the Phase 0 exit checklist**
+- [ ] **Step 6: Confirm the Phase 0 exit checklist**
 
 Verify each is true (maps to Foundations §5):
 1. [ ] Existing Jest suites green; coverage preserved; offline play unchanged (T2, T4, T12 regression).
 2. [ ] Seeded deal, `applyMove` result, value-based cards, codec round-trip, hydrator — all tested (T1–T7).
 3. [ ] `protocol.ts` + golden fixtures + decode/validate; `StateDelta`/`LobbyUpdated` typed; sequence reconciliation unit-tested (T10–T12, T14).
 4. [ ] `SeatView` projection + leakage tests pass for 2–6 seats; `dealSeed` never in any serialized frame (T9).
-5. [ ] Client-only-`SeatView` boundary enforced by type + lint rule in CI (T13).
+5. [ ] Client-only-`SeatView` boundary: **lint** rule enforced in CI for all client code + a permanent guard regression test (T13). NOTE: the **type** half (GameScreen holding `SeatView` not `GameState`) is a tracked follow-up via two `eslint-disable`s — do NOT tick this as fully "type + lint" until those disables are removed by the §2.2 refactor.
 
-- [ ] **Step 6: Final commit (if any snapshot/coverage artifacts changed)**
+- [ ] **Step 7: Final commit (if any snapshot/coverage artifacts changed)**
 
 ```bash
 git add -A CoteccApp
