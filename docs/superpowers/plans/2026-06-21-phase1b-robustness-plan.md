@@ -1,0 +1,255 @@
+# Phase 1B — Robustness & Fallbacks Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans. Steps use checkbox (`- [ ]`) syntax. **Tasks tagged 🚧 LAB GATE require physical devices and a human/strong agent — a weak-model worker stops there.**
+
+**Goal:** make the 1A LAN MVP survive real-world conditions — flaky links, dropped
+players, AP isolation, no-router setups — with clear recovery UX and a full test
+program. **No new transports or trust model** (those are future, per parent §6).
+
+**Non-Goals (Phase 1B):** no host migration (R2 deferred), no F3 trustless deal, no
+WebRTC/BLE, no Tier-2 browser hosting.
+
+**Depends on:** Phase 1A complete (all exit gates green, decision files committed).
+
+**Architecture:** Builds on the 1A `GameSession` and Node harness. Reconnect/heartbeat/
+pause-AI is session logic (Jest-testable in CI); diagnostics/hotspot/mDNS and the device
+matrix are physical lab gates. The live AI-takeover countdown is driven by the
+server-authoritative `SeatSummary.graceUntil` from Phase 0 — clients render it, never
+compute the deadline locally.
+
+**Spec:** `docs/superpowers/specs/2026-06-20-local-multiplayer-phase1b-robustness-design.md`.
+
+---
+
+## Task 1: Event-sourced log (F2) + reconnect resume
+
+Implements 1B §2.1 (API-004, WS-002). **Weak-model executable** (session logic, Jest).
+
+**Files:**
+- Modify: `CoteccApp/src/net/session.ts` (append-only log keyed by `serverSeq`; `resume(seatToken, fromStateVersion)` → replay or `SeatSnapshot`; stale → `STALE_STATE`)
+- Create: `CoteccApp/src/net/moveLog.ts` + test
+- Modify: `CoteccApp/src/net/session.test.ts`
+
+- [ ] **Step 1 (TDD):** `moveLog` appends `{serverSeq, event}`; `since(seq)` returns the
+  tail. Tests first.
+- [ ] **Step 2 (TDD):** `session.resume(seatToken, fromStateVersion)` returns a replay tail
+  when in range, a full `SeatSnapshot` when too far behind, and rejects stale commands
+  with `STALE_STATE`.
+- [ ] **Step 3:** Run `npm test -- moveLog net/session` → PASS.
+- [ ] **Step 4: Commit** `feat(net): event-sourced log + reconnect resume (Phase 1B T1, API-004)`.
+
+---
+
+## Task 2: Heartbeats & disconnect detection
+
+Implements 1B §2.2 (WS-006). **Weak-model executable** (use a fake clock in tests).
+
+**Files:**
+- Create: `CoteccApp/src/net/heartbeat.ts` + test
+- Modify: `CoteccApp/src/net/session.ts` (mark seat `grace` after M missed)
+
+- [ ] **Step 1 (TDD, fake timers):** ping/pong every **N s** (default 5); after **M**
+  missed (default 3) the seat flips to `connection: 'grace'`; handle browser
+  visibility/resume; half-open detection. Constants live in `CoteccApp/src/utils/constants.ts`
+  (`HEARTBEAT_INTERVAL_MS`, `HEARTBEAT_MISS_LIMIT`) so the spike can tune them.
+- [ ] **Step 2:** Run `npm test -- heartbeat` → PASS.
+- [ ] **Step 3: Commit** `feat(net): heartbeats + grace detection (Phase 1B T2, WS-006)`.
+
+---
+
+## Task 3: Pause-then-AI policy (D2) + seat-token expiry
+
+Implements 1B §2.3 (PROD-006, GAME-006, RC2-UX-003, RC3-UX-001, RC2-SEC-003, SEC-003).
+**Weak-model executable** (reuses `aiMoveToPlay`; Jest).
+
+**Files:**
+- Create: `CoteccApp/src/net/takeover.ts` + test
+- Modify: `CoteccApp/src/net/session.ts` (controller flips, `graceUntil`, token rotation)
+
+- [ ] **Step 1 (TDD):** on `grace→disconnected` the **table pauses**; after a
+  host-configurable timeout (**default 30 s**, range **10–120 s** or "never→pause-only")
+  the seat `controller` flips `remote→ai` (reusing `aiMoveToPlay` from
+  `src/utils/aiPlayerLogic.ts`); the seat stays **owned** by the player.
+- [ ] **Step 2 (TDD):** set `SeatSummary.graceUntil = now + timeout` (epoch ms,
+  server-authoritative) so all clients render the **same** live countdown (RC3-UX-001).
+  Assert it is only present when `connection==='grace'`.
+- [ ] **Step 3 (TDD):** on valid resume (single active connection, host-confirmed reclaim)
+  `controller` flips back at the **next turn boundary**; duplicate token / duplicate
+  connection rejected with `BAD_SEAT_TOKEN`.
+- [ ] **Step 4 (TDD, token rotation — pinned, SEC-003):** every successful reconnect
+  issues a **new** resume token in `SeatAssigned` and **atomically invalidates** the
+  previous one; later use of the old token → `BAD_SEAT_TOKEN`; only one token valid per
+  seat at a time. Reclaim window default = AI timeout + grace margin (host-configurable);
+  **all seat tokens expire at match end** regardless (RC2-SEC-003).
+- [ ] **Step 5:** Run `npm test -- takeover net/session` → PASS.
+- [ ] **Step 6: Commit** `feat(net): pause-then-AI + graceUntil + token rotation (Phase 1B T3, RC2-UX-003)`.
+
+---
+
+## Task 4: Reconnect/host-loss UX + command-state surfacing
+
+Implements 1B §2.4 (UX-006, UX-007, FE-004, NET-013). **Weak-model executable** (UI;
+Playwright assertions).
+
+**Files:**
+- Modify: `CoteccApp/src/screens/LobbyScreen.tsx` / game UI (disconnected badge,
+  paused/countdown indicator from `graceUntil`, **AI-controlled** label, reclaim
+  confirmation, duplicate-seat conflict copy)
+- Add Playwright assertions in `CoteccApp/e2e/`
+
+- [ ] **Step 1:** Render per-seat `connection`/`controller` states + a live countdown
+  bound to `SeatSummary.graceUntil` (render only — no local deadline math).
+- [ ] **Step 2:** Host-loss terminal state (R2 deferred, D5): "Host disconnected — game
+  cannot continue" with wait/return-home/start-new; browser clients on a dead host can't
+  refresh → copy says rejoin via a new host's QR (NET-013).
+- [ ] **Step 3:** Playwright: disconnect → countdown visible → AI-controlled label →
+  reclaim flow. Run `npm run e2e` → PASS.
+- [ ] **Step 4: Commit** `feat(net): reconnect/host-loss UX + countdown (Phase 1B T4, UX-006)`.
+
+---
+
+## Task 5: Local-only diagnostic ladder + failure taxonomy
+
+Implements 1B §1.1, §1.2 (ARCH-008, NET-004, FE-005, WS-009, UX-005, QA-008).
+**Weak-model executable** for the classifier + table; the iOS silent-failure inference is
+verified in the lab.
+
+**Files:**
+- Create: `CoteccApp/src/net/diagnostics.ts` (classifier) + test
+- Create: `CoteccApp/src/net/failureTaxonomy.ts` (signal → message/action/budget) + test
+
+- [ ] **Step 1 (TDD):** `classifyConnectivity()` runs the ladder **without internet
+  reachability**: page-load → `GET /healthz` → `ws` upgrade categorised
+  (`timeout|refused|abnormal-close(1006)|permission-denied|ok`) → host-side "guest seen"
+  → permission status → gateway/captive check. It runs **both at connect time and on any
+  mid-session disconnect** (`grace`/`disconnected`) (RC2-NET-001).
+- [ ] **Step 2 (TDD):** `failureTaxonomy` maps each signal to {message, primary/secondary
+  action, measurable timeout/retry budget, test id} — populate all 9 rows from 1B §1.2.
+- [ ] **Step 3:** Run `npm test -- diagnostics failureTaxonomy` → PASS.
+- [ ] **Step 4: Commit** `feat(net): diagnostic ladder + failure taxonomy (Phase 1B T5, NET-004)`.
+
+---
+
+## Task 6: 🚧 LAB GATE — hotspot/isolation fallback + address selection + mDNS
+
+Implements 1B §1.3, §1.4, §1.5 (NET-001/002/014, EXPO-005, RC2-NET-002/003, NET-009).
+**Physical-device work; a human/strong agent owns this.** Code the fallbacks where
+possible, but acceptance is lab evidence.
+
+**Files:**
+- Modify: `CoteccApp/src/net/addressSelect.ts` (full Wi-Fi/hotspot/VPN/multi-interface +
+  IPv4/dual-stack algorithm; 1A shipped the minimal version)
+- Create: `CoteccApp/src/net/hotspot.ts` (Android `LocalOnlyHotspot` lifecycle)
+- Create: `CoteccApp/src/net/mdns.ts` (best-effort advertise/browse; opaque room id only)
+
+- [ ] **Step 1 (code, TDD where pure):** full address-selection algorithm + tests for the
+  pure ranking logic.
+- [ ] **Step 2 (LAB):** Android `LocalOnlyHotspot` (ephemeral creds → Wi-Fi QR, guided
+  two-step join, handle unsupported-device/failure/stopped); anticipate the iOS
+  "no internet — stay connected?" dialog with "Keep trying / Use without internet" copy
+  (RC2-NET-002). iOS Personal Hotspot manual.
+- [ ] **Step 3 (LAB):** mDNS best-effort across multicast-disabled APs, guest VLANs, iOS
+  denied permission + `NSBonjourServices`, Android OEM behaviour, duplicate service names;
+  advertise only opaque room id + protocol version + capabilities (SEC-009). QR/manual
+  stays canonical.
+- [ ] **Step 4 (LAB):** iOS Local Network silent-failure inference (advertise/browse
+  started + zero results + no system prompt → infer denial → Settings deep-link)
+  (RC2-NET-003).
+- [ ] **Step 5: Commit code + record lab evidence** in
+  `docs/superpowers/plans/decisions/2026-06-21-hotspot-mdns-lab.md`.
+
+---
+
+## Task 7: Security hardening verification
+
+Implements 1B §3 (SEC-001..009). **Weak-model executable** for the server caps tests;
+binding/port behaviour confirmed in the lab.
+
+**Files:**
+- Modify: `CoteccApp/harness/nodeHost.ts` (assert caps) + tests
+- Create: `docs/superpowers/plans/decisions/2026-06-21-security-hardening-checklist.md`
+
+- [ ] **Step 1 (TDD):** asset allowlist (no dir listing/debug), strict schemas, body/
+  message size caps, connection caps, per-peer rate limits — each with a failing-then-
+  passing test against the harness.
+- [ ] **Step 2 (TDD):** token lifecycle under reconnect/AI (separate admission vs resume
+  tokens; rotation; single active connection; host-confirmed reclaim) — confirm the
+  Phase 1B T3 rotation invariants hold end-to-end.
+- [ ] **Step 3 (LAB):** LAN-interface bind + random high port on device; QR credential
+  rules (Android ephemeral creds only, stop/rotate after match, no reusable iOS hotspot
+  password by default, expire room tokens on lobby close, warn before showing creds).
+- [ ] **Step 4:** Restate in the checklist: F2 audit trail ≠ anti-host cheating (F3
+  deferred, SEC-006). Run `npm test -- nodeHost` → PASS.
+- [ ] **Step 5: Commit** `feat(net): security hardening + caps verification (Phase 1B T7, SEC-008)`.
+
+---
+
+## Task 8: Accessibility (testable, CI-gated)
+
+Implements 1B §5 (UX-011). **Weak-model executable** (Playwright + axe).
+
+**Files:**
+- Add `CoteccApp/e2e/a11y.spec.ts`; add `@axe-core/playwright` devDep.
+
+- [ ] **Step 1:** Manual join completes **without a camera** (keyboard-only path to a
+  seated game).
+- [ ] **Step 2:** Keyboard-complete browser join/lobby/play (no pointer events).
+- [ ] **Step 3:** Screen-reader announcements (connecting / your-turn / disconnected /
+  AI-controlled / reconnected) via ARIA live regions — assert role/`aria-live` presence.
+- [ ] **Step 4:** Non-color-only status (text/icon, not just color) — axe audit in CI.
+  Scalable text honoured; focus moves to the error on failure (assert).
+- [ ] **Step 5:** Run `npm run e2e -- a11y` → PASS. **Commit**
+  `test(net): CI-gated accessibility checks (Phase 1B T8, UX-011)`.
+
+---
+
+## Task 9: 🚧 LAB GATE — full QA matrix + falsifiable device lab
+
+Implements 1B §4 (QA-002/003/004/006/008/009/010). **Physical evidence required.**
+
+**Files:**
+- Create: `docs/superpowers/plans/decisions/2026-06-21-device-lab-matrix.md`
+
+- [ ] **Step 1:** Build the QA matrix (columns: phase, host platform, guest platform,
+  browser/app role, transport, pairing path, network condition, expected result,
+  automated/manual, release priority).
+- [ ] **Step 2 (LAB, falsifiable):** fixed inventory — **Android host** (≥ API 33),
+  **Chrome+Safari laptop** guests, **iOS app guest** (≥ iOS 16), **Android app guest**;
+  networks = home router, client-isolated guest Wi-Fi, Android `LocalOnlyHotspot`,
+  airplane-mode/no-internet LAN. Each cell records device/OS version, **physical vs
+  emulated** (host + hotspot cells MUST be physical), pass/fail, and an artifact
+  (recording or log). iOS host = dev-client cell, **informational** in alpha (D4).
+  **The gate fails if any required physical cell is missing evidence** (RC2-QA-003).
+- [ ] **Step 3:** Pairing tests (valid/malformed QR, expired token, wrong-subnet IP,
+  manual success/failure, camera unavailable, iOS Local Network denial, Android
+  permission denial) — each with expected recovery (QA-010).
+- [ ] **Step 4: Commit the matrix + evidence index.**
+
+---
+
+## Task 10: Phase 1B exit-gate verification
+
+Implements 1B §6.
+
+- [ ] **Step 1 (CI):** `npm test`, `npm run lint`, `npx tsc --noEmit`, `npm run e2e`
+  (incl. a11y), `npm run embed:verify` — all PASS; coverage preserved.
+- [ ] **Step 2:** Confirm: diagnostic ladder + taxonomy with measurable budgets (T5);
+  R1 reconnect + pause-then-AI + heartbeats (T1–T3); reconnect/host-loss UX (T4);
+  security hardening verified (T7); accessibility met (T8).
+- [ ] **Step 3 (LAB):** hotspot/isolation validated (T6) and full device matrix evidence
+  complete (T9) — no required physical cell missing.
+- [ ] **Step 4 (release gates):** lint, tsc, Jest coverage, web export, Playwright,
+  Android prebuild/build, **iOS prebuild/build**, native CI/manual artifact validation
+  for networking/native PRs (QA-007).
+- [ ] **Step 5:** Regression green: offline single-device play, AI turns, round-end
+  timing, game-over sim, navigation, screenshot smoke (QA-009).
+
+---
+
+## Notes for reviewers
+- CI-coverable tasks (T1–T5, T7, T8) are weak-model executable and gate every PR.
+- LAB GATE tasks (T6, T9, plus device cells in T7/T10) require physical hardware and a
+  human/strong agent; their definition of done is recorded evidence, not "looks right".
+- The 30 s default / 10–120 s range AI-takeover timeout and the N=5s/M=3 heartbeat
+  constants are the spec defaults — confirm/tune on-device during T6/T9 and update
+  `src/utils/constants.ts` with the chosen values.
