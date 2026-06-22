@@ -1,6 +1,6 @@
 import {newGame} from './gameLogic';
 import {computeRoundOutcome, newRound, nextRound} from './roundLogic';
-import {RoundOutcome} from '../types';
+import {Player, RoundOutcome} from '../types';
 
 const playerOne = {ID: 0, name: 'foo', lifeCount: 3, isHuman: true};
 const playerTwo = {ID: 1, name: 'bar', lifeCount: 3, isHuman: false};
@@ -130,6 +130,28 @@ describe('computeRoundOutcome', () => {
     expect(computedOutcome.winnerID).toBeUndefined();
     expect(computedOutcome.roundLosers).toEqual(
       new Set([playerOne.ID, playerTwo.ID]),
+    );
+  });
+});
+
+describe('newRound seeded deal', () => {
+  const players: Player[] = [
+    {ID: 1, name: 'A', isHuman: true, lifeCount: 3},
+    {ID: 2, name: 'B', isHuman: false, lifeCount: 3},
+    {ID: 3, name: 'C', isHuman: false, lifeCount: 3},
+  ];
+
+  it('is reproducible for the same dealSeed', () => {
+    const r1 = newRound(1, 1, players, 'fixed-seed');
+    const r2 = newRound(1, 1, players, 'fixed-seed');
+    expect(r1.players.map(h => h.cards)).toEqual(r2.players.map(h => h.cards));
+  });
+
+  it('differs for different dealSeeds', () => {
+    const r1 = newRound(1, 1, players, 'seed-A');
+    const r2 = newRound(1, 1, players, 'seed-B');
+    expect(r1.players.map(h => h.cards)).not.toEqual(
+      r2.players.map(h => h.cards),
     );
   });
 });

@@ -29,10 +29,13 @@ export const createDeck = (): Card[] => {
   return deck;
 };
 
-export const shuffleDeck = (deck: Card[]): Card[] => {
+export const shuffleDeck = (
+  deck: Card[],
+  rng: () => number = Math.random,
+): Card[] => {
   // Implement shuffling logic
   for (let i = deck.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rng() * (i + 1));
     [deck[i], deck[j]] = [deck[j], deck[i]];
   }
   return deck;
