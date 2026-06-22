@@ -1,6 +1,6 @@
 import {CardRef, GameState, PlayerID} from '../types';
 import {endRound, makeMove, nextMove} from '../utils/gameLogic';
-import {validateMove} from '../utils/movesLogic';
+import {validateMove, ValidationError} from '../utils/movesLogic';
 import {roundIsOver} from '../utils/roundLogic';
 
 export type MoveRejectCode =
@@ -42,15 +42,19 @@ export const applyMove = (
   try {
     validateMove(round.currentTurn, hand, card);
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'Illegal move';
+    // Only expected validation failures become reject codes; rethrow anything else so
+    // real bugs in makeMove/nextMove surface instead of being misreported as a reject.
+    if (!(err instanceof ValidationError)) {
+      throw err;
+    }
     // validateMove runs BOTH the turn rule and the suit rule. The turn is already
     // checked above, so in practice only the suit rule can fire here — but map
     // defensively by message instead of assuming, so a future caller that skips the
     // pre-check still gets the right code (validateSuit's message contains 'respect').
-    const code: MoveRejectCode = /respect/i.test(msg)
+    const code: MoveRejectCode = /respect/i.test(err.message)
       ? 'MUST_FOLLOW_SUIT'
       : 'NOT_YOUR_TURN';
-    return {ok: false, code, message: msg};
+    return {ok: false, code, message: err.message};
   }
   makeMove(round.currentTurn, hand, card, () =>
     nextMove(round, hand, () => endRound(state)),

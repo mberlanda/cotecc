@@ -53,3 +53,13 @@ describe('codec — scoresMap', () => {
     ]);
   });
 });
+
+describe('codec — scoresMap robustness', () => {
+  it('skips non-numeric/corrupt keys instead of creating NaN keys', () => {
+    const back = decodeScoresMap({1: 5, foo: 9, '2': 3} as never);
+    expect(back[1]).toBe(5);
+    expect(back[2]).toBe(3);
+    expect(Object.keys(back)).toEqual(['1', '2']);
+    expect(Object.values(back).some(Number.isNaN)).toBe(false);
+  });
+});

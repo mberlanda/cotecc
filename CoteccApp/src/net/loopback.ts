@@ -11,11 +11,17 @@ export const createLoopback = (): {
   let clientMsgCb: ((env: Envelope) => void) | null = null;
   let clientCloseCb: (() => void) | null = null;
   let onClientCb: ((connId: string) => void) | null = null;
+  let connected = false;
   const CONN = 'loopback-0';
 
   const host: HostEndpoint = {
     onClient(cb) {
       onClientCb = cb;
+      // If the peer already connected before this callback was registered, notify
+      // immediately so a late consumer doesn't miss the (single) connect event.
+      if (connected) {
+        cb(CONN);
+      }
     },
     send(_connId, env) {
       clientMsgCb?.(env);
@@ -24,6 +30,7 @@ export const createLoopback = (): {
       clientMsgCb?.(env);
     },
     close() {
+      client.status = 'closed';
       clientCloseCb?.();
     },
   };
@@ -48,6 +55,9 @@ export const createLoopback = (): {
     hostMsgCb = cb;
   };
 
-  queueMicrotask(() => onClientCb?.(CONN));
+  queueMicrotask(() => {
+    connected = true;
+    onClientCb?.(CONN);
+  });
   return {host, client};
 };

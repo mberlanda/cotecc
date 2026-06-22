@@ -29,3 +29,18 @@ it('fires onClose when the host closes', () => {
   host.close();
   expect(closed).toBe(true);
 });
+
+it('flips client.status to closed when the host closes', () => {
+  const {host, client} = createLoopback();
+  expect(client.status).toBe('open');
+  host.close();
+  expect(client.status).toBe('closed');
+});
+
+it('notifies a late onClient registration of the already-connected peer', async () => {
+  const {host} = createLoopback();
+  await Promise.resolve(); // peer connects via queueMicrotask
+  let connId = '';
+  host.onClient(id => (connId = id)); // registered AFTER connect
+  expect(connId).toBe('loopback-0');
+});

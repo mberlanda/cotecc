@@ -80,11 +80,18 @@ export const makeMove = (
     currentTurn.winnerID = hand.playerID;
   }
 
-  // Remove from BOTH structures by value, atomically (RC3-GAME-001).
-  hand.cards.splice(cardIndex, 1);
+  // Remove from BOTH structures by value, atomically (RC3-GAME-001). Resolve the
+  // cardsBySuit index BEFORE mutating and guard it: a -1 would make splice(-1, 1)
+  // silently drop the wrong card, so a cards/cardsBySuit desync must fail loudly.
   const cardInSuitIndex = hand.cardsBySuit[handCard.suit].findIndex(c =>
     cardsEqual(c, handCard),
   );
+  if (cardInSuitIndex === -1) {
+    throw Error(
+      `cardsBySuit desync: ${handCard.suit} ${handCard.rank} missing for player ${hand.playerID}`,
+    );
+  }
+  hand.cards.splice(cardIndex, 1);
   hand.cardsBySuit[handCard.suit].splice(cardInSuitIndex, 1);
 
   currentTurn.moves.push({playerID: hand.playerID, card: handCard});

@@ -42,7 +42,12 @@ export const decodeScoresMap = (w: WireScoresMap): {
 } => {
   const out: {[playerID: PlayerID]: number} = {};
   for (const k of Object.keys(w)) {
-    out[Number(k)] = w[k];
+    const id = Number(k);
+    // Skip corrupt/non-numeric keys (untrusted input) rather than create a NaN key.
+    if (!Number.isInteger(id)) {
+      continue;
+    }
+    out[id] = w[k];
   }
   return out;
 };

@@ -29,10 +29,15 @@ describe('prng', () => {
     expect([r1(), r1(), r1()]).toEqual([r2(), r2(), r2()]);
   });
 
-  it('genDealSeed returns a non-empty string and varies', () => {
+  it('genDealSeed returns a non-empty string and is collision-free across many calls', () => {
     const s = genDealSeed();
     expect(typeof s).toBe('string');
     expect(s.length).toBeGreaterThan(0);
-    expect(genDealSeed()).not.toEqual(s); // effectively never equal
+    // Uniqueness is the property that matters for per-round seeds. Generating many at
+    // once and asserting the set size is collision-free in practice (the random suffix
+    // makes a same-millisecond collision astronomically unlikely), without the flaky
+    // single-pair inequality the reviewer flagged.
+    const seeds = new Set(Array.from({length: 1000}, () => genDealSeed()));
+    expect(seeds.size).toBe(1000);
   });
 });
