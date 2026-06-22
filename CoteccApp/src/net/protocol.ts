@@ -161,3 +161,17 @@ export const makeEnvelope = <T extends MsgType, P>(
   payload,
   ...extra,
 });
+
+interface DeltaBase {
+  serverSeq: number;
+  stateVersion: number;
+}
+export type StateDeltaEvent =
+  | (DeltaBase & {kind: 'MoveApplied'; seatId: SeatId; cardRef: CardRef})
+  | (DeltaBase & {kind: 'TrickWon'; seatId: SeatId})
+  | (DeltaBase & {kind: 'RoundDealt'; roundId: number})
+  | (DeltaBase & {kind: 'RoundEnded'; roundId: number});
+
+export interface StateDeltaPayload {
+  events: StateDeltaEvent[];
+}
