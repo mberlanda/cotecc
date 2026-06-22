@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/mberlanda/cotecc/compare/v1.2.1...v1.3.0) (2026-06-22)
+
+
+### Features
+
+* **net:** Phase 0 foundations — engine contracts for local multiplayer ([#52](https://github.com/mberlanda/cotecc/issues/52)) ([5e2e7b6](https://github.com/mberlanda/cotecc/commit/5e2e7b681d5acce52dc96bc6036f7526aff29d48))
+
 ## [1.2.1](https://github.com/mberlanda/cotecc/compare/v1.2.0...v1.2.1) (2026-06-14)
 
 
