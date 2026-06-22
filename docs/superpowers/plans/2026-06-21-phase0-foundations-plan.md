@@ -682,8 +682,14 @@ export const applyMove = (
     validateMove(round.currentTurn, hand, card);
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Illegal move';
-    // validateMove throws only for suit-following violations here (turn already checked).
-    return {ok: false, code: 'MUST_FOLLOW_SUIT', message: msg};
+    // validateMove runs BOTH the turn rule and the suit rule. The turn is already
+    // checked above, so in practice only the suit rule can fire here — but map
+    // defensively by message instead of assuming, so a future caller that skips the
+    // pre-check still gets the right code (validateSuit's message contains 'respect').
+    const code: MoveRejectCode = /respect/i.test(msg)
+      ? 'MUST_FOLLOW_SUIT'
+      : 'NOT_YOUR_TURN';
+    return {ok: false, code, message: msg};
   }
   makeMove(round.currentTurn, hand, card, () =>
     nextMove(round, hand, () => endRound(state)),
@@ -1616,14 +1622,58 @@ export interface StateDeltaPayload {
 }
 ```
 
+- [ ] **Step 3b: Redaction oracle over delta + lobby payloads (append to `protocol.test.ts`)**
+
+The redaction oracle (T9) must cover **every outbound message type**, not just the
+projection (Foundations §4.2/§4.3). Add a structural assertion that a serialized
+`StateDelta` / `LobbyUpdated` payload exposes only allowed card refs.
+
+```ts
+// append to CoteccApp/src/net/protocol.test.ts
+import {makeEnvelope, StateDeltaEvent, LobbyUpdatedPayload} from './protocol';
+
+// inline structural walker (same idea as seatView.test.ts collectCardRefs)
+const cardRefsIn = (node: unknown, acc = new Set<string>()): Set<string> => {
+  if (Array.isArray(node)) node.forEach(n => cardRefsIn(n, acc));
+  else if (node && typeof node === 'object') {
+    const o = node as Record<string, unknown>;
+    if (typeof o.suit === 'string' && typeof o.rank === 'number') acc.add(`${o.suit}-${o.rank}`);
+    Object.values(o).forEach(v => cardRefsIn(v, acc));
+  }
+  return acc;
+};
+
+describe('delta/lobby redaction', () => {
+  it('StateDelta exposes only the moving seat\'s played cardRef (no hands)', () => {
+    const events: StateDeltaEvent[] = [
+      {kind: 'MoveApplied', seatId: 's2', cardRef: {suit: 'ori', rank: 7}, serverSeq: 1, stateVersion: 1},
+      {kind: 'TrickWon', seatId: 's2', serverSeq: 2, stateVersion: 2},
+    ];
+    const env = makeEnvelope('StateDelta', 'sess-1', {events}, {serverSeq: 2});
+    const refs = cardRefsIn(JSON.parse(JSON.stringify(env)));
+    // only the single publicly-played card is present; no hand cards leak
+    expect([...refs]).toEqual(['ori-7']);
+  });
+
+  it('LobbyUpdated carries no card refs at all (cardCount only)', () => {
+    const payload: LobbyUpdatedPayload = {
+      tableName: 'T', hostSeatId: 's1', canStart: false,
+      seats: [{seatId: 's1', displayName: 'A', cardCount: 7, lives: 3, roundScore: 0, controller: 'local', connection: 'connected'}],
+    };
+    const env = makeEnvelope('LobbyUpdated', 'sess-1', payload, {serverSeq: 1});
+    expect([...cardRefsIn(JSON.parse(JSON.stringify(env)))]).toEqual([]);
+  });
+});
+```
+
 - [ ] **Step 4: Run and commit**
 
 Run: `npm test -- protocol`
-Expected: PASS.
+Expected: PASS (type-shape + delta/lobby redaction).
 
 ```bash
 git add CoteccApp/src/net/protocol.ts CoteccApp/src/net/protocol.test.ts
-git commit -m "feat(net): typed StateDelta/LobbyUpdated deltas (Phase 0 T11, RC2-API-004)"
+git commit -m "feat(net): typed StateDelta/LobbyUpdated deltas + redaction oracle (Phase 0 T11, RC2-API-004)"
 ```
 
 ---
@@ -1673,9 +1723,11 @@ describe('GameSession host authority', () => {
     const card = session.viewFor('s1').localHand[0];
     session.submitMove('s1', {cardRef: {suit: card.suit, rank: card.rank}, clientSeq: 1});
     const handLen = session.viewFor('s1').localHand.length;
+    const s2LenBefore = session.viewFor('s2').localHand.length;
     const dup = session.submitMove('s1', {cardRef: {suit: card.suit, rank: card.rank}, clientSeq: 1});
     expect(dup.ok).toBe(true); // idempotent re-ack
     expect(session.viewFor('s1').localHand.length).toBe(handLen); // not re-applied
+    expect(session.viewFor('s2').localHand.length).toBe(s2LenBefore); // and not mis-applied to another seat
   });
 
   it('rejects a clientSeq gap with STALE_STATE', () => {
@@ -1728,10 +1780,12 @@ export interface BackpressureLimits {
 > so Phase 0 only fixes the **contract** here (these interfaces + the shared `Envelope`/
 > `serverSeq`/`clientSeq` rules in T10/T12). The concrete HTTP wiring —
 > `GET /session/:id/events?afterSeq=` (SSE, `Last-Event-ID` resume) + `POST
-> /session/:id/commands` (idempotent `clientMessageId`) — is implemented in **Phase 1A
-> Task 5** alongside the WebSocket adapter, because both need the embedded HTTP server
-> that does not exist until 1A. This split is intentional; both adapters share this
-> `transport.ts` contract so the fallback is never a second protocol.
+> /session/:id/commands` (idempotent `clientMessageId`) — is built as an explicit task in
+> **Phase 1B (Task 5b)**, the placement the parent connectivity-design.md §7 assigns to
+> "SSE+POST parity" (the 1A WebSocket adapter ships first; the fallback follows in 1B).
+> Both adapters share this `transport.ts` contract so the fallback is never a second
+> protocol. (Round-1 R3-2 wrongly pointed this at 1A T5, which only implements `/ws`; see
+> the round-2 resolutions doc.)
 
 - [ ] **Step 4: Write `session.ts`**
 
@@ -1855,18 +1909,55 @@ export const createLoopback = (): {
 };
 ```
 
+- [ ] **Step 5b: Write `loopback.test.ts`** (the session tests use `GameSession` directly,
+  so `loopback.ts` would otherwise be 0%-covered and fail the `src/net/` per-dir floor in
+  T15). Test the wiring itself:
+
+```ts
+// CoteccApp/src/net/loopback.test.ts
+import {createLoopback} from './loopback';
+import {makeEnvelope} from './protocol';
+
+it('delivers host→client and client→host frames and fires onClient', async () => {
+  const {host, client} = createLoopback();
+  const clientGot: string[] = [];
+  const hostGot: string[] = [];
+  let connId = '';
+  host.onClient(id => (connId = id));
+  client.onMessage(env => clientGot.push(env.type));
+  (host as unknown as {_onMessage: (cb: (e: any) => void) => void})._onMessage(env =>
+    hostGot.push(env.type),
+  );
+  await Promise.resolve(); // flush queueMicrotask(onClient)
+  expect(connId).toBe('loopback-0');
+
+  host.broadcast(makeEnvelope('Heartbeat', 's', {}));
+  client.send(makeEnvelope('PlayMove', 's', {cardRef: {suit: 'ori', rank: 7}, clientSeq: 1}));
+  expect(clientGot).toContain('Heartbeat');
+  expect(hostGot).toContain('PlayMove');
+});
+
+it('fires onClose when the host closes', () => {
+  const {host, client} = createLoopback();
+  let closed = false;
+  client.onClose(() => (closed = true));
+  host.close();
+  expect(closed).toBe(true);
+});
+```
+
 - [ ] **Step 6: Run tests and full regression**
 
-Run: `npm test -- net/session`
-Expected: PASS (3 tests).
+Run: `npm test -- net/session net/loopback`
+Expected: PASS.
 
 Run: `npm test`
-Expected: PASS — full suite green, coverage thresholds met.
+Expected: PASS — full suite green, coverage thresholds met (incl. the `src/net/` floor).
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add CoteccApp/src/net/transport.ts CoteccApp/src/net/loopback.ts CoteccApp/src/net/session.ts CoteccApp/src/net/session.test.ts
+git add CoteccApp/src/net/transport.ts CoteccApp/src/net/loopback.ts CoteccApp/src/net/loopback.test.ts CoteccApp/src/net/session.ts CoteccApp/src/net/session.test.ts
 git commit -m "feat(net): host session + loopback transport + seq reconciliation (Phase 0 T12, RC2-API-001)"
 ```
 

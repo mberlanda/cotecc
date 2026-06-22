@@ -92,13 +92,19 @@ In `CoteccApp/app.json`, under `expo.web`, set:
 
 - [ ] **Step 3: Export and verify hashed assets + manifest exist**
 
+> First confirm `dist-embedded/` is gitignored (it must be, so the export tree is never
+> committed): `git -C CoteccApp check-ignore dist-embedded` should print the path. If not,
+> add `dist-embedded/` to `CoteccApp/.gitignore` before exporting.
+
 Run:
 ```bash
 cd CoteccApp && npx expo export --platform web --output-dir dist-embedded
-ls dist-embedded && ls dist-embedded/_expo/static/js/web 2>/dev/null || find dist-embedded -name '*.js' | head
+# DISTINGUISH static from single: "single" ALSO emits _expo/static/js/web/*.js, so an
+# ls is not enough. "static" mode populates metadata.json fileMetadata + per-route html.
+node -e "const m=require('./dist-embedded/metadata.json'); const n=Object.keys(m.fileMetadata||{}).length; if(!n){console.error('NOT static: empty fileMetadata');process.exit(1)} console.log('static OK, routed outputs:', n)"
 ```
-Expected: a multi-file export with hashed JS filenames and `index.html`. (For `"single"`
-there would be one bundle and no hashed asset tree.)
+Expected: `static OK, routed outputs: <n>` with n ≥ 1. (In `"single"` mode `fileMetadata`
+is empty `{}` and this exits non-zero.)
 
 - [ ] **Step 4: Smoke-test the static export loads the SPA routes**
 
@@ -147,6 +153,12 @@ const {execSync} = require('child_process');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+
+// Guard: Metro/expo-export output can differ across Node majors; the repo pins Node 22.
+if (parseInt(process.versions.node, 10) < 22) {
+  console.error(`requires Node >= 22 (see .nvmrc); running ${process.version}`);
+  process.exit(1);
+}
 
 const DIST = path.join(__dirname, '..', 'dist-embedded');
 const MANIFEST = path.join(DIST, 'embed-manifest.json');
@@ -223,7 +235,8 @@ cd CoteccApp && npm run embed:web && npm run embed:verify && echo "EMBED GUARD O
 echo " " >> dist-embedded/index.html && (npm run embed:verify && echo "BUG: passed on tampered HTML") || echo "GUARD OK: HTML tamper caught"
 npm run embed:web
 # tamper case B — a hashed JS asset (proves the hash covers the whole tree, not just HTML):
-JS=$(find dist-embedded -name '*.js' | head -1); echo "//x" >> "$JS" && (npm run embed:verify && echo "BUG: passed on tampered JS") || echo "GUARD OK: JS tamper caught"
+JS=$(find dist-embedded -name '*.js' | head -1); [ -n "$JS" ] || { echo "ERROR: no .js in dist-embedded"; exit 1; }
+echo "//x" >> "$JS" && (npm run embed:verify && echo "BUG: passed on tampered JS") || echo "GUARD OK: JS tamper caught"
 npm run embed:web
 # tamper case C — missing manifest:
 rm dist-embedded/embed-manifest.json && (npm run embed:verify && echo "BUG: passed with no manifest") || echo "GUARD OK: missing manifest caught"
@@ -405,16 +418,27 @@ executable** (UI + session wiring; reuses the existing `Podium`).
   policy (pinned): auto-suffix** — a second "Ann" becomes "Ann (2)" (deterministic,
   never rejects a join for a name clash; seat identity is the `seatId`, not the name).
   Control matrix (start/lock/add-bot/kick = host-only; play card = seat owner only).
+  **Guest view of host-only controls (pinned, UX-012):** render them `disabled` (grayed,
+  visible — not hidden), `accessibilityState={{disabled:true}}`; a guest tap does nothing
+  and does not navigate (no silent drop, no hidden control).
 - [ ] **Step 2 (command-state UX, TDD):** a `MoveSubmitState` machine
   `idle|myTurn|submitting|accepted|rejected(reason)|resyncing|disconnected|retryDisabled`
-  driven by `MoveAccepted`/`MoveRejected{code}`; out-of-turn/stale taps **disabled**, not
-  silently dropped (UX-012).
+  driven by `MoveAccepted`/`MoveRejected{code}`. **Transitions (pinned):** `myTurn`→
+  `submitting` on tap; →`accepted` on `MoveAccepted`; on `MoveRejected{code}`: if
+  `code==='MUST_FOLLOW_SUIT'|'CARD_NOT_IN_HAND'` →`rejected(reason)` then back to `myTurn`
+  (player can pick a legal card); if `code==='STALE_STATE'` →`resyncing`; if
+  `code==='NOT_YOUR_TURN'|'GAME_OVER'` →`retryDisabled` (retrying can't help — input
+  locked until next `SeatSnapshot`/turn); on socket drop →`disconnected`. Out-of-turn/stale
+  taps are **disabled, not silently dropped**.
 - [ ] **Step 3 (game-over/rematch, TDD):** on `phase==='gameOver'` show podium + final
   standings (reuse `Podium`); host lobby offers **Rematch** (same seats/settings, host
   re-issues seat tokens, clients `gameOver → lobby → live`) and **End table** (teardown);
-  browser guest sees podium + "Waiting for host…" + explicit **Leave table**, never a
-  dead socket; late scan during `gameOver` → `GAME_ALREADY_STARTED` + rematch hint
-  (RC2-UX-002).
+  browser guest sees podium + a "waiting for rematch" message + explicit **Leave table**,
+  never a dead socket; late scan during `gameOver` → `GAME_ALREADY_STARTED` + rematch hint
+  (RC2-UX-002). **i18n (pinned):** add keys to `en.ts`/`es.ts`/`it.ts` — `hostLanTable`,
+  `rematch`, `endTable`, `leaveTable`, `waitingForRematch`, `hostDisconnected`; no hardcoded
+  copy in components. If the WS closes while in gameOver/waiting, fall to the §3.6 terminal
+  "Host disconnected" state (do not leave a spinner). Add `testID`s for Playwright.
 - [ ] **Step 4:** Tests for lobby render, seat lock/bot/kick, start-button rule,
   game-over/rematch transitions. Run all → PASS.
 - [ ] **Step 5: Commit**
@@ -464,20 +488,34 @@ git commit -m "test(net): Playwright E2E on host-served bundle + minimal reconne
 
 Implements 1A §4.1, §1.5 (QA-007, BUILD-005/006, RC3-QA-002). Wire the guardrails into CI.
 
+> **Do NOT add a new parallel Android job (resolves review BLOCKER).** `build-release.yml`
+> already has a `verify-android` job gated by the `build-native` PR label and an
+> `attach-artifacts` job with `needs: [release-please, verify-android, verify-web]`. Adding
+> a second `build-native` job would duplicate native logic and break that `needs:` chain.
+> **Augment the existing `verify-android` job instead.** Read `.github/workflows/build-release.yml`
+> and `app-build.yml` before editing.
+
 **Files:**
-- Modify: `.github/workflows/*` (add jobs: lint, tsc, jest+coverage, `embed:verify`,
-  web export, Playwright, **Android prebuild/build**; iOS prebuild/build informational)
+- Modify: `.github/workflows/build-release.yml` (augment `verify-android`), `app-build.yml` (web-e2e)
+- Modify: `CoteccApp/package.json` (add `"typecheck": "tsc --noEmit"`)
 - Create: `docs/superpowers/plans/decisions/2026-06-21-criterion-test-layer-map.md`
 
-- [ ] **Step 1:** Add a `build-native` job triggered on changes to native/config/plugin
-  paths: runs `expo export` → `embed:verify` (packaged-asset + hash assertion) → Android
-  prebuild/build. iOS prebuild/build informational in alpha (D4).
-- [ ] **Step 2:** Add a `web-e2e` job: `expo export --platform web` → start Node harness →
-  Playwright. This is the CI acceptance path (no device).
+- [ ] **Step 0:** Add `"typecheck": "tsc --noEmit"` to `CoteccApp/package.json` scripts (no
+  such script exists today; CI steps must use it or `npx tsc --noEmit` directly).
+- [ ] **Step 1:** **Augment the existing `verify-android` job** in `build-release.yml`: insert
+  two steps immediately before its `Prebuild android` step — (a) `npx expo export --platform
+  web --output-dir dist-embedded`, (b) `npm run embed:verify` (packaged-asset + hash
+  assertion). Do not create a new job; keep the `build-native` label gate and the
+  `attach-artifacts` `needs:` chain intact. iOS prebuild/build informational in alpha (D4).
+- [ ] **Step 2:** Add a `web-e2e` job (in `app-build.yml`, alongside the existing
+  `web-docker-image` smoke): `npm run embed:web` → start Node harness → Playwright. This is
+  the CI acceptance path (no device). Reuse the existing screenshot-smoke pattern from
+  `web-docker-image` (or add an `assert:web-render` step) so **criterion 8's screenshot
+  layer is actually wired**, not just mapped (closes tracked T-screenshot).
 - [ ] **Step 3:** Record the **criterion → test-layer map** (1A §4.1 table) so "CI green"
   maps to "acceptance covered": criteria 1/4/5/6 = Jest + Playwright-on-harness; 3/7 +
   game-over/rematch = Playwright-on-harness; 2 + hotspot + real host-loss = physical lab
-  (1B §4); 8 = existing Jest + screenshot smoke.
+  (1B §4); 8 = existing Jest + the wired screenshot smoke (Step 2).
 - [ ] **Step 4: Verify CI config parses (deterministic)**
 
 Run: `cd CoteccApp && npx --yes yaml-lint ../.github/workflows/*.yml && echo "YAML OK"`

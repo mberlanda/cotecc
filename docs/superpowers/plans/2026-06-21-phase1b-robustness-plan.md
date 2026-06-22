@@ -98,7 +98,13 @@ Playwright assertions).
 - Add Playwright assertions in `CoteccApp/e2e/`
 
 - [ ] **Step 1:** Render per-seat `connection`/`controller` states + a live countdown
-  bound to `SeatSummary.graceUntil` (render only — no local deadline math).
+  bound to `SeatSummary.graceUntil`. **Concrete render rule (do not invent):** display
+  `Math.max(0, Math.ceil((graceUntil - Date.now()) / 1000))` seconds, refreshed by a
+  `setInterval(…, 1000)` started when `connection === 'grace'` and cleared when the seat
+  leaves `grace` (test the `clearInterval` on exit). "No local deadline math" means: use
+  the server's `graceUntil` epoch as-is — do NOT compute/extend the deadline locally; you
+  DO compute the displayed remaining seconds from it. `testID="seat-countdown-<seatId>"`,
+  single line (`numberOfLines={1}`, `adjustsFontSizeToFit`), text + number (not color-only).
 - [ ] **Step 2:** Host-loss terminal state (R2 deferred, D5): "Host disconnected — game
   cannot continue" with wait/return-home/start-new; browser clients on a dead host can't
   refresh → copy says rejoin via a new host's QR (NET-013).
@@ -143,6 +149,39 @@ verified in the lab.
   (or explicit `null`), and that each has a unique `testId`.
 - [ ] **Step 3:** Run `npm test -- diagnostics failureTaxonomy` → PASS.
 - [ ] **Step 4: Commit** `feat(net): diagnostic ladder + failure taxonomy (Phase 1B T5, NET-004)`.
+
+---
+
+## Task 5b: SSE+POST fallback transport (parity with WebSocket)
+
+Implements Foundations §3.4 (WS-007, API-007) and the parent connectivity-design.md §7
+"SSE+POST parity". **Resolves the round-1 mis-pointer (R3-2) — this is the task that
+actually builds it.** WebSocket (1A) is primary; this is the fallback for
+WS-upgrade/proxy failures **after** HTTP reachability is proven. It is the SAME protocol
+(same `Envelope`/`serverSeq`/`clientSeq`), not a second one. **Weak-model executable**
+(Node + the Phase 0 `transport.ts` contract + the 1A `nodeHost`/`GameSession`).
+
+**Files:**
+- Modify: `CoteccApp/harness/nodeHost.ts` (add the two HTTP routes)
+- Create: `CoteccApp/src/net/sseClient.ts` (`ClientConnection` over EventSource + fetch POST) + test
+- Modify: `CoteccApp/harness/conformance.shared.ts` (add SSE+POST rows so it runs against both transports)
+
+- [ ] **Step 1 (host routes, TDD against nodeHost):** add `GET /session/:id/events?afterSeq=`
+  — an SSE stream that replays the move log from `afterSeq` then streams new frames, each
+  SSE event id = `serverSeq` so a reconnect resumes via the `Last-Event-ID` header; and
+  `POST /session/:id/commands` — accepts one envelope, dedups on `clientMessageId`
+  (returns the same ack for a re-sent identical command), routes through
+  `seatForConn`/`submitMove` exactly like `/ws`. Assert: an SSE client receives the same
+  `serverSeq`-ordered frames as a WS client for the same session; a duplicate
+  `clientMessageId` POST returns the same ack and does not re-apply.
+- [ ] **Step 2 (client, TDD):** `sseClient.ts` implements `ClientConnection` (Phase 0
+  `transport.ts`) using `EventSource` for inbound + `fetch` POST for outbound; resumes
+  with `Last-Event-ID`. Same envelope, same `clientSeq` rules.
+- [ ] **Step 3 (parity):** extend `conformance.shared.ts` so the shared suite runs over
+  BOTH the WS and SSE+POST transports against `nodeHost`; a divergence fails CI. This is
+  what makes "the fallback is not a second protocol" enforceable.
+- [ ] **Step 4:** Run `npm test -- nodeHost sseClient conformance` → PASS.
+- [ ] **Step 5: Commit** `feat(net): SSE+POST fallback transport with WS parity (Phase 1B T5b, WS-007)`.
 
 ---
 
