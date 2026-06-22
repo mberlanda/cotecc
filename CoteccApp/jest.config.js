@@ -20,6 +20,20 @@ const config = {
       functions: 85,
       lines: 88,
     },
+    // Per-directory floors for the new networking/engine modules: a global average
+    // can stay green while a new module is thinly tested, so gate them directly.
+    './src/net/': {
+      statements: 90,
+      branches: 80,
+      functions: 90,
+      lines: 90,
+    },
+    './src/engine/': {
+      statements: 90,
+      branches: 80,
+      functions: 90,
+      lines: 90,
+    },
   },
 };
 

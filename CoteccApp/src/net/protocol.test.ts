@@ -5,6 +5,7 @@ import {
   makeEnvelope,
   StateDeltaEvent,
 } from './protocol';
+import {Suit} from '../utils/constants';
 
 
 describe('protocol decode/validate', () => {
@@ -16,7 +17,7 @@ describe('protocol decode/validate', () => {
       type: 'PlayMove',
       clientMessageId: 'm-1',
       sentAt: new Date().toISOString(),
-      payload: {cardRef: {suit: 'ori', rank: 7}, clientSeq: 1},
+      payload: {cardRef: {suit: Suit.Ori, rank: 7}, clientSeq: 1},
     });
     const res = decodeEnvelope(raw);
     expect(res.ok).toBe(true);
@@ -59,7 +60,7 @@ describe('protocol decode/validate', () => {
 describe('StateDelta union', () => {
   it('accepts each known delta event shape', () => {
     const events: StateDeltaEvent[] = [
-      {kind: 'MoveApplied', seatId: 's1', cardRef: {suit: 'ori', rank: 7}, serverSeq: 1, stateVersion: 1},
+      {kind: 'MoveApplied', seatId: 's1', cardRef: {suit: Suit.Ori, rank: 7}, serverSeq: 1, stateVersion: 1},
       {kind: 'TrickWon', seatId: 's2', serverSeq: 2, stateVersion: 2},
       {kind: 'RoundDealt', roundId: 2, serverSeq: 3, stateVersion: 3},
       {kind: 'RoundEnded', roundId: 2, serverSeq: 4, stateVersion: 4},
@@ -82,7 +83,7 @@ const cardRefsIn = (node: unknown, acc = new Set<string>()): Set<string> => {
 describe('delta/lobby redaction', () => {
   it("StateDelta exposes only the moving seat's played cardRef (no hands)", () => {
     const events: StateDeltaEvent[] = [
-      {kind: 'MoveApplied', seatId: 's2', cardRef: {suit: 'ori', rank: 7}, serverSeq: 1, stateVersion: 1},
+      {kind: 'MoveApplied', seatId: 's2', cardRef: {suit: Suit.Ori, rank: 7}, serverSeq: 1, stateVersion: 1},
       {kind: 'TrickWon', seatId: 's2', serverSeq: 2, stateVersion: 2},
     ];
     const env = makeEnvelope('StateDelta', 'sess-1', {events}, {serverSeq: 2});
