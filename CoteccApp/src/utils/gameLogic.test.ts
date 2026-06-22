@@ -16,7 +16,7 @@ import {
   simulateGameToEnd,
 } from './gameLogic';
 import {newTurn} from './turnLogic';
-import {Card, GameState, Player} from '../types';
+import {Card, GameState, Player, PlayerHand} from '../types';
 
 const playerOne = {ID: 0, name: 'foo', lifeCount: 3, isHuman: true};
 const playerTwo = {ID: 1, name: 'bar', lifeCount: 3, isHuman: false};
@@ -308,5 +308,48 @@ describe('gameLogic', () => {
       ];
       expect(getGameWinner(testPlayers)).toBeUndefined();
     });
+  });
+});
+
+describe('makeMove value-based removal', () => {
+  const buildHand = (): PlayerHand => {
+    const cards: Card[] = [
+      {suit: Suit.Ori, rank: 7, points: 0},
+      {suit: Suit.Ori, rank: 9, points: 4},
+      {suit: Suit.Coppe, rank: 3, points: 0},
+    ];
+    return {
+      isHuman: true,
+      playerID: 1,
+      cards: [...cards],
+      cardsBySuit: {
+        [Suit.Bastoni]: [],
+        [Suit.Spade]: [],
+        [Suit.Coppe]: [cards[2]],
+        [Suit.Ori]: [cards[0], cards[1]],
+      },
+    };
+  };
+
+  it('removes a card matched by VALUE (not reference) from both cards and cardsBySuit', () => {
+    const hand = buildHand();
+    const turn = newTurn(1);
+    const wireCard: Card = {suit: Suit.Ori, rank: 7, points: 999};
+
+    makeMove(turn, hand, wireCard, () => {});
+
+    expect(hand.cards.find(c => c.suit === Suit.Ori && c.rank === 7)).toBeUndefined();
+    expect(hand.cardsBySuit[Suit.Ori].find(c => c.rank === 7)).toBeUndefined();
+    expect(hand.cards.length).toBe(2);
+    expect(hand.cardsBySuit[Suit.Ori].length).toBe(1);
+    expect(turn.moves[0].card.points).toBe(0);
+  });
+
+  it('throws if the value is not in hand', () => {
+    const hand = buildHand();
+    const turn = newTurn(1);
+    expect(() =>
+      makeMove(turn, hand, {suit: Suit.Spade, rank: 2, points: 0}, () => {}),
+    ).toThrow();
   });
 });

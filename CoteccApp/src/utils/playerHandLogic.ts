@@ -1,8 +1,11 @@
 import {createDeck, dealCards, shuffleDeck} from './cardsLogic';
 import {Card, newSuitMap, Player, PlayerHand, PlayerID} from '../types';
 
-export const newPlayersHand = (players: Player[]): PlayerHand[] => {
-  const shuffledDeck = shuffleDeck(createDeck());
+export const newPlayersHand = (
+  players: Player[],
+  rng: () => number = Math.random,
+): PlayerHand[] => {
+  const shuffledDeck = shuffleDeck(createDeck(), rng);
   const playerHands = players
     .filter(p => p.lifeCount > 0)
     .map(p => toPlayerHand(p));

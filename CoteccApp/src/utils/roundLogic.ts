@@ -1,5 +1,6 @@
 import {newPlayersHand} from './playerHandLogic';
 import {nextPlayerID} from './playerLogic';
+import {genDealSeed, makeRng} from './prng';
 import {newTurn} from './turnLogic';
 import {
   GameState,
@@ -14,13 +15,17 @@ export const newRound = (
   ID: number,
   initialPlayerID: PlayerID,
   players: Player[],
+  dealSeed: string = genDealSeed(),
 ): Round => {
+  // dealSeed is host-internal (kept by the host/session for replay), never stored on
+  // Round so it can't leak through serialization. Default-random preserves offline play.
+  const rng = makeRng(dealSeed);
   return {
     ID,
     initialPlayerID,
     currentTurn: newTurn(initialPlayerID),
     pastTurns: [],
-    players: newPlayersHand(players),
+    players: newPlayersHand(players, rng),
     scoresMap: {},
   };
 };

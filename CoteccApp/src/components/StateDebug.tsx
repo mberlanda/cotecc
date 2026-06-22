@@ -1,6 +1,7 @@
 import React from 'react';
 import {Text, View} from 'react-native';
 
+// eslint-disable-next-line no-restricted-imports -- TODO(phase0-seatview): debug-only view of full GameState; network sessions disable the debug view (Foundations §4.2, RC2-ARCH-001)
 import {GameState} from '../types';
 
 export const StateDebugComponent = ({state}: {state: GameState}) => {

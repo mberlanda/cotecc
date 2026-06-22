@@ -1,0 +1,2 @@
+import {GameState} from '../../types';
+export const leak = (s: GameState) => s.players.length;
