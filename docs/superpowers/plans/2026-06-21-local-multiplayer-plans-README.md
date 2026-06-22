@@ -9,14 +9,16 @@ or explicitly flagged as a human/strong-agent **GATE**.
 
 ## The plans
 
-| Plan | Spec it implements | Executable by weak models? |
-|---|---|---|
-| `2026-06-21-phase0-foundations-plan.md` | Foundations (Phase 0 contracts) | **Yes, end-to-end.** Pure TypeScript + Jest in `CoteccApp/`. No devices, no decisions. This is the centerpiece. |
-| `2026-06-21-phase1a-lan-mvp-plan.md` | Phase 1A LAN MVP | **Partly.** Contains one mandatory **SPIKE GATE** (native socket runtime) that a human/strong agent must resolve first; the post-gate tasks are weak-model executable. |
-| `2026-06-21-phase1b-robustness-plan.md` | Phase 1B robustness | **Partly.** Logic/UX tasks are weak-model executable; device-lab cells are **manual GATES**. |
+| Plan | Spec it implements | Status | Executable by weak models? |
+|---|---|---|---|
+| `2026-06-21-phase0-foundations-plan.md` | Foundations (Phase 0 contracts) | ✅ **DONE** (PR #52, `5e2e7b6`) | **Yes, end-to-end.** Pure TypeScript + Jest in `CoteccApp/`. No devices, no decisions. This is the centerpiece. |
+| `2026-06-21-phase1a-lan-mvp-plan.md` | Phase 1A LAN MVP | 🔄 **IN PROGRESS** — platform-independent tasks (T2/T5/T6/T9/T10 web/harness/CI) underway; **SPIKE GATE (T1) still open** (native socket runtime — human/hardware) | **Partly.** The SPIKE GATE must be resolved by a human; the post-gate web/harness tasks are weak-model executable and run against the exported web bundle. |
+| `2026-06-21-phase1b-robustness-plan.md` | Phase 1B robustness | ⏳ not started | **Partly.** Logic/UX tasks are weak-model executable; device-lab cells are **manual GATES**. |
 
 Build strictly in order: **Phase 0 → 1A → 1B.** Nothing in 1A is correct until
-Phase 0's contracts exist and are green.
+Phase 0's contracts exist and are green. **Phase 0 is now green on `main`**, so 1A work
+has begun — starting with the tasks that do not depend on the native runtime (they run
+against `expo export`'s web bundle via the headless Node harness).
 
 ## Why this structure (the three goals you asked for)
 
