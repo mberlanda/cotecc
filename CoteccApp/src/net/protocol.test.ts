@@ -1,9 +1,11 @@
+import {GOLDEN_FRAMES} from './__fixtures__/frames';
 import {decodeEnvelope, PROTOCOL_VERSION} from './protocol';
 import {
   LobbyUpdatedPayload,
   makeEnvelope,
   StateDeltaEvent,
 } from './protocol';
+
 
 describe('protocol decode/validate', () => {
   it('accepts a well-formed PlayMove envelope', () => {
@@ -97,5 +99,18 @@ describe('delta/lobby redaction', () => {
     };
     const env = makeEnvelope('LobbyUpdated', 'sess-1', payload, {serverSeq: 1});
     expect([...cardRefsIn(JSON.parse(JSON.stringify(env)))]).toEqual([]);
+  });
+});
+
+describe('golden frames', () => {
+  it('every golden frame decodes successfully', () => {
+    for (const [name, raw] of Object.entries(GOLDEN_FRAMES)) {
+      const res = decodeEnvelope(raw);
+      expect(name && res.ok).toBeTruthy();
+    }
+  });
+
+  it('golden frames match the committed snapshot (change-detector)', () => {
+    expect(GOLDEN_FRAMES).toMatchSnapshot();
   });
 });
