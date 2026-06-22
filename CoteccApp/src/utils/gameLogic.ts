@@ -1,5 +1,5 @@
 import {aiMoveToPlay} from './aiPlayerLogic';
-import {cardIsGreater} from './cardsLogic';
+import {cardIsGreater, cardsEqual} from './cardsLogic';
 import {validateMove} from './movesLogic';
 import {nextHandPlayerID} from './playerHandLogic';
 import {updateLivesCount} from './playerLogic';
@@ -57,38 +57,37 @@ export const makeMove = (
   playedCard: Card,
   nextMove: () => void,
 ): void => {
-  // Ensure player holds the card selected.
-  const cardIndex = hand.cards.findIndex(c => c === playedCard);
+  // Match by VALUE so a rehydrated/wire card resolves to the held card.
+  const cardIndex = hand.cards.findIndex(c => cardsEqual(c, playedCard));
   if (cardIndex === -1) {
     throw Error(
-      `Player ${hand.playerID} does not own card: ${JSON.stringify(
-        playedCard,
-      )}`,
+      `Player ${hand.playerID} does not own card: ${JSON.stringify(playedCard)}`,
     );
   }
-  // Update the current suit if this is the first card of the round
-  currentTurn.suit ||= playedCard.suit;
-  currentTurn.highestCard ||= playedCard;
+  // Use the HAND's own card from here on: host-derived points, canonical identity.
+  const handCard = hand.cards[cardIndex];
+
+  // Update the current suit/highest/winner if this is the first card of the turn.
+  currentTurn.suit ||= handCard.suit;
+  currentTurn.highestCard ||= handCard;
   currentTurn.winnerID ??= hand.playerID;
 
-  // Update the highest card if applicable
   if (
-    playedCard.suit === currentTurn.suit &&
-    cardIsGreater(playedCard, currentTurn.highestCard)
+    handCard.suit === currentTurn.suit &&
+    cardIsGreater(handCard, currentTurn.highestCard)
   ) {
-    currentTurn.highestCard = playedCard;
+    currentTurn.highestCard = handCard;
     currentTurn.winnerID = hand.playerID;
   }
 
-  const removedCard = hand.cards.splice(cardIndex, 1)[0];
-  currentTurn.moves.push({
-    playerID: hand.playerID,
-    card: removedCard,
-  });
-  const cardInSuitIndex = hand.cardsBySuit[removedCard.suit].findIndex(
-    c => c === playedCard,
+  // Remove from BOTH structures by value, atomically (RC3-GAME-001).
+  hand.cards.splice(cardIndex, 1);
+  const cardInSuitIndex = hand.cardsBySuit[handCard.suit].findIndex(c =>
+    cardsEqual(c, handCard),
   );
-  hand.cardsBySuit[removedCard.suit].splice(cardInSuitIndex, 1);
+  hand.cardsBySuit[handCard.suit].splice(cardInSuitIndex, 1);
+
+  currentTurn.moves.push({playerID: hand.playerID, card: handCard});
 
   nextMove();
 };
