@@ -40,6 +40,39 @@ module.exports = {
       },
     ],
   },
+  overrides: [
+    {
+      // Client UI must consume SeatView (src/net/seatView), never engine GameState.
+      // (Foundations §2.3 / RC2-ARCH-001). Pattern form matches the imported NAME
+      // across every path spelling (../types, ../../types, @src/types).
+      files: ['src/screens/**/*.{ts,tsx}', 'src/components/**/*.{ts,tsx}'],
+      excludedFiles: ['**/*.test.{ts,tsx}'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              {
+                group: ['**/types', '@src/types'],
+                importNames: ['GameState'],
+                message:
+                  'Client UI must consume SeatView (src/net/seatView), never engine GameState. (RC2-ARCH-001)',
+              },
+              {
+                group: [
+                  '**/utils/gameLogic',
+                  '**/utils/roundLogic',
+                  '**/engine/*',
+                ],
+                message:
+                  'Client UI must not import the engine directly; go through a SeatView/session. (RC2-ARCH-001)',
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
   ignorePatterns: [
     '**/node_modules/**',
     '**/coverage/**',

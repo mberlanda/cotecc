@@ -12,9 +12,11 @@ import StickyHeader from '../components/StickyHeader';
 import TableComponent from '../components/TableComponent';
 import {Language, translate} from '../i18n';
 import {theme} from '../theme';
+// eslint-disable-next-line no-restricted-imports -- TODO(phase0-seatview): GameScreen still runs the engine in-UI; refactor to consume a SeatView/session (Foundations §2.2, RC2-ARCH-001)
 import {GameState, Move} from '../types';
 import {aiMoveToPlay} from '../utils/aiPlayerLogic';
 import {GAME_OVER_SIM_DELAY_MS, ROUND_END_DELAY_MS} from '../utils/constants';
+// eslint-disable-next-line no-restricted-imports -- TODO(phase0-seatview): GameScreen still runs the engine in-UI; refactor to consume a SeatView/session (Foundations §2.2, RC2-ARCH-001)
 import {
   getFinalStandings,
   isGameOver,
@@ -24,6 +26,7 @@ import {
   simulateGameToEnd,
 } from '../utils/gameLogic';
 import {generatePlayers} from '../utils/playerLogic';
+// eslint-disable-next-line no-restricted-imports -- TODO(phase0-seatview): GameScreen still runs the engine in-UI; refactor to consume a SeatView/session (Foundations §2.2, RC2-ARCH-001)
 import {nextRound} from '../utils/roundLogic';
 import {boolParam, firstParam, numberParam} from '../utils/searchParams';
 
