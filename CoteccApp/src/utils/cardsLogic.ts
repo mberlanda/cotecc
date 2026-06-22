@@ -88,3 +88,24 @@ export const cardIsGreater = (a: Card, b: Card): boolean => {
 export const getCardsWithSuit = (suit: Suit | null, hand: Card[]): Card[] => {
   return hand.filter(card => card.suit === suit);
 };
+
+// Canonical suit index: pins a stable order independent of locale/string compare.
+const SUIT_ORDER: Suit[] = [Suit.Bastoni, Suit.Coppe, Suit.Ori, Suit.Spade];
+
+// Value equality: two cards are the same iff suit AND rank match. Points are
+// host-derived and ignored, so a rehydrated/wire card compares equal to the held one.
+export const cardsEqual = (
+  a: {suit: Suit; rank: number},
+  b: {suit: Suit; rank: number},
+): boolean => a.suit === b.suit && a.rank === b.rank;
+
+// Total order on cards: suit (by SUIT_ORDER) then rank ascending. Use as a
+// comparator. Guarantees a deterministic, locale-independent canonical ordering.
+export const canonicalCardOrder = (a: Card, b: Card): number => {
+  const s = SUIT_ORDER.indexOf(a.suit) - SUIT_ORDER.indexOf(b.suit);
+  return s !== 0 ? s : a.rank - b.rank;
+};
+
+// Return a NEW array sorted in canonical order (does not mutate the input).
+export const sortCanonical = (cards: Card[]): Card[] =>
+  [...cards].sort(canonicalCardOrder);

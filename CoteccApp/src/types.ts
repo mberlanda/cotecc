@@ -8,6 +8,13 @@ export interface Card {
   readonly points: number;
 }
 
+// A value-only reference to a card (suit + rank). Points are host-derived and are
+// never trusted from a client, so a CardRef intentionally omits them.
+export interface CardRef {
+  readonly suit: Suit;
+  readonly rank: number;
+}
+
 export interface Player {
   readonly ID: PlayerID;
   readonly name: string;

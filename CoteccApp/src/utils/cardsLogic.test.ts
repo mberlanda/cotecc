@@ -1,16 +1,20 @@
 import {describe, expect, it} from '@jest/globals';
 
 import {
+  canonicalCardOrder,
   cardIsGreater,
+  cardsEqual,
   cardsPerPlayerFor,
   createDeck,
   dealCards,
   getCardsWithSuit,
   shuffleDeck,
+  sortCanonical,
   sortCards,
 } from './cardsLogic';
 import {Suit} from './constants';
 import {newPlayerHand} from '../__tests__/playerHandTestFixture';
+import {Card} from '../types';
 
 describe('createDeck', () => {
   it('creates a deck of 40 cards', () => {
@@ -177,5 +181,32 @@ describe('getCardsWithSuit', () => {
     ];
 
     expect(getCardsWithSuit(suit, hand).sort()).toEqual(expected.sort());
+  });
+});
+
+describe('card identity & ordering', () => {
+  const c = (suit: Suit, rank: number, points = 0): Card => ({suit, rank, points});
+
+  it('cardsEqual matches by suit+rank, ignoring points and reference', () => {
+    expect(cardsEqual(c(Suit.Ori, 7, 0), c(Suit.Ori, 7, 99))).toBe(true);
+    expect(cardsEqual(c(Suit.Ori, 7), c(Suit.Ori, 8))).toBe(false);
+    expect(cardsEqual(c(Suit.Ori, 7), c(Suit.Coppe, 7))).toBe(false);
+  });
+
+  it('canonicalCardOrder is a total order by suit then rank', () => {
+    const shuffled = [c(Suit.Spade, 5), c(Suit.Bastoni, 11), c(Suit.Bastoni, 2)];
+    const sorted = [...shuffled].sort(canonicalCardOrder);
+    expect(sorted).toEqual([
+      c(Suit.Bastoni, 2),
+      c(Suit.Bastoni, 11),
+      c(Suit.Spade, 5),
+    ]);
+  });
+
+  it('sortCanonical returns a new array in canonical order', () => {
+    const input = [c(Suit.Ori, 3), c(Suit.Coppe, 9)];
+    const out = sortCanonical(input);
+    expect(out).not.toBe(input); // new array
+    expect(out[0].suit).toBe(Suit.Coppe); // coppe < ori by suit index
   });
 });
