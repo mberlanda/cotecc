@@ -16,6 +16,7 @@
     "prepare": "cd .. && husky install CoteccApp/.husky",
     "start": "expo start",
     "test": "jest",
+    "typecheck": "tsc --noEmit",
     "web": "expo start --web"
   },
   "dependencies": {
