@@ -120,3 +120,41 @@ describe('GameSession join / bind / seatForConn', () => {
     expect(session.seatForConn('connA')).toBeUndefined();
   });
 });
+
+describe('GameSession snapshotForResume (minimal 1A reconnect)', () => {
+  it('returns a fresh snapshot for a valid seat token', () => {
+    const session = new GameSession(newGame(players, 1, 3), seats);
+    const join = session.join('connA', {displayName: 'Guest'});
+    expect(join.ok).toBe(true);
+    if (!join.ok) return;
+    const resume = session.snapshotForResume(join.seatToken);
+    expect(resume.ok).toBe(true);
+    if (resume.ok) {
+      expect(resume.view.localSeatId).toBe('s2');
+      expect(typeof resume.view.stateVersion).toBe('number');
+    }
+  });
+
+  it('returns SEAT_EXPIRED for an unknown token', () => {
+    const session = new GameSession(newGame(players, 1, 3), seats);
+    const resume = session.snapshotForResume('never-issued');
+    expect(resume.ok).toBe(false);
+    if (!resume.ok) expect(resume.code).toBe('SEAT_EXPIRED');
+  });
+
+  it('reflects state advanced since join (stateVersion bumps)', () => {
+    const session = new GameSession(newGame(players, 1, 3), seats);
+    const join = session.join('connA', {displayName: 'Guest'});
+    if (!join.ok) return;
+    const before = session.snapshotForResume(join.seatToken);
+    const card = session.viewFor('s1').localHand[0];
+    session.submitMove('s1', {
+      cardRef: {suit: card.suit, rank: card.rank},
+      clientSeq: 1,
+    });
+    const after = session.snapshotForResume(join.seatToken);
+    if (before.ok && after.ok) {
+      expect(after.view.stateVersion).toBeGreaterThan(before.view.stateVersion);
+    }
+  });
+});

@@ -146,20 +146,22 @@ export const createNodeHost = (opts: NodeHostOptions): Promise<NodeHost> => {
           sendError(ws, 'TABLE_FULL', 'No active table');
           return;
         }
-        // A reconnect carries seatId + seatToken; a fresh join does not.
+        // A reconnect carries seatId + seatToken; a fresh join does not. On a valid
+        // token the host re-binds the connection and replies with a fresh SeatSnapshot;
+        // an invalid/torn-down token yields SeatExpired (minimal 1A reconnect).
         if (env.seatId && env.seatToken) {
-          const bound = session.bind(env.seatId, env.seatId, env.seatToken);
-          if (!bound.ok) {
-            sendError(ws, 'BAD_SEAT_TOKEN', 'Invalid seat token');
+          const resume = session.snapshotForResume(env.seatToken);
+          const bound = session.bind(connId, env.seatId, env.seatToken);
+          if (!resume.ok || !bound.ok) {
+            send(
+              ws,
+              makeEnvelope('SeatExpired', sessionId, {seatId: env.seatId}),
+            );
             return;
           }
           send(
             ws,
-            makeEnvelope('SeatAssigned', sessionId, {
-              seatId: env.seatId,
-              seatToken: env.seatToken,
-              view: session.viewFor(env.seatId),
-            }),
+            makeEnvelope('SeatSnapshot', sessionId, {view: resume.view}),
           );
           return;
         }

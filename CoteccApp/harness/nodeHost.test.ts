@@ -230,4 +230,38 @@ describe('nodeHost HTTP + WS contract', () => {
     expect(frame.type).toBe('Error');
     expect(frame.payload.code).toBe('BAD_SEAT_TOKEN');
   });
+
+  it('WS reconnect with a valid seat token -> SeatSnapshot', async () => {
+    // Reconnect uses a token-scoped session, so a fresh table here isolates the seat.
+    const session = new GameSession(newGame(players, 1, 3), seats);
+    const h2 = await createNodeHost({distRoot, session});
+    try {
+      const joined = await wsRoundTrip(
+        h2.wsUrl,
+        makeEnvelope('JoinRequest', 'harness', {displayName: 'Ann'}),
+      );
+      const seatToken = joined.payload.seatToken as string;
+      const resumed = await wsRoundTrip(
+        h2.wsUrl,
+        makeEnvelope('JoinRequest', 'harness', {}, {seatId: 's2', seatToken}),
+      );
+      expect(resumed.type).toBe('SeatSnapshot');
+      expect(
+        (resumed.payload.view as {localSeatId: string}).localSeatId,
+      ).toBe('s2');
+    } finally {
+      await h2.close();
+    }
+  });
+
+  it('WS reconnect with a bad seat token -> SeatExpired', async () => {
+    const frame = await wsRoundTrip(
+      host.wsUrl,
+      makeEnvelope('JoinRequest', 'harness', {}, {
+        seatId: 's2',
+        seatToken: 'bogus-token',
+      }),
+    );
+    expect(frame.type).toBe('SeatExpired');
+  });
 });

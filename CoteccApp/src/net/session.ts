@@ -24,6 +24,13 @@ export type JoinResult =
 
 export type BindResult = {ok: true} | {ok: false; code: 'BAD_SEAT_TOKEN'};
 
+// Minimal 1A reconnect: the host re-projects a fresh SeatView for a returning client
+// (the view already carries stateVersion/serverSeq), or reports the seat is gone.
+// Full pause/AI/heartbeat policy is Phase 1B.
+export type ResumeResult =
+  | {ok: true; view: SeatView}
+  | {ok: false; code: 'SEAT_EXPIRED'};
+
 // Default resume-token generator. Portable (no Node crypto) so the same GameSession
 // runs in the RN host and the Node harness. The native host MAY inject a
 // crypto-strong generator via the constructor for production hardening (SEC).
@@ -97,6 +104,18 @@ export class GameSession {
 
   unbind(connId: string): void {
     this.connToSeat.delete(connId);
+  }
+
+  // Resume by token: returns a fresh snapshot if the seat token is still valid, else
+  // SEAT_EXPIRED (e.g. the table was torn down / the token was never issued).
+  snapshotForResume(seatToken: string): ResumeResult {
+    const entry = [...this.seatTokens.entries()].find(
+      ([, token]) => token === seatToken,
+    );
+    if (!entry) {
+      return {ok: false, code: 'SEAT_EXPIRED'};
+    }
+    return {ok: true, view: this.viewFor(entry[0])};
   }
 
   viewFor(seatId: SeatId): SeatView {
