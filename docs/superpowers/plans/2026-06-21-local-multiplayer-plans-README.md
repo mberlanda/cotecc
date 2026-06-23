@@ -12,7 +12,7 @@ or explicitly flagged as a human/strong-agent **GATE**.
 | Plan | Spec it implements | Status | Executable by weak models? |
 |---|---|---|---|
 | `2026-06-21-phase0-foundations-plan.md` | Foundations (Phase 0 contracts) | ✅ **DONE** (PR #52, `5e2e7b6`) | **Yes, end-to-end.** Pure TypeScript + Jest in `CoteccApp/`. No devices, no decisions. This is the centerpiece. |
-| `2026-06-21-phase1a-lan-mvp-plan.md` | Phase 1A LAN MVP | 🔄 **IN PROGRESS** — platform-independent tasks (T2/T5/T6/T9/T10 web/harness/CI) underway; **SPIKE GATE (T1) still open** (native socket runtime — human/hardware) | **Partly.** The SPIKE GATE must be resolved by a human; the post-gate web/harness tasks are weak-model executable and run against the exported web bundle. |
+| `2026-06-21-phase1a-lan-mvp-plan.md` | Phase 1A LAN MVP | 🔄 **IN PROGRESS** — platform-independent tasks **landed** on `feat/phase1a-lan-mvp`: ✅ T2 static export, ✅ T3 embed+hash guard, ✅ T5 Node host harness, ✅ T6 conformance, 🔶 T9 (reconnect + Playwright smoke done; join/lobby/game specs `fixme` pending UI), ✅ T10 CI gates. **Open:** T1 SPIKE GATE (native socket runtime — human/hardware), T4 (native config), T7/T8 (UI), T11 (exit gate). | **Partly.** The SPIKE GATE must be resolved by a human; the post-gate web/harness/CI tasks are weak-model executable and run against the exported web bundle. |
 | `2026-06-21-phase1b-robustness-plan.md` | Phase 1B robustness | ⏳ not started | **Partly.** Logic/UX tasks are weak-model executable; device-lab cells are **manual GATES**. |
 
 Build strictly in order: **Phase 0 → 1A → 1B.** Nothing in 1A is correct until

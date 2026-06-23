@@ -24,6 +24,39 @@ schema/size caps — divergence fails a shared conformance suite.
 
 ---
 
+> ## 🔄 STATUS (updated 2026-06-23) — platform-independent tasks landed on `feat/phase1a-lan-mvp`
+>
+> The tasks that run against the exported web bundle (no native runtime, no device) are
+> **done and green** (per-commit: tsc + `eslint .` + full Jest with coverage floors;
+> Playwright smoke run in a real browser):
+>
+> - ✅ **T2** `web.output=static` (`6c03d1b`). *Note:* Expo SDK 56 static export emits
+>   per-route HTML + `_expo/.routes.json` rather than the plan's `metadata.json.fileMetadata`;
+>   static mode is confirmed by the multiple routed HTML files. The embed pipeline hashes
+>   the whole tree, so this difference is downstream-irrelevant.
+> - ✅ **T3** embed pipeline + hash guard (`289a441`) — `embed:web`/`embed:verify`, all
+>   tamper cases caught. Added `.nvmrc` (22) and a `scripts/**`+`harness/**` eslint Node-env
+>   override; `dist-embedded/` eslint-ignored.
+> - ✅ **T5** headless Node host harness + static-serving contract (`32a96eb`). Added
+>   `GameSession.join/bind/seatForConn/unbind`; seat derived from the bound connection
+>   (SEC-002). `ws` + `tsx` devDeps; `harness:start` script.
+> - ✅ **T6** harness↔native conformance suite (`f3701b7`) — `runConformance(baseUrl,wsUrl)`
+>   (node:assert, reusable by the future on-device run).
+> - 🔶 **T9 (partial)** Playwright on the host-served bundle + minimal reconnect (`f4f1149`).
+>   `GameSession.snapshotForResume` (+ harness `SeatSnapshot`/`SeatExpired`) done & tested.
+>   `e2e/smoke.spec.ts` passes against the REAL bundle; **join/lobby/game specs are
+>   authored as `test.fixme`** because they drive the T7/T8 UI that does not exist yet.
+> - ✅ **T10** CI gates + criterion→layer map (`39f2d82`). Augmented `verify-android`
+>   (export+`embed:verify` before prebuild), added a `web-e2e` job + `typecheck` step/script.
+>   *Note:* used `embed:web && embed:verify` (not raw `expo export`) because `embed:verify`
+>   needs the manifest `embed:web` writes.
+>
+> **Still open:** **T1** SPIKE GATE (native HTTP+WS runtime — human/hardware, do NOT
+> auto-execute), **T4** (native permissions/cleartext/EAS — depends on T1 option),
+> **T7/T8** (Join/Lobby/in-game UI — unblocks the `fixme` e2e specs), and **T11** exit gate.
+
+---
+
 ## Task 1: 🚧 SPIKE GATE — native HTTP+WS server runtime (BLOCKS all of §3/§4)
 
 Implements 1A §1.1 (ARCH-006, EXPO-001, WS-004, RC3-EXPO-002). **This is a decision +
