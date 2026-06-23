@@ -6,12 +6,17 @@
   "scripts": {
     "android": "expo run:android",
     "clean": "rm -rf .expo coverage node_modules",
+    "embed:web": "node scripts/embed-web-bundle.js",
+    "embed:verify": "node scripts/verify-embedded-bundle.js",
+    "e2e": "playwright test --config e2e/playwright.config.ts",
+    "harness:start": "tsx harness/start.ts",
     "ios": "expo run:ios",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prepare": "cd .. && husky install CoteccApp/.husky",
     "start": "expo start",
     "test": "jest",
+    "typecheck": "tsc --noEmit",
     "web": "expo start --web"
   },
   "dependencies": {
@@ -31,9 +36,11 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@babel/runtime": "^7.20.0",
+    "@playwright/test": "^1.61.0",
     "@testing-library/react-native": "^13.0.0",
     "@types/jest": "29.5.14",
     "@types/react": "^19.2.0",
+    "@types/ws": "^8.18.1",
     "babel-jest": "^29.6.3",
     "eslint": "^8.57.1",
     "eslint-config-expo": "~56.0.4",
@@ -45,7 +52,9 @@
     "lint-staged": "^15.2.0",
     "prettier": "^3.1.1",
     "react-test-renderer": "19.2.3",
-    "typescript": "~6.0.3"
+    "tsx": "^4.22.4",
+    "typescript": "~6.0.3",
+    "ws": "^8.21.0"
   },
   "engines": {
     "node": ">=22.13.0"

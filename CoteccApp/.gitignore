@@ -72,6 +72,12 @@ dist-embedded/
 web-build/
 ios/assets
 
+# Playwright E2E artifacts
+/playwright-report
+/test-results
+/blob-report
+/.playwright
+
 # Continuous Native Generation — android/ios are regenerated via `expo prebuild`
 /android
 /ios

@@ -1,5 +1,15 @@
 # Phase 0 — Foundations Implementation Plan
 
+> **✅ STATUS: COMPLETE (2026-06-22).** All tasks T1–T15 implemented and merged to `main`
+> via PR #52 (squash `5e2e7b6`), TDD one commit per task. Exit gate green: **199 tests**,
+> `tsc --noEmit` clean, `npm run lint` clean, per-directory coverage floors held
+> (`src/net/` and `src/engine/`). A GitHub Copilot review (6 comments) was folded in
+> before merge. The task checkboxes below are left unchecked as the original recipe; the
+> shipped code lives under `CoteccApp/src/net/`, `CoteccApp/src/engine/`, and the hardened
+> `CoteccApp/src/utils/*`. Known deferrals are tracked in
+> `2026-06-22-plan-review-round2-resolutions.md` (events→StateDelta producer,
+> `pastTricks`/`turnId`, GameScreen→SeatView *type* boundary).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Introduce the contracts and engine changes every transport depends on

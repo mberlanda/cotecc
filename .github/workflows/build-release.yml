@@ -41,6 +41,14 @@ jobs:
         run: npm ci
         env:
           HUSKY: '0'
+      - name: Export & verify embedded web bundle
+        # The native binary serves the web bundle itself (Phase 1A). Export it into the
+        # embed path and assert its integrity (manifest + hash) BEFORE prebuild, so a
+        # build can never ship without / with a stale web bundle (BUILD-001, RC2-EXPO-001).
+        working-directory: CoteccApp
+        run: |
+          npm run embed:web
+          npm run embed:verify
       - name: Prebuild android
         working-directory: CoteccApp
         run: npx expo prebuild --platform android --no-install

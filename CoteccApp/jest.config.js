@@ -1,6 +1,8 @@
 /** @type {import('jest').Config} */
 const config = {
   preset: 'jest-expo',
+  // Playwright specs in e2e/ use Playwright's runner, not jest — keep jest out of them.
+  testPathIgnorePatterns: ['/node_modules/', '/e2e/'],
   collectCoverage: true,
   collectCoverageFrom: [
     // app/ is Expo Router glue (thin route re-exports + layout); the real logic
