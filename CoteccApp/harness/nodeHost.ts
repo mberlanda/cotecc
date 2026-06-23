@@ -104,6 +104,10 @@ export const createNodeHost = (opts: NodeHostOptions): Promise<NodeHost> => {
     wss.handleUpgrade(req, socket, head, ws => {
       perPeer.set(peer, count + 1);
       const connId = `c${++connSeq}`;
+      // ws raises 'error' on protocol violations (e.g. an over-cap frame exceeding
+      // maxPayload, which it then closes with 1009). A listener is required or Node
+      // rethrows it as an unhandled error; the close is handled below.
+      ws.on('error', () => undefined);
       ws.on('close', () => {
         perPeer.set(peer, Math.max(0, (perPeer.get(peer) ?? 1) - 1));
         session?.unbind(connId);
