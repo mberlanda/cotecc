@@ -42,6 +42,11 @@ module.exports = {
   },
   overrides: [
     {
+      // Node-only build/CI scripts (CommonJS): allow __dirname, require, process, etc.
+      files: ['scripts/**/*.js', 'harness/**/*.ts'],
+      env: {node: true},
+    },
+    {
       // Client UI must consume SeatView (src/net/seatView), never engine GameState.
       // (Foundations §2.3 / RC2-ARCH-001). Pattern form matches the imported NAME
       // across every path spelling (../types, ../../types, @src/types).
@@ -77,6 +82,7 @@ module.exports = {
     '**/node_modules/**',
     '**/coverage/**',
     '**/dist/**',
+    '/dist-embedded/**',
     '/android/**',
     '/ios/**',
     '/.expo/**',

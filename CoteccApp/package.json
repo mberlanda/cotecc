@@ -6,6 +6,8 @@
   "scripts": {
     "android": "expo run:android",
     "clean": "rm -rf .expo coverage node_modules",
+    "embed:web": "node scripts/embed-web-bundle.js",
+    "embed:verify": "node scripts/verify-embedded-bundle.js",
     "ios": "expo run:ios",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
